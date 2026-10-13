@@ -72,6 +72,24 @@
     "th": 480,
     "en": "Dashboard on a 390 px mobile viewport.",
     "es": "Panel en un viewport móvil de 390 px."
+   },
+   {
+    "id": "ambassador-puppy-1x1",
+    "w": 1024,
+    "h": 1024,
+    "tw": 640,
+    "th": 480,
+    "en": "AI brand ambassador content (generated)",
+    "es": "Contenido de embajadora de marca generado con IA"
+   },
+   {
+    "id": "ambassador-welcome-16x9",
+    "w": 1344,
+    "h": 768,
+    "tw": 640,
+    "th": 480,
+    "en": "AI brand ambassador content (generated)",
+    "es": "Contenido de embajadora de marca generado con IA"
    }
   ],
   "diagram": {
@@ -407,6 +425,60 @@
  "gpu-image-pipeline": {
   "images": [
    {
+    "id": "ambassador-puppy-1x1",
+    "w": 1024,
+    "h": 1024,
+    "tw": 640,
+    "th": 480,
+    "en": "VetNova AI brand ambassador with a puppy, 1:1 post (generated; face similarity 0.665).",
+    "es": "Embajadora de marca IA de VetNova con un cachorro, post 1:1 (generado; similitud facial 0.665)."
+   },
+   {
+    "id": "ambassador-reception-16x9",
+    "w": 1344,
+    "h": 768,
+    "tw": 640,
+    "th": 480,
+    "en": "At reception with a tablet, 16:9 banner with empty space on the right for text (generated; face similarity 0.695).",
+    "es": "En recepción con una tableta, banner 16:9 con espacio libre a la derecha para texto (generado; similitud facial 0.695)."
+   },
+   {
+    "id": "ambassador-cat-9x16",
+    "w": 768,
+    "h": 1344,
+    "tw": 640,
+    "th": 480,
+    "en": "In natural light with a cat, 9:16 story (generated; face similarity 0.667).",
+    "es": "Con luz natural y un gato, historia 9:16 (generado; similitud facial 0.667)."
+   },
+   {
+    "id": "ambassador-senior-dog-1x1",
+    "w": 1024,
+    "h": 1024,
+    "tw": 640,
+    "th": 480,
+    "en": "Care scene with a senior dog, 1:1 post (generated; face similarity 0.645).",
+    "es": "Escena de cuidado con un perro mayor, post 1:1 (generado; similitud facial 0.645)."
+   },
+   {
+    "id": "ambassador-studio-4x5",
+    "w": 896,
+    "h": 1120,
+    "tw": 640,
+    "th": 480,
+    "en": "Studio portrait for a team page, 4:5 (generated; face similarity 0.701).",
+    "es": "Retrato de estudio para una página de equipo, 4:5 (generado; similitud facial 0.701)."
+   },
+   {
+    "id": "ambassador-welcome-16x9",
+    "w": 1344,
+    "h": 768,
+    "tw": 640,
+    "th": 480,
+    "en": "Welcoming visitors at the clinic door, 16:9 banner (generated; face similarity 0.702).",
+    "es": "Dando la bienvenida en la puerta de la clínica, banner 16:9 (generado; similitud facial 0.702)."
+   },
+   {
     "id": "gpu-image-pipeline-demo-1440",
     "w": 1440,
     "h": 1590,
@@ -418,8 +490,8 @@
   ],
   "diagram": {
    "file": "gpu-image-pipeline",
-   "en": "GPU pipeline: spend cap, create pod, models, ComfyUI, batch, delete pod, read bill.",
-   "es": "Pipeline GPU: tope de gasto, crear pod, modelos, ComfyUI, lote, borrar pod y leer la factura."
+   "en": "Consistent AI character pipeline: research, dataset, LoRA, recipe, identity metric, brand content, cost-capped pods.",
+   "es": "Pipeline de personaje IA consistente: investigación, dataset, LoRA, receta, métrica de identidad, contenido de marca y pods con tope de gasto."
   }
  }
 }

@@ -1,81 +1,103 @@
 ---
-title: Pipeline de imágenes en GPU con ComfyUI y RunPod
+title: "Personaje de marca IA consistente: modelos locales, entrenamiento de LoRA y métricas de identidad, aplicado a marketing"
 slug: gpu-image-pipeline
 lang: es
 kind: project
 order: 14
-summary: Un flujo de imágenes basado en nodos que corre en mi laptop y en pods de GPU rentados, con scripts que crean, usan y borran cada pod en una sola corrida. El gasto total de GPU de octubre fue US$8.11.
+summary: Mantener consistente el rostro de un personaje de IA, medido con una puntuación de similitud en pods de GPU con tope de gasto, y aplicado a seis piezas de marketing de una marca veterinaria.
 role: Constructor del pipeline (proyecto personal)
 period: "2026"
 status: production
-stack: [ComfyUI, RunPod, Python, SDXL, ControlNet, IP-Adapter, kohya sd-scripts]
-aiTools: [ComfyUI, SDXL, ControlNet, IP-Adapter, LoRA, Wan 2.2, InsightFace]
+stack: [ComfyUI, RunPod, Python, SDXL, ControlNet, IP-Adapter FaceID, kohya sd-scripts, InsightFace]
+aiTools: [ComfyUI, SDXL, ControlNet, IP-Adapter FaceID, LoRA, Wan 2.2, InsightFace, FaceDetailer]
 metrics:
-  - label: Gasto en RunPod en octubre de 2026 (GPU $7.83, disco $0.28)
-    value: US$8.11
-    source: Vista de facturación del proveedor, 2026-10-13
-  - label: Más rápido que generar en la laptop, con una RTX 3090 Community a unos US$0.19 a 0.22 por hora
-    value: ~70×
-    source: Mediciones propias, 2026-10-13
-  - label: Para entrenar un LoRA de 1,880 pasos en una GPU rentada
+  - label: Similitud facial media de las seis piezas de marketing de VetNova contra la referencia (coseno de InsightFace, misma tanda)
+    value: "0.679"
+    source: Medición propia sobre las seis imágenes finales, 2026-10-13
+  - label: Similitud mínima entre las seis piezas
+    value: "0.645"
+    source: Medición propia sobre las seis imágenes finales, 2026-10-13
+  - label: Tanda de marketing en un pod RTX 4090 Secure a US$0.89 por hora, unos 37 minutos, estimada por tarifa y tiempo (pod borrado, 0 pods)
+    value: ~US$0.55
+    source: Tarifa del catálogo del proveedor y marcas de tiempo del pod, 2026-10-13
+  - label: Para entrenar un LoRA de 1,880 pasos en una GPU rentada (proyecto de investigación)
     value: ~41 min
     source: Bitácora propia de la corrida, 2026-10-13
-  - label: Pods que quedan encendidos
-    value: "0"
-    source: Consola del proveedor, leída el 2026-10-13
 demoUrl: https://carrerable.github.io/gpu-image-pipeline-demo/
 repoUrl: https://github.com/carrerable/gpu-image-pipeline-demo
 ---
 
 ## Contexto
 
-Genero imágenes con ComfyUI, una herramienta de grafo de nodos donde un flujo de trabajo es un diagrama de modelos y operaciones y no un script. El mismo conjunto de nodos corre en mi laptop y en pods rentados de RunPod, así que la pregunta es dónde debe correr cada trabajo y cuánto cuesta. Este caso trata de las decisiones de infraestructura y de costo detrás del flujo; las imágenes en sí no son el punto, ni tampoco los modelos concretos. Un flujo típico encadena un checkpoint SDXL, guía con IP-Adapter y ControlNet, un sampler, un detailer y un upscaler.
+Genero imágenes con ComfyUI, una herramienta de grafo de nodos donde un flujo de trabajo es un diagrama de modelos y operaciones y no un script. Los mismos nodos corren en mi laptop y en pods rentados de RunPod, así que las preguntas son dónde debe correr cada trabajo, cómo mantener reconocible el rostro de un personaje a lo largo de muchas imágenes y cuánto cuesta. Este caso tiene dos partes: la investigación que produjo el pipeline y su aplicación a contenido de marketing de VetNova, el software para clínicas veterinarias que construí, con una embajadora de marca que es un personaje de IA.
+
+> Las imágenes son un personaje ficticio nuevo creado para este portafolio y para el marketing de VetNova con el mismo pipeline; los recursos del proyecto de investigación original son privados.
 
 ## Mi rol
 
-- **Decidí:** en qué GPU corre cada tipo de trabajo, cómo se enciende y se apaga una tanda y el tope de gasto de cada corrida.
-- **Verifiqué:** la vista de facturación del proveedor y la lista de recursos en ejecución, para poder decir el costo y confirmar que no queda ningún pod, volumen ni endpoint serverless. También medí la calidad de la salida con un número y no a ojo.
+- **Decidí:** en qué GPU corre cada tipo de trabajo, cómo se enciende y se apaga una tanda, el tope de gasto de cada corrida, qué receta es la final y qué imágenes generadas son lo bastante buenas para publicarse.
+- **Verifiqué:** la vista de facturación del proveedor y la lista de recursos en ejecución, para poder decir el costo y confirmar que no queda ningún pod, volumen ni endpoint. Medí la consistencia de identidad con un número y revisé cada imagen a ojo: manos u ojos deformes, texto suelto, logos y animales.
 - **Delegué a la IA:** la generación de imágenes y de video en sí, que hacen los modelos dentro del flujo que diseño. El gasto y las reglas de apagado se quedan conmigo; no le delego a un agente decisiones de gasto en la nube.
 
 ## Investigación
 
-Comparé tres lugares donde correr un trabajo y guardé los números.
+**Modelos de texto locales.** El criterio fue caber en memoria. Mi laptop tiene unos 31 GB de RAM y ninguna GPU útil. Con cuantización GGUF de 4 bits (Q4) un modelo de 8B pesa unos 4.9 GB, uno de 7B unos 4.1 GB, uno de 24B unos 14 GB (lento) y uno de 8x7B unos 26 GB (de 1 a 3 tokens por segundo). Los modelos de 7 a 8B corrían de 6 a 15 tokens por segundo, cómodos para chatear; elegí Q4_K_M como equilibrio entre tamaño y calidad. Un modelo local de 8B no es más capaz que su base, así que las tareas complejas siguen yendo a modelos en la nube.
 
-- **Laptop.** La línea base.
-- **RunPod Community, RTX 3090.** Unos US$0.19 a 0.22 por hora y unas 70 veces más rápida que la laptop para generar imágenes.
-- **RunPod Secure, RTX 4090.** US$0.89 por hora. Cuesta más por hora, así que la uso solo para tandas cortas de unas 0.34 horas, donde la tarifa pesa poco.
+**Modelos de imagen.** Mantuve tres checkpoints SDXL locales y los comparé con la misma semilla, comprobando que el adaptador de identidad mantuviera el rostro. En la CPU de la laptop una imagen tardaba unos 4 minutos a 640x960, y de 8 a 15 minutos con un detailer de rostro en cuerpo completo. En una RTX 3090 Community a unos US$0.22 por hora, 27 retratos tomaron 1.6 minutos, unas 70 veces más rápido. El mínimo práctico es 12 GB de VRAM para SDXL y 24 GB para video. Me quedé con cerca de 1 megapíxel (832x1216): a 640x960 con CFG alto y un adaptador facial fuerte la salida parecía caricatura.
 
-Para video rento una L40S y corro Wan 2.2 en modo imagen a video. Un clip tarda unos 24 minutos con 20 pasos, alrededor de 70 segundos por paso. El modelo también tiene un modo rápido de 4 pasos; lo probé y lo descarté porque la calidad bajaba, así que los 24 minutos son el precio del resultado que quiero.
+**Dataset y LoRA.** Un LoRA es un adaptador pequeño que le enseña una identidad a un modelo base sin reentrenarlo. El dataset fue de 34 imágenes realistas más 13 expresiones, 47 en total. El entrenamiento corrió con kohya sd-scripts (v0.9.1, porque la rama principal pedía un torch más nuevo que el del pod): 1,880 pasos en unos 41 minutos en una GPU rentada, guardando unas 10 épocas. Aprobé la época 8 tras revisar las épocas 2 a 10 a ojo. Con el LoRA el rostro se mantiene sin el adaptador; el adaptador solo no lograba varias expresiones (tristeza, llanto, guiño). Un segundo reentrenamiento (épocas 6 a 14) se rechazó: similitud media de 0.43 a 0.47 y mínima de 0.25 a 0.31, frente a 0.595 del LoRA aprobado. La lección: un dataset hecho con imágenes ya desviadas fija la desviación en el LoRA.
 
-Entrenar un LoRA, un adaptador pequeño que le enseña un estilo o una identidad a un modelo base sin reentrenarlo, tomó 1,880 pasos en unos 41 minutos en una GPU rentada con kohya sd-scripts (v0.9.1), una herramienta de entrenamiento de código abierto.
+**Métrica de identidad y receta.** Puntué cada receta con el coseno de similitud de los embeddings faciales de InsightFace contra una imagen de referencia.
 
-Para elegir la receta final no me fié de la vista. Medí qué tan consistente se mantenía el rostro de un personaje generado entre variantes de la receta, con InsightFace como métrica de similitud entre embeddings faciales, y elegí la variante con la mejor puntuación.
+| Receta | Media | Mínima |
+|---|---|---|
+| V0 | 0.617 | 0.453 |
+| V6 (FaceID 0.6) | 0.595 | 0.534 |
+| V8 (FaceID 0.8) | 0.611 | 0.520 |
+| V9 (FaceID 0.7) | 0.599 | 0.520 |
 
-Para el costo leí la factura real del proveedor en vez de estimarla. En octubre de 2026 el gasto es de US$8.11, de los cuales US$7.83 son tiempo de GPU en pods y US$0.28 es disco. No hay endpoints serverless ni volúmenes de red.
+V0 tiene la media más alta pero la peor mínima, así que adopté V9: un rostro más anclado que V6 y igual de real. Un voto ciego mío sobre cinco fotos dio a V6 seis puntos, a V9 cinco y a V8 tres, y ninguna se marcó como IA. La métrica no ve el color de ojos ni el aspecto de caricatura; eso lo decide la revisión humana. Una puntuación menor a 0.45 o 0.50 cuenta como otra persona. V9 es FaceID 0.7, CFG 3.5, un sampler DPM++ 2M SDE y un detailer de rostro con denoise 0.25.
+
+**Video.** La imagen a video con Wan 2.2 corre en una L40S: 20 pasos de unos 70 segundos, unos 24 minutos por clip. El modo rápido de 4 pasos tenía aspecto de cera y lo rechacé. Usar el mismo primer y último fotograma mantuvo mejor el rostro (similitud de 0.86 a 0.94); la imagen a video simple deriva (0.68).
+
+**Costo.** Un pod nuevo por tanda, borrado al terminar, porque los pods apagados pierden la GPU. Un fallo documentado: un pod Community nunca arrancó (39 minutos sin runtime), así que lo borré y repetí la tanda en Secure. Toda la investigación de realismo costó unos US$1.1 y el día de entrenamiento del LoRA unos US$2. La factura de octubre de 2026 estaba en US$8.11 antes de la tanda de marketing de abajo (US$7.83 de GPU y US$0.28 de disco), sin endpoints serverless ni volúmenes de red.
+
+## Aplicación a marketing: la embajadora de marca IA de VetNova
+
+Para VetNova creé un personaje ficticio nuevo, una veterinaria de unos 32 años con bata clínica azul marino y estetoscopio, y produje seis piezas con el mismo método de imagen de referencia, adaptador de identidad y medición. No usé el LoRA de la investigación: esta tanda muestra solo la parte del adaptador de identidad del pipeline.
+
+1. **Referencia.** Generé cuatro candidatos del rostro con un checkpoint SDXL realista de propósito general y elegí uno.
+2. **Consistencia.** Cada pieza usa IP-Adapter FaceID Plus V2 con un peso de 0.5 a 0.7 desde esa referencia, CFG 3.5 y un detailer de rostro con denoise 0.25. Un prompt negativo estricto mantiene todo profesional y propio de una clínica, y excluye además menores, texto, logos, marcas de agua y deformaciones.
+3. **Selección.** Generé al menos dos variantes por pieza, y hasta seis cuando fallaban las manos, el texto en la ropa o la composición. Descarté las que tenían texto garabateado en batas o letreros, una bata blanca no deseada o un mal encuadre.
+4. **Medición.** Similitud de InsightFace contra la referencia de la misma tanda: media 0.679 y mínima 0.645 en las seis piezas finales (post del cachorro 0.665, banner de recepción 0.695, historia con gato 0.667, post con perro mayor 0.645, retrato de estudio 0.701, banner de bienvenida 0.702). Son más altas que las 0.595 a 0.617 de las recetas de investigación porque la referencia y las piezas salen de una misma tanda y las piezas las elegí yo, así que las leo como una comprobación de consistencia y no como una comparación equivalente.
+5. **Costo y tiempo.** Un pod RTX 4090 Secure a US$0.89 por hora (la 3090, más barata, no tenía stock), unos 37 minutos de la creación al borrado, 37 imágenes generadas, costo estimado de unos US$0.55 bajo un tope duro de US$3.00. El pod se borró y la lista de pods de la cuenta quedó vacía.
+
+Las seis piezas son un post 1:1 con un cachorro, un banner 16:9 de recepción con espacio libre a la derecha para texto, una historia 9:16 con un gato, un post 1:1 con un perro mayor, un retrato de estudio 4:5 y un banner 16:9 de bienvenida. La resolución es el tamaño nativo de SDXL, cerca de 1 megapíxel, exportada a un máximo de 1,600 px.
 
 ## Decisiones
 
 | Decisión | Alternativas descartadas | Por qué |
 |---|---|---|
-| Un script crea el pod de cada tanda, baja los modelos en paralelo, arranca ComfyUI y borra el pod al terminar | Encender y apagar pods a mano desde la consola | El apagado es parte del mismo comando, así que nunca depende de que me acuerde. Toda la factura de GPU de octubre es de US$7.83 porque ningún pod se queda encendido de noche. |
-| Un tope de gasto por corrida, fijado por mí antes de que arranque el script (por ejemplo US$5) | Corridas sin límite cobradas a fin de mes | Un script que crea recursos de pago necesita un límite duro que elijo yo, no uno que se ponga un agente. |
-| RTX 3090 Community para la mayoría del trabajo de imagen; RTX 4090 Secure solo para tandas cortas | Una GPU premium para todo | A unos US$0.19 a 0.22 por hora la tarjeta Community es la forma más barata de obtener una aceleración de 70 veces; la Secure vale sus US$0.89 solo cuando la tanda es corta. |
-| L40S para video, con los 20 pasos completos | El modo rápido de 4 pasos | El modo rápido era más veloz pero su calidad no era aceptable, así que acepté unos 24 minutos por clip. |
-| Sin volumen de red persistente; los modelos se bajan de nuevo en cada pod | Un volumen de red que guarde modelos entre sesiones | Un volumen cobra todos los días, genere o no. El script los baja en paralelo y la factura no tiene renglón de almacenamiento más allá de US$0.28 de disco. |
+| Un script crea el pod de cada tanda, baja los modelos en paralelo, arranca ComfyUI y borra el pod al terminar | Encender y apagar pods a mano desde la consola | El apagado es parte del mismo comando, así que nunca depende de que me acuerde. |
+| Un tope duro de gasto fijado por mí antes de la corrida (US$3.00 para la tanda de marketing, alerta de parada en US$2.50) | Corridas sin límite cobradas a fin de mes | Un proceso que crea recursos de pago necesita un límite que elijo yo, no uno que se ponga un agente. |
+| Receta V9, elegida por métrica más voto ciego | La receta con la media más alta (V0) | V0 tenía la peor mínima (0.453); V9 sostiene el rostro con más fiabilidad. |
+| Rechazar el modo de video de 4 pasos y el LoRA reentrenado | Video más rápido; un segundo LoRA | Un aspecto de cera y una similitud menor (0.43 a 0.47) son peores que 24 minutos y un buen LoRA. |
+| RTX 4090 Secure cuando la tarjeta barata no tiene stock | Esperar una 3090 Community | La tanda es corta, así que la tarifa mayor cuesta centavos; esperar cuesta tiempo. |
+| Sin volumen de red persistente; los modelos se bajan de nuevo en cada pod | Un volumen que guarde modelos entre sesiones | Un volumen cobra todos los días, genere o no. |
 | Pods en lugar de endpoints serverless | Un endpoint serverless | Un endpoint sirve para un servicio que atiende peticiones; esto es trabajo por lotes que enciendo y apago yo. |
 
 ## Validación y QA
 
-Lo que reviso es lo que reporta el proveedor: el conteo de pods activos (cero hoy), los renglones del mes y que no exista ningún volumen ni endpoint. Antes de cualquier trabajo pesado en mi propia máquina también compruebo que la cola de ComfyUI esté libre, para que dos trabajos nunca compitan por la misma GPU.
+Del lado de la nube reviso lo que reporta el proveedor: el conteo de pods activos (cero después de la tanda) y los renglones de facturación. Antes de trabajos pesados en mi propia máquina compruebo que la cola de ComfyUI esté libre.
 
-Para la calidad, la puntuación de similitud facial le da un número a cada variante de la receta, así que elegir la receta final es una comparación y no una opinión.
+Del lado de la imagen, la puntuación de similitud facial convierte la elección de receta en una comparación, y mi revisión de cada imagen cubre lo que el número no ve: manos, ojos, animales, texto suelto y logos, y si el resultado se ve profesional y publicable. Los archivos exportados pasan por un script que borra los metadatos de generación que guarda ComfyUI, y verifiqué que no quede ninguno.
 
 ## Resultados
 
-- Una forma repetible de rentar GPU: un script crea el pod, corre la tanda y borra el pod, bajo un tope que fijo yo.
-- Un modelo de costos fácil de leer: US$8.11 en octubre, todo basado en uso.
+- Un pipeline que mantiene reconocible a un personaje de IA a lo largo de muchas imágenes, con un número que lo demuestra y un rechazo documentado para cada receta que no aguantó.
+- Seis piezas de marketing de VetNova con similitud facial media de 0.679 y mínima de 0.645, producidas en unos 37 minutos por un costo estimado de US$0.55.
 - Un estado final limpio: cero pods activos, sin volúmenes, sin endpoints.
 
 ## Qué haría distinto
 
-Registraría el rendimiento, el tiempo por paso y el costo en el momento en que ocurre cada corrida, en las mismas notas del flujo, porque una vez borrado el pod ya no puedo leer esos números en la consola. Las cifras de esta página salen de ese tipo de bitácora y la habría empezado antes. También haría que el tope de gasto sea un argumento obligatorio del script, para que una corrida no pueda arrancar sin uno.
+Registraría el rendimiento, el tiempo por paso y el costo en el momento en que ocurre cada corrida, en las mismas notas del flujo, porque una vez borrado el pod ya no puedo leer esos números en la consola. El costo de la tanda de marketing de esta página es una estimación por tarifa y tiempo porque el renglón del proveedor para el pod aún no aparecía cuando lo escribí. También haría que el tope de gasto sea un argumento obligatorio del script y prepararía una referencia y una biblioteca de prompts antes de rentar el pod, ya que la mayor parte de los 37 minutos se fue en instalar nodos y bajar modelos, no en generar.
