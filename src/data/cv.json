@@ -1061,7 +1061,7 @@
         {
           "id": "mmx2.arch",
           "text": {
-            "en": "Designed the architecture and 6-VPS production (TypeScript, Node.js, tRPC, Prisma, MySQL/PostgreSQL, Redis) with per-server observability dashboards and a dedicated production environment for an enterprise client.",
+            "en": "Designed the architecture and 6-VPS production (TypeScript, Node.js, tRPC, Prisma, MySQL/PostgreSQL, Redis) with per-server observability dashboards and a dedicated enterprise-client environment.",
             "es": "Diseñé la arquitectura y la producción en 6 VPS (TypeScript, Node.js, tRPC, Prisma, MySQL/PostgreSQL, Redis) con dashboards de observabilidad por servidor y un entorno de producción dedicado para un cliente enterprise."
           },
           "skills": [],
@@ -1227,7 +1227,7 @@
         {
           "id": "vengala.web",
           "text": {
-            "en": "Built web interfaces (HTML5, CSS3, JavaScript, AngularJS) and e-commerce stores on WordPress and Shopify.",
+            "en": "Built web interfaces (HTML5, CSS3, JavaScript, AngularJS) and WordPress/Shopify e-commerce stores.",
             "es": "Desarrollé interfaces web (HTML5, CSS3, JavaScript, AngularJS) y tiendas en WordPress y Shopify."
           },
           "skills": [],
@@ -1350,7 +1350,7 @@
         {
           "id": "reyber.phase1",
           "text": {
-            "en": "Defined Phase 1: 25 research and requirements documents, 71 business rules and a 36-package build plan.",
+            "en": "Defined Phase 1: 25 research and requirements documents, 71 business rules, 36-package build plan.",
             "es": "Definí la fase 1: 25 documentos de investigación y requerimientos, 71 reglas de negocio y plan de construcción en 36 paquetes."
           },
           "skills": [],
