@@ -1,0 +1,82 @@
+---
+// Gantt de la carrera a partir de cv.json: carril principal y carril en paralelo; fechas aproximadas con trazo punteado.
+import ChartFrame from './ChartFrame.astro';
+import { validar } from '../../data/cv-schema.mjs';
+import cvRaw from '../../data/cv.json';
+import { textW, type Lang } from './lib';
+interface Props { chart: any; lang: Lang }
+const { chart, lang } = Astro.props;
+const cv = validar(cvRaw);
+const title = chart.title[lang];
+const desc = chart.desc[lang];
+const present = lang === 'es' ? 'Actual' : 'Present';
+
+const upd = cv.meta.updated.split('-').map(Number);
+const NOW = upd[0] + (upd[1] - 1) / 12 + (upd[2] - 1) / 365;
+const t0 = (s: string) => { const [y, m] = s.split('-').map(Number); return y + (m ? (m - 1) / 12 : 0); };
+const t1 = (s: string) => { const [y, m] = s.split('-').map(Number); return m ? y + m / 12 : y + 1; };
+const MIN = 2015, MAX = Math.ceil(NOW);
+const W = 640, LABEL = 130, PAD = 16, AREA = W - LABEL - PAD, ROW = 28, BAR_H = 16, HEAD = 22;
+const x = (t: number) => LABEL + ((t - MIN) / (MAX - MIN)) * AREA;
+
+const groups = [
+  { id: 'main', label: lang === 'es' ? 'Carril principal' : 'Main lane' },
+  { id: 'parallel', label: lang === 'es' ? 'En paralelo' : 'In parallel' },
+].map((g) => ({ ...g, items: cv.entries.filter((e: any) => e.lane === g.id).sort((a: any, b: any) => t0(a.start) - t0(b.start)) }));
+
+let y = HEAD;
+const blocks = groups.map((g) => {
+  const top = y;
+  const rows = g.items.map((e: any, i: number) => {
+    const s = t0(e.start);
+    const f = e.end ? t1(e.end) : NOW;
+    const dates = `${e.start}${e.approx ? '' : ''} – ${e.end ?? present}${e.approx ? (lang === 'es' ? ' (aprox.)' : ' (approx.)') : ''}`;
+    const label = `${e.short[lang]}: ${dates}`;
+    return { e, y: top + 20 + i * ROW, x0: x(s), w: Math.max(4, x(f) - x(s)), label, dates };
+  });
+  y = top + 20 + g.items.length * ROW + 10;
+  return { g, top, rows, h: 20 + g.items.length * ROW };
+});
+const H = y;
+const ticks: number[] = [];
+for (let yr = MIN; yr <= MAX; yr += 2) ticks.push(yr);
+const head = [lang === 'es' ? 'Entrada' : 'Entry', lang === 'es' ? 'Fechas' : 'Dates', lang === 'es' ? 'Carril' : 'Lane'];
+const trows = cv.entries.map((e: any) => [e.short[lang], `${e.start} – ${e.end ?? present}${e.approx ? (lang === 'es' ? ' (aprox.)' : ' (approx.)') : ''}`, e.lane]);
+const legend = [
+  { label: lang === 'es' ? 'Empleos y experiencia previa' : 'Employment and earlier experience' },
+  { label: lang === 'es' ? 'Proyectos independientes' : 'Independent projects', hot: true },
+  { label: lang === 'es' ? 'Punteada: fechas aproximadas (solo años)' : 'Dashed: approximate dates (years only)', dashed: true },
+];
+---
+<ChartFrame id={chart.id} lang={lang} title={title} desc={desc} source={chart.source[lang]} date={chart.date} head={head} rows={trows} legend={legend}>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={`t-${chart.id} d-${chart.id}`}>
+    <title id={`t-${chart.id}`}>{title}</title>
+    <desc id={`d-${chart.id}`}>{desc}</desc>
+    {ticks.map((t) => (
+      <g>
+        <line x1={x(t)} x2={x(t)} y1={HEAD - 8} y2={H - 4} stroke="var(--line)" stroke-width="1" />
+        <text class="muted" x={x(t)} y="10" text-anchor="middle">{t}</text>
+      </g>
+    ))}
+    {blocks.map((b) => (
+      <g>
+        <text class="muted" x="0" y={b.top + 12}>{b.g.label}</text>
+        {b.rows.map((r: any) => {
+          const tw = textW(r.label);
+          const tx = Math.max(4, Math.min(r.x0, W - tw - 4));
+          const fill = r.e.kind === 'project' ? 'var(--c-coral)' : 'color-mix(in srgb, var(--fg) 38%, transparent)';
+          return (
+            <g class="mark" tabindex="0" aria-label={r.label}>
+              <text x="0" y={r.y + BAR_H / 2 + 4}>{r.e.short[lang]}</text>
+              {r.e.approx
+                ? <rect class="shape" x={r.x0} y={r.y} width={r.w} height={BAR_H} rx="4" fill={`color-mix(in srgb, ${fill} 22%, transparent)`} stroke="var(--fg)" stroke-width="1.5" stroke-dasharray="4 3" />
+                : <rect class="shape" x={r.x0} y={r.y} width={r.w} height={BAR_H} rx="4" fill={fill} />}
+              {!r.e.end && <path d={`M${r.x0 + r.w + 3} ${r.y + 3}l7 ${BAR_H / 2 - 3}l-7 ${BAR_H / 2 - 3}z`} fill="var(--fg)" />}
+              <g class="tip"><rect x={tx} y={r.y - 24} width={tw} height="20" rx="4" /><text x={tx + 8} y={r.y - 10}>{r.label}</text></g>
+            </g>
+          );
+        })}
+      </g>
+    ))}
+  </svg>
+</ChartFrame>

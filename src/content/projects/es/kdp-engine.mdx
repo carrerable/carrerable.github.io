@@ -1,0 +1,68 @@
+---
+title: Un motor guiado por configuración para libros de colorear listos para imprenta
+slug: kdp-engine
+lang: es
+kind: project
+order: 16
+summary: Un pipeline de cuatro scripts que convierte un archivo de configuración en un libro de colorear listo para imprenta, con interior y portada, prompts de Claude, imágenes de FLUX y maquetación en PDFKit.
+role: Diseñador y desarrollador dirigiendo IA (proyecto personal)
+period: "2026"
+status: paused
+stack: [TypeScript, Node.js, Sharp, PDFKit]
+aiTools: [Claude Code, Anthropic API, FLUX (fal.ai), Sharp, PDFKit]
+metrics:
+  - label: Volúmenes generados (publicados)
+    value: 19 (1)
+    source: Archivo de estado del proyecto, 2026-10-13
+  - label: Páginas por volumen / resolución de impresión
+    value: 30 / 300 DPI
+    source: Notas de arquitectura del motor, 2026-10-13
+  - label: Fallos de anatomía en escenas de animales enroscados, revisión manual
+    value: hasta 30%
+    source: Revisión de un volumen, 2026
+demoUrl: https://carrerable.github.io/kdp-engine-demo/
+repoUrl: https://github.com/carrerable/kdp-engine-demo
+---
+
+## Contexto
+
+Autopublicar un libro de colorear en una plataforma de impresión bajo demanda exige mucho trabajo repetitivo y exacto: treinta páginas de line art limpio, un PDF de interior con portadilla, página de bienvenida y página de cierre, y una portada desplegable con lomo y contraportada que respete la zona del código de barras. Construí un motor que produce todo eso desde un solo archivo de configuración por volumen, de modo que un libro nuevo es una configuración nueva y no código nuevo.
+
+La colección llegó a diecinueve volúmenes generados. Uno está publicado; los demás esperan revisión visual y subida. El proyecto está en pausa.
+
+## Mi rol
+
+- **Decidí:** el pipeline, el contrato de la configuración de un volumen, el estilo de línea y la regla de aceptación de que una persona revisa las páginas antes de publicar algo.
+- **Verifiqué:** cada página de un volumen a ojo (anatomía, composición, texto ilegible) antes de que cuente como revisada.
+- **Delegué a la IA:** el código, escrito por Claude Code; los prompts de las páginas, escritos por Claude; y las imágenes, dibujadas por FLUX. El motor no decide nada del contenido por su cuenta.
+
+## Investigación
+
+El primer motor tenía sus cuatro scripts fijos a un solo volumen. Generalizarlos me enseñó dónde está de verdad la variabilidad. Los scripts ahora son genéricos y no contienen tema, texto, paleta ni ruta de ningún libro en particular. El `config.ts` de un volumen aporta el nombre de la colección, el número de volumen, el subtítulo, la cantidad de páginas (30 por omisión), la descripción del tema que va al prompt, el prompt de la portada, los textos de bienvenida, los puntos de la contraportada, la paleta de marca y un adelanto opcional del siguiente volumen.
+
+Los scripts corren en orden: generar los prompts (Claude devuelve en JSON treinta títulos de escena con sus prompts), construir las imágenes (FLUX las renderiza en paralelo y luego Sharp normaliza el contraste, binariza el line art para evitar bloques negros en los bordes y fija 300 DPI), construir la portada (una ilustración a color más lomo y contraportada calculados) y compilar el PDF de interior con PDFKit.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Un `config.ts` por volumen y scripts genéricos | Scripts copiados y editados por libro | Las copias se desalinean. Cuando una corrección entra al motor compartido, todo volumen futuro la recibe. |
+| Una cláusula anti-fusión fija en el sufijo de estilo compartido | Arreglar cada imagen mala a posteriori | Los prompts que piden cuerpos con el número correcto de extremidades y una sola cola reducen los fallos anatómicos en todos los volúmenes, aunque no del todo. |
+| Generar tres páginas de muestra y aprobarlas antes de producir las treinta | Generar el libro completo primero | Un estilo equivocado que se descubre tras treinta páginas desperdicia toda la corrida. Una muestra lo detecta en tres. |
+| Evitar poses riesgosas en el diseño de la escena | Cambiar a un modelo de imagen más pesado | El modelo más pesado mejoró la anatomía pero subexponía las imágenes en un paso de Sharp calibrado para el modelo rápido. Cambiar las escenas costó menos que recalibrar el pipeline. |
+
+## Validación y QA
+
+Revisé las treinta páginas del tercer volumen. La tasa de fallos en escenas con un animal enroscado sobre sí mismo fue alta, hasta 30% en una pasada manual completa: cuerpos fusionados, colas dobles, colas mal proporcionadas. La cláusula anti-fusión ayudó pero no fue determinante, porque el mismo prompt a veces salía bien y a veces mal. La solución que adopté estuvo en el diseño de la escena: el generador de prompts compartido ahora le indica a Claude que describa a los animales solo sentados, de pie, de perfil o de frente, nunca enroscados, hechos bola o con la cola alrededor del cuerpo. Las páginas fallidas se regeneraron una por una con una opción para renderizar solo las páginas elegidas.
+
+Otro problema recurrente era que el generador de prompts a veces devolvía 32 escenas en lugar de 30. Agregué una verificación y un reintento para que un volumen no pueda continuar con el número de páginas equivocado. Una hoja de escenas también puede traer texto ilegible en letreros, algo típico de los modelos de imagen, así que los letreros forman parte de la revisión visual.
+
+## Resultados
+
+- Un motor reutilizable de cuatro scripts, con cada volumen definido por un solo archivo de configuración.
+- Diecinueve volúmenes generados, cada uno de 30 páginas a 300 DPI con portada, y uno publicado.
+- Reglas de calidad escritas de vuelta en el motor compartido en lugar de parchadas en un solo libro.
+
+## Qué haría distinto
+
+El cuello de botella no es la generación; es la revisión. Dieciocho volúmenes están generados pero sin publicar, y la mayoría todavía espera una pasada visual o una subida; un volumen sin revisar es inventario, no producto. Construiría una herramienta de revisión que muestre las treinta páginas como una sola hoja de contactos con banderas automáticas (imágenes en blanco, demasiado negro, número de páginas incorrecto) y pida atención humana solo en las páginas marcadas.

@@ -1,0 +1,14 @@
+---
+import { ui, EMAIL, GITHUB, NAME } from '../i18n/ui';
+interface Props { lang: 'en' | 'es' }
+const { lang } = Astro.props;
+const t = ui[lang];
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <span class="mono">© 2026 · {NAME}</span>
+    <a class="mono" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+    <a class="mono" href={GITHUB}>GitHub</a>
+    <a class="mono" href={`/${lang}/how-i-work/#ai`}>{t['footer.ai']}</a>
+  </div>
+</footer>

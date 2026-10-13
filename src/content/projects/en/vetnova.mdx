@@ -1,0 +1,74 @@
+---
+title: VetNova
+slug: vetnova
+lang: en
+kind: project
+order: 10
+summary: Multi-tenant SaaS for veterinary clinics, built with AI-directed architecture. Pre-revenue; production-ready; maintenance mode.
+role: Product & Software Architect (independent project)
+period: "Aug 2026 – present"
+status: production
+stack: [TypeScript, NestJS, Next.js, PostgreSQL, Prisma, Playwright]
+aiTools: [Claude Code, ElevenLabs, Playwright]
+metrics:
+  - label: Data models (Prisma)
+    value: "137"
+    source: Counted on the schema, 2026-10-13
+  - label: Migrations
+    value: "96"
+    source: Counted on disk, 2026-10-13
+  - label: End-to-end smoke tests
+    value: "107"
+    source: Counted on disk, 2026-10-13
+  - label: REST route decorators
+    value: "722"
+    source: Counted in the API source, 2026-10-13
+demoUrl: https://carrerable.github.io/vetnova-demo/
+repoUrl: https://github.com/carrerable/vetnova-demo
+---
+
+## Context
+
+VetNova is a multi-tenant SaaS for veterinary clinics: appointments, clinical records, prescriptions, inventory, point of sale, Mexican tax e-invoicing (CFDI 4.0), an owner portal, WhatsApp and email notifications, a public API and five interface languages. The first commit is from 14 August 2026. It has been in production since 7 September and has been frozen since 21 September: the goal now is marketing and support, not new features. It is **pre-revenue**: production-ready, with no paying customer yet. What stands between the product and its first revenue is legal and fiscal setup, not engineering.
+
+I started from a market study of Mexico City veterinary clinics (August 2026). It argued against a generic clinical record and for a product built around retention and financial visibility, so the scope follows that.
+
+## My role
+
+- **Decided:** product scope, the multi-tenant data model, the isolation strategy, what is deliberately left out (job queues, a native mobile app in favor of an installable web app), and when to stop building.
+- **Verified:** behavior against the database and the 107 smoke scripts, screen-by-screen QA rounds, and every count in the documentation against the disk.
+- **Delegated to AI:** implementation. Claude Code writes the code under my specifications, rules and review of every change; I can read, debug and explain any part of it.
+
+## Research
+
+Three pieces of research shaped the build. The market study set the scope. A review of the stack against the actual team (one person directing an AI agent) favored a boring, widely hired stack: TypeScript, NestJS, Prisma, Next.js and PostgreSQL in a pnpm monorepo. And for each external dependency I tested the alternatives before choosing: I compared three text-to-speech engines by ear and by licence, and I measured the real cost of the paid one instead of trusting its public documentation (a three-minute tutorial cost 613 credits, not the 1,227 the documentation implied).
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| Row-Level Security (RLS) in PostgreSQL, set per request, with the app connecting as a non-owner role | Tenant filters in application code; one database per tenant | One forgotten `where` leaks another clinic's data; RLS fails closed. A database per tenant does not scale on serverless Postgres. |
+| No Redis and no job queue; scheduled jobs run in-process (28 cron jobs in 25 files, with locks) | BullMQ on Redis | One more piece of infrastructure to operate with no volume to justify it. The cost was measured and accepted: WhatsApp sends are a single attempt with a short timeout. |
+| Hand-written SQL migrations, applied with deploy only; `migrate dev` is never run | `prisma migrate dev`; editing the two broken migrations | The schema and the real database differ by 97 cosmetic items in 33 tables, so `migrate dev` would write a migration of renames. Editing applied migrations breaks their checksums. |
+| Paid ElevenLabs voice for tutorials, free Piper for iteration | Kokoro or Piper only; XTTS-v2; Edge TTS | The free engines have a better Mexican accent but flat prosody. ElevenLabs returns per-character timings, which gives exact subtitles. XTTS-v2 forbids commercial use; Edge TTS uses an unlicensed endpoint. |
+| Turn Google Ads off after ten days | Leave it running; keep only Search | 59.3% of clicks were Display, which Google enables by default; only 18 of 54 clicks came from real search intent. A channel is judged by intent clicks, not clicks. |
+| Do not route Claude Code to other model providers | Community proxies through `ANTHROPIC_BASE_URL` | All context, including customer data that appears in a smoke test, would reach a provider missing from the privacy notice, and skills and hooks break silently. |
+
+## Validation & QA
+
+Quality is gated by 107 end-to-end smoke scripts plus classification, integrity and assistant-bank checks, and by written QA rounds with a findings table per round (three rounds for the first release candidate). Visual QA runs with Playwright at several widths, in light and dark themes.
+
+Three warnings that never expire sit at the top of the status file, and each came from a real failure. Before calling a smoke test red, check that the API is serving today's code. A green smoke does not prove tax correctness: the e-invoicing provider's test mode accepts what the tax authority would reject. And a route that no smoke calls is not tested even if the suite is green: the multi-invoice endpoint answered 409 to everything until a smoke finally hit it.
+
+I also recount. The status file said 118 pages; the disk says 117, so 117 is what I publish.
+
+## Results
+
+- 137 data models, 96 migrations, 722 REST route decorators and 117 pages, in five languages (8,597 translation keys in 158 namespaces).
+- 125 tables carry a tenant identifier and are covered by RLS.
+- In production since 7 September 2026; frozen since 21 September; pre-revenue.
+- A cheap, fast lesson on paid acquisition: ten days of Google Ads produced no sign-ups and one finding worth keeping about how to read channel data.
+
+## What I'd do differently
+
+There is no continuous integration on this repository: the gates are local, which is exactly why the three warnings above exist. My next project (REYBER) has CI on every push from day one, and I would retrofit it here. I would also check the default network settings of an ad campaign before launching it, not after a week of misleading numbers. And I would exercise the full payment circuit before declaring the product ready: the live payment account has never processed a charge end to end, and I have documented that risk instead of hiding it.

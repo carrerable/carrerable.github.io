@@ -1,0 +1,584 @@
+[
+  {
+    "id": "career-gantt",
+    "kind": "gantt",
+    "title": {
+      "en": "Career timeline",
+      "es": "Línea de tiempo profesional"
+    },
+    "desc": {
+      "en": "Each bar is a role or project from the CV; dashed bars mark approximate dates (years only).",
+      "es": "Cada barra es un puesto o proyecto del CV; las barras punteadas marcan fechas aproximadas (solo años)."
+    },
+    "source": {
+      "en": "CV data",
+      "es": "Datos del CV"
+    },
+    "date": "2026-10-13",
+    "data": {
+      "from": "cv.json"
+    }
+  },
+  {
+    "id": "reyber-benchmark",
+    "kind": "bars-compare",
+    "title": {
+      "en": "Dynamic attributes on 10,000,000 synthetic policies",
+      "es": "Atributos dinámicos con 10,000,000 de pólizas sintéticas"
+    },
+    "desc": {
+      "en": "Two data-model options measured on the same data under row-level security. Lower is better in both panels; each panel has its own scale.",
+      "es": "Dos opciones de modelo de datos medidas con los mismos datos y seguridad por fila. Menos es mejor en ambos paneles; cada panel tiene su escala."
+    },
+    "source": {
+      "en": "REYBER benchmark report",
+      "es": "Reporte del benchmark de REYBER"
+    },
+    "date": "2026-09-22",
+    "data": {
+      "panels": [
+        {
+          "label": {
+            "en": "Index size",
+            "es": "Tamaño del índice"
+          },
+          "unit": " MB",
+          "series": [
+            {
+              "label": {
+                "en": "C · projection table",
+                "es": "C · tabla de proyección"
+              },
+              "value": 3030
+            },
+            {
+              "label": {
+                "en": "G′ · hybrid",
+                "es": "G′ · híbrido"
+              },
+              "value": 492,
+              "hot": true
+            }
+          ]
+        },
+        {
+          "label": {
+            "en": "Filter on two attributes",
+            "es": "Filtro de dos atributos"
+          },
+          "unit": " ms",
+          "decimals": 1,
+          "series": [
+            {
+              "label": {
+                "en": "C · projection table",
+                "es": "C · tabla de proyección"
+              },
+              "value": 118
+            },
+            {
+              "label": {
+                "en": "G′ · hybrid",
+                "es": "G′ · híbrido"
+              },
+              "value": 1.2,
+              "hot": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "qa-rounds",
+    "kind": "rounds",
+    "title": {
+      "en": "Reports portal: three QA rounds",
+      "es": "Portal de reportes: tres rondas de QA"
+    },
+    "desc": {
+      "en": "What each round found and what was resolved. Bars share one scale within a round.",
+      "es": "Qué encontró cada ronda y qué se resolvió. Las barras comparten escala dentro de cada ronda."
+    },
+    "source": {
+      "en": "Own QA records",
+      "es": "Registros propios de QA"
+    },
+    "date": "2026-10",
+    "data": {
+      "rounds": [
+        {
+          "label": {
+            "en": "Round 1",
+            "es": "Ronda 1"
+          },
+          "items": [
+            {
+              "label": {
+                "en": "cases validated",
+                "es": "casos validados"
+              },
+              "value": 15
+            },
+            {
+              "label": {
+                "en": "failures",
+                "es": "fallas"
+              },
+              "value": 14,
+              "hot": true
+            },
+            {
+              "label": {
+                "en": "blocked",
+                "es": "bloqueados"
+              },
+              "value": 6
+            }
+          ]
+        },
+        {
+          "label": {
+            "en": "Round 2",
+            "es": "Ronda 2"
+          },
+          "items": [
+            {
+              "label": {
+                "en": "errors fixed (of 10)",
+                "es": "errores corregidos (de 10)"
+              },
+              "value": 8,
+              "of": 10,
+              "hot": true
+            }
+          ]
+        },
+        {
+          "label": {
+            "en": "Round 3",
+            "es": "Ronda 3"
+          },
+          "items": [
+            {
+              "label": {
+                "en": "time-zone bug fixed",
+                "es": "error de zona horaria corregido"
+              },
+              "value": 1,
+              "hot": true
+            },
+            {
+              "label": {
+                "en": "differences accepted as no-bug",
+                "es": "diferencias aceptadas, no son error"
+              },
+              "value": 2
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "migration-reconcile",
+    "kind": "bars-compare",
+    "title": {
+      "en": "Migration reconciled against the source",
+      "es": "Migración conciliada contra la fuente"
+    },
+    "desc": {
+      "en": "Historical orders from 3 branches: source files against production, and the errors found.",
+      "es": "Órdenes históricas de 3 sucursales: archivos fuente contra producción, y errores encontrados."
+    },
+    "source": {
+      "en": "Own migration records",
+      "es": "Registros propios de la migración"
+    },
+    "date": "2026-09",
+    "data": {
+      "panels": [
+        {
+          "label": {
+            "en": "Orders",
+            "es": "Órdenes"
+          },
+          "series": [
+            {
+              "label": {
+                "en": "source files",
+                "es": "archivos fuente"
+              },
+              "value": 8339
+            },
+            {
+              "label": {
+                "en": "production",
+                "es": "producción"
+              },
+              "value": 8339,
+              "hot": true
+            }
+          ]
+        },
+        {
+          "label": {
+            "en": "Errors",
+            "es": "Errores"
+          },
+          "series": [
+            {
+              "label": {
+                "en": "errors in production",
+                "es": "errores en producción"
+              },
+              "value": 0,
+              "hot": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "collections-funnel",
+    "kind": "funnel",
+    "title": {
+      "en": "B2B SaaS collections campaign",
+      "es": "Campaña de cobranza de un SaaS B2B"
+    },
+    "desc": {
+      "en": "Overdue accounts contacted, accounts regularized and cancellations.",
+      "es": "Cuentas atrasadas contactadas, cuentas regularizadas y bajas."
+    },
+    "source": {
+      "en": "Own collections-campaign records",
+      "es": "Registros propios de la campaña de cobranza"
+    },
+    "date": "2026-09",
+    "data": {
+      "stages": [
+        {
+          "label": {
+            "en": "contacted",
+            "es": "contactadas"
+          },
+          "value": 22
+        },
+        {
+          "label": {
+            "en": "regularized",
+            "es": "regularizadas"
+          },
+          "value": 11,
+          "hot": true
+        },
+        {
+          "label": {
+            "en": "cancellations",
+            "es": "bajas"
+          },
+          "value": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "jarvis-latency",
+    "kind": "bars-compare",
+    "title": {
+      "en": "JARVIS: time to first sound",
+      "es": "JARVIS: tiempo al primer sonido"
+    },
+    "desc": {
+      "en": "The fixed fast path against the LLM path with streaming, with the 6.0 s target for the LLM path.",
+      "es": "La ruta rápida fija contra la ruta del LLM con streaming, con la meta de 6.0 s para el LLM."
+    },
+    "source": {
+      "en": "JARVIS status file",
+      "es": "Archivo de estado de JARVIS"
+    },
+    "date": "2026-10-13",
+    "data": {
+      "panels": [
+        {
+          "label": {
+            "en": "End of speech to first sound",
+            "es": "Fin de voz a primer sonido"
+          },
+          "unit": " s",
+          "decimals": 1,
+          "series": [
+            {
+              "label": {
+                "en": "fast path",
+                "es": "ruta rápida"
+              },
+              "value": 2.7,
+              "hot": true
+            },
+            {
+              "label": {
+                "en": "LLM with streaming",
+                "es": "LLM con streaming"
+              },
+              "value": 8.6
+            }
+          ],
+          "ref": {
+            "value": 6,
+            "label": {
+              "en": "LLM target 6.0 s",
+              "es": "meta del LLM 6.0 s"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "video-tokens",
+    "kind": "bars-compare",
+    "title": {
+      "en": "Image cost per contact sheet",
+      "es": "Costo de imagen por hoja de contactos"
+    },
+    "desc": {
+      "en": "Cropping the contact sheet to the useful area cuts the image cost.",
+      "es": "Recortar la hoja de contactos a la zona útil reduce el costo de la imagen."
+    },
+    "source": {
+      "en": "Video workflow notes",
+      "es": "Notas del flujo de video"
+    },
+    "date": "2026-10-08",
+    "data": {
+      "panels": [
+        {
+          "label": {
+            "en": "Tokens per sheet",
+            "es": "Tokens por hoja"
+          },
+          "series": [
+            {
+              "label": {
+                "en": "full frame",
+                "es": "cuadro completo"
+              },
+              "value": 2400
+            },
+            {
+              "label": {
+                "en": "cropped",
+                "es": "recortado"
+              },
+              "value": 1540,
+              "hot": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "stack-matrix",
+    "kind": "matrix",
+    "title": {
+      "en": "Stack by project, with evidence",
+      "es": "Stack por proyecto, con evidencia"
+    },
+    "desc": {
+      "en": "A check mark means the technology is listed in that case study; hover or focus a mark to see where.",
+      "es": "Una marca indica que la tecnología aparece en ese caso; pasa el cursor o enfoca una marca para ver dónde."
+    },
+    "source": {
+      "en": "Stack lists of each case study",
+      "es": "Listas de stack de cada caso"
+    },
+    "date": "2026-10-13",
+    "data": {
+      "columns": [
+        {
+          "id": "typescript",
+          "label": "TypeScript"
+        },
+        {
+          "id": "sql",
+          "label": "SQL"
+        },
+        {
+          "id": "postgresql",
+          "label": "PostgreSQL"
+        },
+        {
+          "id": "react",
+          "label": "React / Next.js"
+        },
+        {
+          "id": "nestjs",
+          "label": "NestJS"
+        },
+        {
+          "id": "python",
+          "label": "Python"
+        },
+        {
+          "id": "claude",
+          "label": "Claude Code"
+        },
+        {
+          "id": "llm",
+          "label": "Local LLMs"
+        },
+        {
+          "id": "remotion",
+          "label": "Remotion"
+        },
+        {
+          "id": "playwright",
+          "label": "Playwright"
+        }
+      ],
+      "rows": [
+        {
+          "slug": "qa-release-gate",
+          "label": {
+            "en": "A two-stage QA gate for weekly releases",
+            "es": "Compuerta de QA en dos tiempos para releases semanales"
+          },
+          "cells": {
+            "typescript": "qa-release-gate.mdx (stack: TypeScript)",
+            "sql": "qa-release-gate.mdx (stack: MySQL)",
+            "react": "qa-release-gate.mdx (stack: React)",
+            "claude": "qa-release-gate.mdx (aiTools: Claude Code)",
+            "playwright": "qa-release-gate.mdx (stack: Playwright)"
+          }
+        },
+        {
+          "slug": "data-migration-pipeline",
+          "label": {
+            "en": "Auditable data migration, from Excel to production",
+            "es": "Migración de datos auditable, de Excel a producción"
+          },
+          "cells": {
+            "typescript": "data-migration-pipeline.mdx (stack: TypeScript)",
+            "sql": "data-migration-pipeline.mdx (stack: MySQL)",
+            "claude": "data-migration-pipeline.mdx (stack: Claude Code)"
+          }
+        },
+        {
+          "slug": "pagination-root-cause",
+          "label": {
+            "en": "Root cause - pagination without ORDER BY",
+            "es": "Causa raíz - paginación sin ORDER BY"
+          },
+          "cells": {
+            "typescript": "pagination-root-cause.mdx (stack: TypeScript)",
+            "sql": "pagination-root-cause.mdx (stack: MySQL)",
+            "claude": "pagination-root-cause.mdx (stack: Claude Code)"
+          }
+        },
+        {
+          "slug": "vetnova",
+          "label": {
+            "en": "VetNova",
+            "es": "VetNova"
+          },
+          "cells": {
+            "typescript": "vetnova.mdx (stack: TypeScript)",
+            "sql": "vetnova.mdx (stack: PostgreSQL)",
+            "postgresql": "vetnova.mdx (stack: PostgreSQL)",
+            "react": "vetnova.mdx (stack: Next.js)",
+            "nestjs": "vetnova.mdx (stack: NestJS)",
+            "claude": "vetnova.mdx (aiTools: Claude Code)",
+            "playwright": "vetnova.mdx (stack: Playwright)"
+          }
+        },
+        {
+          "slug": "reyber",
+          "label": {
+            "en": "REYBER",
+            "es": "REYBER"
+          },
+          "cells": {
+            "typescript": "reyber.mdx (stack: TypeScript)",
+            "sql": "reyber.mdx (stack: PostgreSQL)",
+            "postgresql": "reyber.mdx (stack: PostgreSQL)",
+            "react": "reyber.mdx (stack: Next.js)",
+            "nestjs": "reyber.mdx (stack: NestJS)",
+            "claude": "reyber.mdx (aiTools: Claude Code)"
+          }
+        },
+        {
+          "slug": "jarvis",
+          "label": {
+            "en": "JARVIS",
+            "es": "JARVIS"
+          },
+          "cells": {
+            "python": "jarvis.mdx (stack: Python)",
+            "claude": "jarvis.mdx (aiTools: Claude Code)",
+            "llm": "jarvis.mdx (stack: Ollama)"
+          }
+        },
+        {
+          "slug": "ai-video-production",
+          "label": {
+            "en": "AI video production, with editing as code",
+            "es": "Producción de video con IA, con la edición como código"
+          },
+          "cells": {
+            "python": "ai-video-production.mdx (stack: Python)",
+            "claude": "ai-video-production.mdx (aiTools: Claude Code)",
+            "remotion": "ai-video-production.mdx (stack: Remotion)"
+          }
+        },
+        {
+          "slug": "gpu-image-pipeline",
+          "label": {
+            "en": "GPU image pipeline with ComfyUI and RunPod",
+            "es": "Pipeline de imágenes en GPU con ComfyUI y RunPod"
+          },
+          "cells": {
+            "python": "gpu-image-pipeline.mdx (stack: Python)"
+          }
+        },
+        {
+          "slug": "lyric-videos",
+          "label": {
+            "en": "Lyric videos from a single command",
+            "es": "Lyric videos con un solo comando"
+          },
+          "cells": {
+            "typescript": "lyric-videos.mdx (stack: TypeScript)",
+            "react": "lyric-videos.mdx (stack: React)",
+            "python": "lyric-videos.mdx (stack: Python)",
+            "claude": "lyric-videos.mdx (aiTools: Claude Code)",
+            "remotion": "lyric-videos.mdx (stack: Remotion)"
+          }
+        },
+        {
+          "slug": "kdp-engine",
+          "label": {
+            "en": "A config-driven engine for print-ready coloring books",
+            "es": "Un motor guiado por configuración para libros de colorear listos para imprenta"
+          },
+          "cells": {
+            "typescript": "kdp-engine.mdx (stack: TypeScript)",
+            "claude": "kdp-engine.mdx (aiTools: Claude Code)"
+          }
+        },
+        {
+          "slug": "el23",
+          "label": {
+            "en": "El 23, an online catalog for a silver jewelry store",
+            "es": "El 23, un catálogo en línea para una joyería de plata"
+          },
+          "cells": {
+            "claude": "el23.mdx (aiTools: Claude Code)"
+          }
+        }
+      ]
+    }
+  }
+]

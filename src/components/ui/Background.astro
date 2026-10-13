@@ -1,0 +1,6 @@
+---
+// Fondo decorativo: cuadrícula blueprint o retícula de puntos.
+interface Props { variant?: 'grid' | 'dots' }
+const { variant = 'grid' } = Astro.props;
+---
+<div class:list={['bg', `bg-${variant}`]} aria-hidden="true"></div>

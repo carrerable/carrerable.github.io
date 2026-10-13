@@ -1,0 +1,81 @@
+---
+title: Pipeline de imágenes en GPU con ComfyUI y RunPod
+slug: gpu-image-pipeline
+lang: es
+kind: project
+order: 14
+summary: Un flujo de imágenes basado en nodos que corre en mi laptop y en pods de GPU rentados, con scripts que crean, usan y borran cada pod en una sola corrida. El gasto total de GPU de octubre fue US$8.11.
+role: Constructor del pipeline (proyecto personal)
+period: "2026"
+status: production
+stack: [ComfyUI, RunPod, Python, SDXL, ControlNet, IP-Adapter, kohya sd-scripts]
+aiTools: [ComfyUI, SDXL, ControlNet, IP-Adapter, LoRA, Wan 2.2, InsightFace]
+metrics:
+  - label: Gasto en RunPod en octubre de 2026 (GPU $7.83, disco $0.28)
+    value: US$8.11
+    source: Vista de facturación del proveedor, 2026-10-13
+  - label: Más rápido que generar en la laptop, con una RTX 3090 Community a unos US$0.19 a 0.22 por hora
+    value: ~70×
+    source: Mediciones propias, 2026-10-13
+  - label: Para entrenar un LoRA de 1,880 pasos en una GPU rentada
+    value: ~41 min
+    source: Bitácora propia de la corrida, 2026-10-13
+  - label: Pods que quedan encendidos
+    value: "0"
+    source: Consola del proveedor, leída el 2026-10-13
+demoUrl: https://carrerable.github.io/gpu-image-pipeline-demo/
+repoUrl: https://github.com/carrerable/gpu-image-pipeline-demo
+---
+
+## Contexto
+
+Genero imágenes con ComfyUI, una herramienta de grafo de nodos donde un flujo de trabajo es un diagrama de modelos y operaciones y no un script. El mismo conjunto de nodos corre en mi laptop y en pods rentados de RunPod, así que la pregunta es dónde debe correr cada trabajo y cuánto cuesta. Este caso trata de las decisiones de infraestructura y de costo detrás del flujo; las imágenes en sí no son el punto, ni tampoco los modelos concretos. Un flujo típico encadena un checkpoint SDXL, guía con IP-Adapter y ControlNet, un sampler, un detailer y un upscaler.
+
+## Mi rol
+
+- **Decidí:** en qué GPU corre cada tipo de trabajo, cómo se enciende y se apaga una tanda y el tope de gasto de cada corrida.
+- **Verifiqué:** la vista de facturación del proveedor y la lista de recursos en ejecución, para poder decir el costo y confirmar que no queda ningún pod, volumen ni endpoint serverless. También medí la calidad de la salida con un número y no a ojo.
+- **Delegué a la IA:** la generación de imágenes y de video en sí, que hacen los modelos dentro del flujo que diseño. El gasto y las reglas de apagado se quedan conmigo; no le delego a un agente decisiones de gasto en la nube.
+
+## Investigación
+
+Comparé tres lugares donde correr un trabajo y guardé los números.
+
+- **Laptop.** La línea base.
+- **RunPod Community, RTX 3090.** Unos US$0.19 a 0.22 por hora y unas 70 veces más rápida que la laptop para generar imágenes.
+- **RunPod Secure, RTX 4090.** US$0.89 por hora. Cuesta más por hora, así que la uso solo para tandas cortas de unas 0.34 horas, donde la tarifa pesa poco.
+
+Para video rento una L40S y corro Wan 2.2 en modo imagen a video. Un clip tarda unos 24 minutos con 20 pasos, alrededor de 70 segundos por paso. El modelo también tiene un modo rápido de 4 pasos; lo probé y lo descarté porque la calidad bajaba, así que los 24 minutos son el precio del resultado que quiero.
+
+Entrenar un LoRA, un adaptador pequeño que le enseña un estilo o una identidad a un modelo base sin reentrenarlo, tomó 1,880 pasos en unos 41 minutos en una GPU rentada con kohya sd-scripts (v0.9.1), una herramienta de entrenamiento de código abierto.
+
+Para elegir la receta final no me fié de la vista. Medí qué tan consistente se mantenía el rostro de un personaje generado entre variantes de la receta, con InsightFace como métrica de similitud entre embeddings faciales, y elegí la variante con la mejor puntuación.
+
+Para el costo leí la factura real del proveedor en vez de estimarla. En octubre de 2026 el gasto es de US$8.11, de los cuales US$7.83 son tiempo de GPU en pods y US$0.28 es disco. No hay endpoints serverless ni volúmenes de red.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Un script crea el pod de cada tanda, baja los modelos en paralelo, arranca ComfyUI y borra el pod al terminar | Encender y apagar pods a mano desde la consola | El apagado es parte del mismo comando, así que nunca depende de que me acuerde. Toda la factura de GPU de octubre es de US$7.83 porque ningún pod se queda encendido de noche. |
+| Un tope de gasto por corrida, fijado por mí antes de que arranque el script (por ejemplo US$5) | Corridas sin límite cobradas a fin de mes | Un script que crea recursos de pago necesita un límite duro que elijo yo, no uno que se ponga un agente. |
+| RTX 3090 Community para la mayoría del trabajo de imagen; RTX 4090 Secure solo para tandas cortas | Una GPU premium para todo | A unos US$0.19 a 0.22 por hora la tarjeta Community es la forma más barata de obtener una aceleración de 70 veces; la Secure vale sus US$0.89 solo cuando la tanda es corta. |
+| L40S para video, con los 20 pasos completos | El modo rápido de 4 pasos | El modo rápido era más veloz pero su calidad no era aceptable, así que acepté unos 24 minutos por clip. |
+| Sin volumen de red persistente; los modelos se bajan de nuevo en cada pod | Un volumen de red que guarde modelos entre sesiones | Un volumen cobra todos los días, genere o no. El script los baja en paralelo y la factura no tiene renglón de almacenamiento más allá de US$0.28 de disco. |
+| Pods en lugar de endpoints serverless | Un endpoint serverless | Un endpoint sirve para un servicio que atiende peticiones; esto es trabajo por lotes que enciendo y apago yo. |
+
+## Validación y QA
+
+Lo que reviso es lo que reporta el proveedor: el conteo de pods activos (cero hoy), los renglones del mes y que no exista ningún volumen ni endpoint. Antes de cualquier trabajo pesado en mi propia máquina también compruebo que la cola de ComfyUI esté libre, para que dos trabajos nunca compitan por la misma GPU.
+
+Para la calidad, la puntuación de similitud facial le da un número a cada variante de la receta, así que elegir la receta final es una comparación y no una opinión.
+
+## Resultados
+
+- Una forma repetible de rentar GPU: un script crea el pod, corre la tanda y borra el pod, bajo un tope que fijo yo.
+- Un modelo de costos fácil de leer: US$8.11 en octubre, todo basado en uso.
+- Un estado final limpio: cero pods activos, sin volúmenes, sin endpoints.
+
+## Qué haría distinto
+
+Registraría el rendimiento, el tiempo por paso y el costo en el momento en que ocurre cada corrida, en las mismas notas del flujo, porque una vez borrado el pod ya no puedo leer esos números en la consola. Las cifras de esta página salen de ese tipo de bitácora y la habría empezado antes. También haría que el tope de gasto sea un argumento obligatorio del script, para que una corrida no pueda arrancar sin uno.

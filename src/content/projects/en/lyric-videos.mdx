@@ -1,0 +1,69 @@
+---
+title: Lyric videos from a single command
+slug: lyric-videos
+lang: en
+kind: project
+order: 15
+summary: A local pipeline that turns an AI-generated song into a synchronized lyric video plus a vertical Short and uploads both, in 15 to 25 minutes per song, with no paid services.
+role: Creator & AI-directed developer (personal project)
+period: "2026"
+status: production
+stack: [Remotion, React, TypeScript, PowerShell, Python]
+aiTools: [Claude Code, whisper.cpp, WhisperX, Remotion, Suno]
+metrics:
+  - label: Songs in the catalog
+    value: "57"
+    source: Project status file, 2026-10-13
+  - label: Lyric alignment, two sample runs
+    value: 268/286 (94%) and 243/302 (80%)
+    source: Pipeline runs, Aug-Sep 2026
+  - label: Time per song
+    value: 15 to 25 min
+    source: Pipeline reports, 2026-10-13
+demoUrl: https://carrerable.github.io/lyric-sync-demo/
+repoUrl: https://github.com/carrerable/lyric-sync-demo
+---
+
+## Context
+
+I make songs with an AI music generator and wanted each one to become a lyric video without opening a video editor. The pipeline takes the mp3, finds the lyrics embedded in its metadata, aligns every word to the audio, renders a 1920 by 1080 video with the current word highlighted, renders a vertical 1080 by 1920 Short of the chorus and uploads both. It all runs locally on Windows, free of charge, and one command processes everything new in the downloads folder.
+
+<div class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/7dKB-EBO3WU" title="Example lyric video produced by the pipeline" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen style="width:100%;aspect-ratio:16/9;border:0"></iframe></div>
+
+## My role
+
+- **Decided:** the pipeline stages, the quality bar for alignment, what the Short shows, the idempotency rules for uploads, and when a run is acceptable.
+- **Verified:** each run's alignment ratio, the chorus window, and the uploaded result, with a status file updated by hand after every important run.
+- **Delegated to AI:** the code (PowerShell scripts, Node scripts and the Remotion components), written by Claude Code under my specification and review.
+
+## Research
+
+The central problem is timing: a song's lyrics are known, but when each word is sung is not. A fast transcription (whisper.cpp, small model) gives rough timestamps but misreads sung text. WhisperX then does forced alignment with a wav2vec2 model against the real lyrics, so the text is exact and only the timing comes from the audio. If the small model returns only markers and fewer than 20 real words, the pipeline retries with the medium model. The aligned file is saved permanently per song so a Short can be regenerated later without aligning again.
+
+I also looked at the channel analytics with a read-only script that costs about three quota units. Impressions and click-through rate cannot be read through the API, and retention lives in a separate analytics API with its own scope, so I only collect what the platform actually exposes.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| whisper.cpp for a rough transcript, WhisperX for forced alignment against the real lyrics | One model only; transcribing the lyrics from the audio | The lyrics are already exact. Transcribing them would add errors; aligning them only adds timing. |
+| Chorus found automatically (first chorus of usable length, clamped to between 8 and 45 seconds), with a fallback window at 35% of the song | Pick the chorus by hand each time; fail when no chorus is found | A Short should never block a run. The fallback always produces something reasonable and is logged. |
+| Analytics script that only reads | Analytics with write access to the channel | The pipeline can publish; analysis should never be able to change anything. |
+| Uploads tracked per song in a small result file | Tracking by title or by the status file | A title can repeat across songs and a status file is documentation, not state. A result file next to the video is real state. |
+
+## Validation & QA
+
+Each run prints the alignment ratio. The two sample runs on file are 268 of 286 words (94%) and 243 of 302 (80%); both are healthy and neither needed the retry. The chorus window is checked as real (not fallback) in the run notes.
+
+The pipeline has guards that came from failures. Two different songs with the same title collide on the same folder, and a forced rerun would overwrite the first song's files; a slug suffix keeps them separate. Uploads are idempotent, so a run that fails halfway can be retried without reprocessing. When the first upload of a batch failed because the authorization token had expired, both videos were already rendered, so retrying only the upload fixed it without reprocessing anything.
+
+## Results
+
+- 57 songs in the catalog, each produced by the same command.
+- 15 to 25 minutes per song, end to end, and the script reports the real time of each run.
+- Two outputs per song, a long video and a Short, uploaded without manual steps.
+- No running cost for the pipeline itself: Remotion, whisper.cpp and WhisperX are free and local.
+
+## What I'd do differently
+
+The cloud project that holds the upload credentials was left in testing mode, which makes the token expire every seven days; I would move it to production on day one, so a batch does not depend on remembering to reauthorize. I would also add an automatic alignment threshold: below a set ratio the run should stop and ask for a review, rather than leaving that judgment to me looking at one number.

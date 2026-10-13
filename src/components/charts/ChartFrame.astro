@@ -1,0 +1,26 @@
+---
+// Envoltorio accesible de una gráfica: título, descripción, SVG (slot), pie con fuente y fecha, y tabla de datos.
+import { caption, tableLabel, type Lang } from './lib';
+interface Props { id: string; lang: Lang; title: string; desc: string; source: string; date: string; head?: string[]; rows?: (string | number)[][]; legend?: { label: string; hot?: boolean; dashed?: boolean }[] }
+const { id, lang, title, desc, source, date, head = [], rows = [], legend = [] } = Astro.props;
+---
+<figure class="chart" data-chart={id}>
+  <p class="ct">{title}</p>
+  <p class="cd">{desc}</p>
+  {legend.length > 1 && (
+    <ul class="key">
+      {legend.map((k) => <li><i style={`background:${k.hot ? 'var(--c-coral)' : 'color-mix(in srgb, var(--fg) 38%, transparent)'};${k.dashed ? 'border:1.5px dashed var(--fg);background:transparent' : ''}`}></i>{k.label}</li>)}
+    </ul>
+  )}
+  <slot />
+  <figcaption>{caption(lang, source, date)}</figcaption>
+  {rows.length > 0 && (
+    <details>
+      <summary>{tableLabel(lang)}</summary>
+      <table>
+        <thead><tr>{head.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+        <tbody>{rows.map((r) => <tr>{r.map((c, i) => (i === 0 ? <th scope="row">{c}</th> : <td>{c}</td>))}</tr>)}</tbody>
+      </table>
+    </details>
+  )}
+</figure>

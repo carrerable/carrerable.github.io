@@ -1,0 +1,65 @@
+---
+import '@fontsource/archivo/latin-800.css';
+import '@fontsource/instrument-serif/latin-400-italic.css';
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import archivo800 from '@fontsource/archivo/files/archivo-latin-800-normal.woff2?url';
+import plex400 from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props { lang: 'en' | 'es'; title: string; description: string; path: string; noindex?: boolean }
+const { lang, title, description, path, noindex = false } = Astro.props;
+const site = Astro.site!.toString();
+const canonical = site + path.slice(1);
+const enPath = path.replace(/^\/(en|es)\//, '/en/');
+const esPath = path.replace(/^\/(en|es)\//, '/es/');
+const ogImage = site + 'og/default.png';
+const skip = lang === 'es' ? 'Saltar al contenido' : 'Skip to content';
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    {!noindex && <link rel="alternate" hreflang="en" href={site + enPath.slice(1)} />}
+    {!noindex && <link rel="alternate" hreflang="es" href={site + esPath.slice(1)} />}
+    {!noindex && <link rel="alternate" hreflang="x-default" href={site + enPath.slice(1)} />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href={archivo800} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={plex400} as="font" type="font/woff2" crossorigin />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    <slot name="head" />
+  </head>
+  <body class="s-base">
+    <a class="skip" href="#main">{skip}</a>
+    <Header lang={lang} path={path} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+    <script>
+      import '../scripts/site.ts';
+    </script>
+  </body>
+</html>

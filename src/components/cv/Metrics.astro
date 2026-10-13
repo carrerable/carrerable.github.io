@@ -1,0 +1,12 @@
+---
+// Rejilla de métricas del CV: cada cifra con su etiqueta y su fuente; el valor final ya está en el HTML.
+import MetricCard from '../ui/MetricCard.astro';
+interface Props { metrics: any[]; lang: 'en' | 'es' }
+const { metrics, lang } = Astro.props;
+const fmtValue = (m: any) => `${m.prefix}${m.value.toLocaleString('en-US', { minimumFractionDigits: m.decimals, maximumFractionDigits: m.decimals })}${m.suffix}`;
+---
+<div class="metrics">
+  {metrics.map((m, i) => (
+    <MetricCard value={fmtValue(m)} label={m.label[lang]} source={m.source[lang]} compact accent={m.id === 'orders'} ring={m.id === 'orders' ? 1 : undefined} delay={i % 4} />
+  ))}
+</div>

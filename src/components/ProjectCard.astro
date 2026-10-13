@@ -1,0 +1,13 @@
+---
+import Card from './ui/Card.astro';
+import Chip from './ui/Chip.astro';
+interface Props { lang: 'en' | 'es'; slug: string; title: string; summary: string; stack: string[]; status: string; index?: string }
+const { lang, slug, title, summary, stack, status, index } = Astro.props;
+---
+<Card class="pcard reveal" href={`/${lang}/projects/${slug}/`} title={title} index={index}>
+  <p>{summary}</p>
+  <div class="chips">
+    {stack.slice(0, 4).map((s) => <Chip>{s}</Chip>)}
+  </div>
+  <p class="status mono">{status}</p>
+</Card>

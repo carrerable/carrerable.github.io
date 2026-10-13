@@ -1,0 +1,42 @@
+---
+---
+
+# Cómo trabajo
+
+Dirijo agentes de IA que programan dentro de reglas, revisiones y puertas de verificación que diseño yo. El agente escribe rápido; mi trabajo es asegurar que escriba lo correcto y poder demostrarlo.
+
+## Documentos antes del código
+
+Nada empieza con código. Un proyecto arranca con investigación escrita, un alcance y las decisiones que se toman midiendo, cada una con las alternativas que descarté y por qué. REYBER tuvo 25 documentos de investigación y requerimientos y un plan de 36 paquetes antes de su primera función. El escaparate de El 23 tuvo 15 documentos y un análisis legal antes de elegir el tema. El video y las migraciones de datos siguen el mismo orden: un guion, un plan o reglas escritas, aprobados antes de renderizar o cargar nada.
+
+## Reglas que sigue la IA
+
+Cada proyecto lleva un `CLAUDE.md` con las reglas del agente, y a su alrededor uso subagentes, skills, hooks y conectores MCP. La sesión principal planea y decide; la ejecución pesada va a subagentes; los hooks registran cada sesión e impiden dar una tarea por terminada si falta un paso. Las reglas que más pesan:
+
+- **Cero invención.** Si una cifra no sale de la base de datos o de un archivo, se marca y se me pregunta.
+- **Verificar el resultado real** antes de decir "listo": abrir el archivo, correr la consulta, leer el número.
+- **Scripts idempotentes**: correr uno dos veces no debe hacer daño.
+- **Pedir visto bueno antes de cambios estructurales**, y nunca hacer commit ni push si no lo pido en ese mismo turno.
+- **Escrituras en producción solo con dry-run previo y verificación posterior.**
+
+## Puertas de verificación
+
+Mis puertas son el build, la revisión de tipos, los smoke tests y, donde existe, la integración continua. Cambian por proyecto. VetNova tiene 107 scripts de smoke que corro en local y no tiene CI, una brecha conocida. REYBER corre sus pruebas de aislamiento, la verificación del diccionario de datos y los smoke tests de la API en CI en cada push. El build de este sitio corre una revisión de tipos y un script que falla si a un caso de estudio le falta una sección obligatoria.
+
+Un check en verde no es una prueba: cada verificación afirma un número concreto. Una prueba que devuelve 200 demuestra que una ruta contestó, no que contestó bien. Un conteo exacto ("60 de 60 peticiones exitosas") o un límite de tiempo sí puede fallar de una forma que veo.
+
+## Una prueba que no puede fallar no es una prueba
+
+Antes de confiar en una puerta, rompo lo que cuida y veo que falle. La suite de aislamiento de REYBER tiene un caso cero que comprueba que la propia suite puede fallar, porque sin él los demás casos pasarían contra una conexión a la base de datos que esquiva las reglas que prueban. Cada puerta ahí se rompió a propósito, sobre el artefacto compilado y nunca sobre el código fuente. El archivo de estado de VetNova lleva tres advertencias nacidas de fallos reales: comprobar que la API corre el código de hoy antes de dar un smoke por rojo; un smoke en verde no prueba corrección fiscal; una ruta que ningún smoke llama no está probada.
+
+## Medir antes de decidir
+
+Cuando una decisión es cara de revertir, escribo la hipótesis para que pueda fallar y escribo qué haré con cada resultado antes de medir. Para el modelo de datos de REYBER comparé cuatro estrategias con 10 millones de pólizas sintéticas, y la medición con las reglas de seguridad reales expuso que dos de ellas en realidad no se probaban como índices. En la publicidad de VetNova, el 59.3% de los clics de Google eran de Display, que la plataforma activa por omisión, y solo 18 venían de intención real de búsqueda: un canal se juzga por la intención, no por los clics. En una corrección masiva en el trabajo, un dry-run contó unos 3,400 paquetes cuando existían 11,934; esa diferencia llevó a la causa raíz.
+
+## Cambios de datos: dry-run, QA, producción
+
+Todo cambio a datos de clientes sigue la misma secuencia: un dry-run que leo, un ciclo completo en el ambiente de QA y solo después producción, con una conciliación contra la fuente al final. Los scripts son idempotentes donde el cambio lo permite y se marcan de una sola ejecución donde no. Las columnas que el equipo llena a mano nunca se pisan y cada columna de un insert se decide de forma explícita en lugar de omitirse.
+
+<h2 id="ai">Cómo uso la IA (transparencia)</h2>
+
+En mis proyectos independientes, Claude Code escribe la mayor parte del código bajo mi dirección; en el trabajo, 71 de mis 243 commits tienen coautoría de IA. Yo defino el alcance y las reglas, reviso cada cambio, lo verifico contra datos reales y decido si se libera. Puedo leer, depurar y explicar cualquier parte.

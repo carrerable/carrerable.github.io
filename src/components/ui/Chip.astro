@@ -1,0 +1,6 @@
+---
+// Etiqueta corta. Los tonos violeta y lima son acentos secundarios: usarlos poco.
+interface Props { tone?: 'default' | 'accent' | 'violet' | 'lime'; class?: string }
+const { tone = 'default', class: cls = '' } = Astro.props;
+---
+<span class:list={['chip', tone !== 'default' && `chip-${tone}`, cls]}><slot /></span>

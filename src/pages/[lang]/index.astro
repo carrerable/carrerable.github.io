@@ -1,0 +1,120 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import Section from '../../components/ui/Section.astro';
+import SectionHeader from '../../components/ui/SectionHeader.astro';
+import Frame from '../../components/ui/Frame.astro';
+import Button from '../../components/ui/Button.astro';
+import Card from '../../components/ui/Card.astro';
+import MetricCard from '../../components/ui/MetricCard.astro';
+import { ui, homeMetrics, NAME, EMAIL, GITHUB, type Lang } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'es' } }];
+}
+const lang = Astro.params.lang as Lang;
+const t = ui[lang];
+const all = (await getCollection('projects')).filter((e) => e.data.lang === lang);
+const work = all.filter((e) => e.data.kind === 'work').sort((a, b) => a.data.order - b.data.order);
+const projects = all.filter((e) => e.data.kind === 'project').sort((a, b) => a.data.order - b.data.order).slice(0, 4);
+const metrics = homeMetrics[lang];
+const [first, second, ...band] = metrics;
+
+// Titular de la variante A con la frase clave resaltada
+const sub = t['hero.subtitle'];
+const em = t['hero.em'];
+const at = sub.indexOf(em);
+const subA = at >= 0 ? sub.slice(0, at) : sub;
+const subB = at >= 0 ? sub.slice(at + em.length) : '';
+
+const [firstName, lastName] = NAME.split(' ');
+const letters = (w: string, off: number) => w.toUpperCase().split('').map((c, i) => ({ c, i: i + off }));
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: NAME,
+  jobTitle: ui.en['hero.title'],
+  url: Astro.site!.toString(),
+  sameAs: [GITHUB],
+  address: { '@type': 'PostalAddress', addressLocality: 'Mexico City' },
+};
+---
+<Base lang={lang} title={`${NAME} — ${t['hero.title']}`} description={t['hero.subtitle']} path={`/${lang}/`}>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} slot="head" />
+
+  <Section tone="base" bg="grid" class="hero">
+    <Frame tl="REC ● 00:00:10" tr="MX CITY · UTC−6" bl={t['hero.kicker']} br="TL / TS · SQL · AI">
+      <div class="hero-grid">
+        <div>
+          <p class="role mono">{t['hero.title']}</p>
+          <h1 aria-label={NAME}>
+            <span class="line" aria-hidden="true">{letters(firstName, 0).map((l) => <span class="ch"><span style={`--i:${l.i}`}>{l.c}</span></span>)}</span>
+            <span class="line hl" aria-hidden="true">{letters(lastName, firstName.length).map((l) => <span class="ch"><span style={`--i:${l.i}`}>{l.c}</span></span>)}</span>
+          </h1>
+          <p class="sub fade">{subA}<span class="hl">{em}</span>{subB}</p>
+          <p class="summary fade">{t['hero.summary']}</p>
+          <div class="row fade" style="margin-block: var(--s-5)">
+            <Button href={`/${lang}/projects/`}>{t['cta.projects']}</Button>
+            <Button href={`/${lang}/cv/`} variant="ghost">{t['nav.cv']}</Button>
+            <Button href={`mailto:${EMAIL}`} variant="ghost">{t['cta.email']}</Button>
+          </div>
+          <p class="where mono fade">{t['hero.location']}</p>
+        </div>
+        <div class="metrics" style="grid-template-columns: 1fr" aria-label={t['section.numbers']}>
+          <MetricCard value={first.value} label={first.label} source={first.source} ring={first.ring} accent />
+          <MetricCard value={second.value} label={second.label} source={second.source} delay={1} />
+        </div>
+      </div>
+    </Frame>
+  </Section>
+
+  <Section tone="alt" id="pillars">
+    <SectionHeader index="01" eyebrow={t['section.pillars']} title={t['section.pillars']} em={lang === 'en' ? 'do' : 'hago'} />
+    <div class="grid">
+      {t.pillars.map((p, i) => <Card class="reveal" title={p.title} index={`0${i + 1}`}><p>{p.text}</p></Card>)}
+    </div>
+  </Section>
+
+  <Section tone="coral" bg="dots" id="numbers">
+    <SectionHeader index="02" eyebrow="Metrics" title={t['section.numbers']} em={t['numbers.em']} lead={t['numbers.lead']} />
+    <div class="metrics">
+      {band.map((m, i) => <MetricCard value={m.value} label={m.label} source={m.source} bars={'bars' in m ? [...m.bars] : undefined} delay={i} />)}
+    </div>
+  </Section>
+
+  {work.length > 0 && (
+    <Section tone="base" id="work">
+      <SectionHeader index="03" eyebrow={t['nav.work']} title={t['section.work']} lead={t['projects.lead']} />
+      <div class="grid">
+        {work.map((e, i) => <ProjectCard lang={lang} slug={e.data.slug} title={e.data.title} summary={e.data.summary} stack={e.data.stack} status={e.data.status} index={`W${i + 1}`} />)}
+      </div>
+    </Section>
+  )}
+
+  {projects.length > 0 && (
+    <Section tone="alt" bg="dots" id="projects">
+      <SectionHeader index="04" eyebrow={t['nav.projects']} title={t['section.projects']} />
+      <div class="grid">
+        {projects.map((e, i) => <ProjectCard lang={lang} slug={e.data.slug} title={e.data.title} summary={e.data.summary} stack={e.data.stack} status={e.data.status} index={`P${i + 1}`} />)}
+      </div>
+      <p style="margin-top: var(--s-6)"><Button href={`/${lang}/projects/`} variant="ghost">{t['cta.projects']}</Button></p>
+    </Section>
+  )}
+
+  <Section tone="base" id="how">
+    <SectionHeader index="05" eyebrow={t['nav.how']} title={t['section.how']} />
+    <blockquote class="bigquote reveal">{t['how.quote']}</blockquote>
+    <p class="reveal" style="max-width: 58ch">{t['how.teaser']}</p>
+    <Button href={`/${lang}/how-i-work/`} variant="ghost">{t['how.more']}</Button>
+  </Section>
+
+  <Section tone="coral" id="contact">
+    <SectionHeader index="06" eyebrow={t['section.contact']} title={t['contact.title']} em={t['contact.em']} lead={t['contact.lead']} />
+    <div class="row">
+      <Button href={`mailto:${EMAIL}`}>{EMAIL}</Button>
+      <Button href={GITHUB} variant="ghost">GitHub</Button>
+      <Button href={`/${lang}/cv/`} variant="ghost">{t['nav.cv']}</Button>
+    </div>
+  </Section>
+</Base>

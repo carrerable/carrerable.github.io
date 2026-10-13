@@ -1,0 +1,72 @@
+---
+title: JARVIS
+slug: jarvis
+lang: es
+kind: project
+order: 12
+summary: Un asistente local de voz y texto que corre en la CPU de una laptop sin APIs de pago. La seguridad la impone el código, no el modelo, y una ruta rápida contesta lo común sin llamar al LLM.
+role: Diseñador y desarrollador dirigiendo IA (proyecto personal)
+period: "oct 2026"
+status: paused
+stack: [Python, Ollama, faster-whisper, Kokoro, openWakeWord]
+aiTools: [Claude Code, Ollama, faster-whisper, Kokoro, openWakeWord, Silero VAD]
+metrics:
+  - label: Intenciones resueltas sin LLM
+    value: "13"
+    source: Archivo de estado del proyecto, 2026-10-13
+  - label: Pruebas del router
+    value: 47/47
+    source: Archivo de estado del proyecto, 2026-10-13
+  - label: Latencia, ruta rápida
+    value: 2.7 s
+    source: Prueba de latencia, 2026-10-13
+  - label: Latencia, LLM con streaming
+    value: 8.6 s
+    source: Prueba de latencia, 2026-10-13
+demoUrl: https://carrerable.github.io/jarvis-safety-router-demo/
+repoUrl: https://github.com/carrerable/jarvis-safety-router-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Contexto
+
+JARVIS es un asistente local, por texto y por voz, para mi propia laptop. Entiende órdenes habladas, consulta la PC y mis proyectos mediante herramientas clasificadas por riesgo y contesta en voz alta. Todo es gratuito y local: el reconocimiento de voz, el modelo de lenguaje y la voz corren en la CPU, sin API de pago. Es bilingüe, español o inglés, y se cambia con un solo archivo de configuración. El proyecto está en pausa: el código está commiteado y nada corre en segundo plano.
+
+## Mi rol
+
+- **Decidí:** la arquitectura, la clasificación de riesgo de cada herramienta, lo que está prohibido de plano, los modelos y las metas de latencia.
+- **Verifiqué:** cada cambio contra las baterías de pruebas, y el comportamiento del modelo en los casos de seguridad, que reviso con el modelo real y no con un simulacro.
+- **Delegué a la IA:** la implementación en Python, bajo mis reglas y revisión. Claude Code la escribió; yo respondo por lo que tiene permitido hacer.
+
+## Investigación
+
+La pregunta central era cómo darle a un modelo local pequeño la capacidad de actuar sin confiar en él. Comparé un modelo de 4 mil millones de parámetros contra uno de 1.7 mil millones en 14 peticiones de charla y 6 de acción. El pequeño fue 79% más rápido en charla, pero afirmó haber hecho una acción que no hizo en 1 de 6 casos según una verificación automática y en 3 de 6 según mi lectura. Se quedó el de 4B. Un segundo experimento dejó que el mismo modelo de 4B contestara la conversación libre sin definiciones de herramientas, lo que bajó la latencia mediana de 7.95 s a 3.05 s sin afirmaciones falsas de acción. Para la palabra de activación entrené un verificador con mis propias grabaciones y lo medí: 8 de 10 positivos, 0 de 11 negativos, evaluado con las mismas grabaciones con que se entrenó, así que el resultado es optimista.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| La confirmación de las herramientas peligrosas la exige el código, nunca el modelo | Que el modelo pida la confirmación desde su prompt | Un prompt es una petición, no una garantía. La función de ejecución rechaza una herramienta peligrosa sin confirmación; las acciones destructivas (borrar o mover archivos, consola, publicar, leer archivos secretos) no existen como herramientas. |
+| Una ruta rápida antes del LLM: atajo, luego catálogo de comandos, luego 13 intenciones, luego el modelo | Mandar todo al LLM | La hora, la fecha, el estado del sistema y las playlists no necesitan un modelo de lenguaje. La ruta rápida contesta en 2.7 s; la del LLM tarda 8.6 s. Las palabras de riesgo y las negaciones siempre van al LLM. |
+| Un modelo local de 4B en la CPU | Un modelo de 1.7B; una API de pago | El de 1.7B inventaba acciones cumplidas. Una API de pago rompe la regla de gratuito y local. |
+| Dejar apagado el verificador de la palabra de activación | Activarlo | Dos de diez grabaciones positivas quedaron por debajo del umbral del modelo base y la evaluación es optimista. El respaldo documentado es la tecla F9. |
+
+## Validación y QA
+
+El asistente tiene baterías de pruebas para herramientas, router, catálogo, streaming, activación, detección de voz y modo inglés. La suite del router pasa 47/47. La prueba del cerebro, con el modelo real y la PC libre de antemano, pasa 8/8, incluidos tres casos de seguridad (borrar un archivo, ejecutar un script de generación, leer un archivo secreto) sin fallo en ninguno de los dos idiomas. La transcripción en inglés se comprobó con 16 órdenes habladas con dos voces sintéticas: 16/16 tras normalizar.
+
+También registro lo que no pasa. La ruta rápida fija (2.7 s) cumple su meta de 3.5 s, la respuesta de la hora cumple 4.5 s solo a veces y la ruta del LLM (8.6 s) no cumple su meta de 6.0 s. "Hey Jarvis" falla seguido con pronunciación en español porque el modelo es en inglés. Y falta una prueba humana completa con micrófono y teclado reales: el modo inglés solo se probó con voces sintéticas.
+
+## Resultados
+
+<Chart id="jarvis-latency" lang="es" />
+
+- 13 intenciones se resuelven sin el LLM; las pruebas del router pasan 47/47.
+- Ruta rápida: 2.7 s. LLM con streaming: 8.6 s, sin llegar a la meta.
+- Prueba del cerebro 8/8, con todos los casos de seguridad aprobados.
+- Cuatro grupos de herramientas (general, estado de proyectos, música, proyectos), cada una marcada como segura o peligrosa, con el catálogo de comandos limitado a una lista cerrada de acciones.
+
+## Qué haría distinto
+
+Mediría primero la latencia de extremo a extremo y diseñaría la ruta rápida alrededor de ella, en vez de descubrir después que la ruta del LLM no llega a su meta. Juntaría más de diez grabaciones de la palabra de activación y evaluaría el verificador con grabaciones que nunca vio. Y haría la prueba humana de voz antes de construir el segundo idioma, porque solo esa prueba me dice si el asistente es agradable de usar.

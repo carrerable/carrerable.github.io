@@ -1,0 +1,75 @@
+---
+title: A two-stage QA gate for weekly releases
+slug: qa-release-gate
+lang: en
+kind: work
+order: 1
+summary: How I gate every release of a B2B SaaS for auto-repair shops twice, in QA and in production, with E2E matrices of 13 to 45 cases and a rule that QA reports and never fixes.
+role: QA & release owner (current role)
+period: "2026"
+status: production
+stack: [React, AngularJS (legacy), Node.js, TypeScript, tRPC, MySQL, Jira, Playwright]
+aiTools: [Claude Code, Playwright]
+metrics:
+  - label: Tickets approved in QA
+    value: "76 (103 approval events)"
+    source: Jira snapshot, Oct 2026
+  - label: Rejections sent to rework
+    value: "18"
+    source: Jira snapshot, Oct 2026
+  - label: Validations in production
+    value: "30"
+    source: Jira snapshot, Oct 2026
+  - label: QA case folders documented
+    value: "27"
+    source: QA archive, Oct 2026
+demoUrl: https://carrerable.github.io/qa-release-matrix-demo/
+repoUrl: https://github.com/carrerable/qa-release-matrix-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Context
+
+A B2B SaaS for auto-repair shops (my current role) is migrating its web application from AngularJS to React while shipping new features every week: multi-invoice billing, a reports portal, permissions, notifications. Shops use the system every day, so a bad release is visible within the hour. The product needed a quality gate before and after each deployment. This case is anonymous on purpose, and every example in the demo is fictional.
+
+## My role
+
+- **Decided:** the QA format, the pass or rework verdict on every ticket, the priority of the QA queue (bugs first, then React, then the rest, negotiated with management at the weekly meeting) and the rule that QA only reports.
+- **Verified:** each ticket in the QA environment and again in production after the deploy, combining browser tests, a read of the QA branch code and read-only database queries to confirm side effects (for example, that no invoice was left orphaned after a fix).
+- **Delegated to AI:** browser-automation runs (Playwright, through an AI validation agent) and drafts of reports and queries, under my case design. I review the output; the verdict is mine.
+
+## Research
+
+When a ticket failed with a 400 error on the QA API, I traced it to a model relationship missing after an overnight deploy and recorded it as an environment regression, not a defect of the ticket. That distinction matters: it keeps development from chasing a defect the ticket never had.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| A standard two-sheet matrix (summary plus E2E matrix) with dropdown statuses | Free-form files with a "log" column | Nobody filled the log column. Fewer columns, more completed matrices. |
+| QA only reports: failure, evidence and steps | Reports with a suggested fix | The fix belongs to product and development. A suggested fix pulls QA into design and hides the real problem. |
+| Two stages, QA and production, with different criteria recorded separately | Validate only in QA | The criteria differ between environments (real data volumes and configuration), so each stage is judged and recorded on its own. |
+| Queue priority: bugs, then React migration, then everything else | First in, first out | Bugs hurt shops today; the migration is a deadline; the rest can wait. |
+
+## Validation & QA
+
+Matrices run from 13 to 45 cases per ticket (45 for the reports portal, 40 for the services module in React, 36 for purchases, payments and suppliers). Four findings show how the gate works:
+
+- **Reports portal.** Round one validated 15 cases and found 14 failures with 6 blocked. Round two fixed 8 of 10 errors. In round three one time-zone bug was fixed and two differences were accepted as not-bugs, each with a written justification.
+- **Security.** The socket server printed the session token in clear text in the log. Reported with evidence and fixed.
+- **Billing.** A payment complement that covered several invoices got blocked (Mexican tax e-invoicing, CFDI 4.0). After the fix I revalidated all 22 of 22 cases.
+- **Performance.** A customer search without an in-memory cache had caused a server crash. I validated it on a small shop and on one with about 30,000 customers: a burst of 6 searches came back in under 0.9 seconds with no restart.
+
+## Results
+
+<Chart id="qa-rounds" lang="en" />
+
+- 76 distinct tickets approved (103 approval events including repeated rounds), 18 rejections sent to rework and 30 validations in production, over a history of 171 tickets (Jira snapshot, October 2026).
+- 27 documented QA case folders.
+- In the week of 6 to 12 October 2026, the log shows more than 30 QA verdicts (approvals, reworks and production passes).
+- Reopen rate and days in QA are calculated by the board but I have not extracted them yet, so I do not quote them.
+
+## What I'd do differently
+
+I would extract the reopen rate and days in QA from the board every week and publish them with the verdict counts; today the gate has volume numbers but no outcome trend. I would also automate the repetitive half of each matrix earlier, since the browser runs for the same flows repeat on every release, and keep manual time for the cases that need judgment.

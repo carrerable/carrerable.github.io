@@ -1,0 +1,9 @@
+---
+interface Props { lang: 'en' | 'es'; path: string }
+const { lang, path } = Astro.props;
+const other = lang === 'en' ? 'es' : 'en';
+const href = path.replace(/^\/(en|es)\//, `/${other}/`);
+const label = other === 'en' ? 'EN' : 'ES';
+const full = other === 'en' ? 'English' : 'Español';
+---
+<a href={href} hreflang={other} lang={other} aria-label={`${label} · ${full}`} title={full}>{label}</a>

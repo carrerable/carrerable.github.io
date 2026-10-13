@@ -1,0 +1,18 @@
+---
+import { ui } from '../i18n/ui';
+import Frame from './ui/Frame.astro';
+interface Props { src: string; repo: string; lang: 'en' | 'es'; title: string; kind: 'project' | 'work' }
+const { src, repo, lang, title, kind } = Astro.props;
+const t = ui[lang];
+---
+<div class="demo">
+  <Frame tl="DEMO" tr={lang.toUpperCase()} bl="LIVE EMBED" br="01:00">
+    <iframe src={`${src}?lang=${lang}`} title={title} loading="lazy"></iframe>
+  </Frame>
+  <p class="links mono">
+    <a href={`${src}?lang=${lang}`} target="_blank" rel="noopener">{t['demo.open']}</a>
+    <a href={`https://github.com/carrerable/${repo}`}>{t['demo.code']}</a>
+  </p>
+  <p class="mut"><small>{t['demo.private']}</small></p>
+  {kind === 'work' && <p class="mut"><small>{t['demo.work']}</small></p>}
+</div>

@@ -1,0 +1,66 @@
+---
+title: El 23, un catálogo en línea para una joyería de plata
+slug: el23
+lang: es
+kind: project
+order: 17
+summary: "Un catálogo en línea para una joyería de plata con tienda física. Sin precios ni pago: el cliente arma una lista y la manda por WhatsApp para cotizar. Documentado y analizado legalmente antes de programar."
+role: Arquitecto web y desarrollador dirigiendo IA (proyecto independiente)
+period: "sep – oct 2026"
+status: production
+stack: [WordPress, WooCommerce, PHP, WP-CLI, Docker]
+aiTools: [Claude Code]
+metrics:
+  - label: Piezas en el catálogo en línea
+    value: "26"
+    source: Archivo de estado del proyecto, 2026-09-23
+  - label: En línea desde
+    value: "2026-09-23"
+    source: Archivo de estado del proyecto, 2026-09-23
+  - label: Largest Contentful Paint, página de listado, contra la meta de 2.5 s (aceptado)
+    value: 2.63 s
+    source: Prueba de rendimiento en el sitio de pruebas, 2026-09-23
+demoUrl: https://carrerable.github.io/el23-catalog-demo/
+repoUrl: https://github.com/carrerable/el23-catalog-demo
+---
+
+## Contexto
+
+El 23 es una tienda física que vende joyería de plata: collares, cadenas, pulseras, anillos, aretes y dijes para hombre y mujer. Este proyecto construyó su escaparate en línea: un catálogo público, bien indexado en buscadores, donde cada pieza muestra su nombre y sus medidas, y donde el cliente arma una lista y se la manda a la tienda por WhatsApp para pedir cotización y comprar en el local o con entrega acordada. Quien dirige la tienda publica productos, fotos y publicaciones desde un panel de administración, sin programador, y permitió que se nombre la tienda aquí. El sitio está en línea en [el23.com.mx](https://el23.com.mx).
+
+No incluye pasarela de pagos ni facturación, y el sitio salió el 23 de septiembre de 2026 con 26 piezas reales.
+
+## Mi rol
+
+- **Decidí:** la plataforma y sus límites, los criterios para elegir hosting, cómo se construye la lista de pedido y la postura legal del sitio. Quien dirige la tienda decidió qué vende y cómo lo vende; yo dejé escrito lo que cuesta cada una de esas decisiones.
+- **Verifiqué:** el hosting con una prueba de conexión de cinco pasos antes de comprometerme, el tema con velocidad de página medida y el análisis legal contra los textos de las leyes vigentes.
+- **Delegué a la IA:** la personalización del tema, el plugin pequeño y los scripts de carga de contenido, escritos por Claude Code según mis requerimientos; y los primeros borradores del análisis legal, que contrasto con las fuentes.
+
+## Investigación
+
+Quince documentos precedieron al código: visión y alcance, catálogo de producto, requerimientos (49 funcionales), SEO y medición, hosting, modelo de datos, brief de diseño, roadmap y riesgos. El análisis legal se hizo sobre los textos vigentes y no se dejó para después: la norma de la plata que regula qué se puede llamar plata, la ley de propiedad industrial sobre nombres de marcas ajenas, la ley de protección al consumidor sobre precios y garantías, y la ley mexicana de protección de datos personales (LFPDPPP) sobre el aviso de privacidad y las cookies. De ahí salió un vocabulario sin marcas ajenas y los textos legales del sitio en borrador.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Sin precios en el sitio: cada pieza dice "Precio a cotizar" y se cotiza por WhatsApp (decisión de la tienda) | Un precio fijo por pieza; precio por peso; un precio "desde" | El precio de la plata cambia, así que cualquier número publicado envejece. El costo se acepta y queda escrito: menos visibilidad en buscadores (sin datos de precio para los resultados) y un riesgo legal sobre mostrar el precio total, mitigado en la redacción. |
+| Una lista de pedido que vive en el navegador y abre WhatsApp con el mensaje ya escrito | El carrito de WooCommerce; la API oficial de WhatsApp Business | El carrito abre una sesión en el servidor y rompe la caché de página. La API de negocio exige verificación y cobra por conversación, y aquí quien escribe es el cliente. La lista no cuesta nada y no guarda datos en el sitio. |
+| Un plan de hosting elegido por si Claude puede conectarse (SSH y WP-CLI), no solo por precio | El plan compartido que se propuso primero; un plan más barato sin SSH | El primer proveedor confirmó que sus planes compartidos no tienen SSH. Sin eso, cada despliegue habría sido manual por un administrador de archivos. |
+
+## Validación y QA
+
+Dos pruebas decidieron la plataforma antes del lanzamiento. La P0 revisó la conexión con el hosting en cinco pasos (SSH con llave, WP-CLI, transferencia de archivos, API REST y respaldo de la base de datos), y los cinco pasaron. La P1, en un sitio de pruebas, comparó dos temas comerciales con velocidad medida, tomando la mediana de tres corridas: el que conservé tuvo un Largest Contentful Paint de 2.63 segundos en el listado y 2.85 en una ficha de producto, contra una meta de 2.5 segundos. Eso es un incumplimiento, así que lo documenté y lo acepté de forma deliberada. La alternativa quedó peor (de 4.4 a 4.8 segundos y cuatro plugins obligatorios). Una prueba de carga de 60 peticiones simultáneas devolvió 60 respuestas exitosas.
+
+El sitio de producción se arma con scripts repetibles: uno para los ajustes del sitio y otro que carga el catálogo desde un solo archivo fuente, de modo que agregar piezas es editar ese archivo y volver a correr el cargador. La documentación tiene su propia compuerta y una batería de 21 casos de prueba para los hooks de automatización; una revisión cruzada de los documentos corrigió 17 huecos antes de empezar la construcción.
+
+## Resultados
+
+- El sitio salió en línea el 23 de septiembre de 2026 con un catálogo de 26 piezas.
+- Un video en la portada, una galería de grabados y una página del taller de composturas y hechuras, en producción desde el 26 de septiembre.
+- La lista de pedido funciona sin guardar nada en el servidor.
+- Pendiente: la verificación en Search Console y las fotos de trabajos del taller, que dependen de la tienda.
+
+## Qué haría distinto
+
+Probaría la lista de pedido en un WhatsApp real antes de terminar el diseño, no después: todo el flujo del negocio depende de ella. También conseguiría las fotos reales de producto antes de armar el layout, porque el primer catálogo usó fotos provisionales y la velocidad de la página depende del peso de las imágenes. Y definiría antes la cuestión del precio: cambió una vez durante el proyecto y reescribió partes de los requerimientos, del modelo de datos y del plan de SEO.

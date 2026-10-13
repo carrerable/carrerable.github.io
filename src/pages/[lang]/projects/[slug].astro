@@ -1,0 +1,62 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import DemoEmbed from '../../../components/DemoEmbed.astro';
+import Section from '../../../components/ui/Section.astro';
+import Chip from '../../../components/ui/Chip.astro';
+import MetricCard from '../../../components/ui/MetricCard.astro';
+import Words from '../../../components/ui/Words.astro';
+import Frame from '../../../components/ui/Frame.astro';
+import { ui, NAME } from '../../../i18n/ui';
+// Repos de demo ya publicados en GitHub Pages; se agregan al publicar (paso 68). Sin él, no se embebe un iframe vacío.
+import demosPublicadas from '../../../data/demos-publicadas.json';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('projects');
+  return entries.map((e) => ({ params: { lang: e.data.lang, slug: e.data.slug }, props: { entry: e } }));
+}
+const { entry } = Astro.props;
+const d = entry.data;
+const lang = d.lang;
+const t = ui[lang];
+const { Content } = await render(entry);
+const repo = d.repoUrl ? d.repoUrl.split('/').pop()! : d.slug;
+---
+<Base lang={lang} title={`${d.title} — ${NAME}`} description={d.summary} path={`/${lang}/projects/${d.slug}/`}>
+  <Section tone="base" bg="grid" class="project-head">
+    <a class="back mono" href={`/${lang}/projects/`}>← {t['back']}</a>
+    <Frame tl={d.kind === 'work' ? 'WORK CASE' : 'PROJECT'} tr={d.status.toUpperCase()} bl={d.period} br={lang.toUpperCase()}>
+      <Words tag="h1" text={d.title} class="ph1" />
+      <p class="lead serif" style="font-size: var(--t-xl); line-height: 1.25; max-width: 48ch; color: var(--mut); margin-top: var(--s-4)">{d.summary}</p>
+      <p class="credits mono">
+        <span>{t['role']}: <b>{d.role}</b></span>
+        <span>{t['period']}: <b>{d.period}</b></span>
+        <span>{t['status']}: <b>{d.status}</b></span>
+      </p>
+      <div class="chips">
+        {d.stack.map((s) => <Chip>{s}</Chip>)}
+        {d.aiTools.map((s) => <Chip tone="accent">AI: {s}</Chip>)}
+      </div>
+    </Frame>
+    {d.metrics.length > 0 && (
+      <div class="metrics" style="margin-top: var(--s-6)">
+        {d.metrics.map((m, i) => <MetricCard value={m.value} label={m.label} source={m.source} accent={i === 0} delay={i} compact />)}
+      </div>
+    )}
+  </Section>
+
+  <Section tone="alt">
+    <div class="prose">
+      <Content />
+    </div>
+  </Section>
+
+  {d.demoUrl && (demosPublicadas as string[]).includes(repo) && (
+    <Section tone="base" bg="dots">
+      <DemoEmbed src={d.demoUrl} repo={repo} lang={lang} title={d.title} kind={d.kind} />
+    </Section>
+  )}
+  <Section tone="coral" tight>
+    <a class="mono" style="color: var(--c-ink)" href={`/${lang}/projects/`}>← {t['back']}</a>
+  </Section>
+</Base>

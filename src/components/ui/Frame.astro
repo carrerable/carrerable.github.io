@@ -1,0 +1,16 @@
+---
+// Marco con corchetes de visor y etiquetas tipo timecode en las esquinas.
+interface Props { tl?: string; tr?: string; bl?: string; br?: string; class?: string }
+const { tl, tr, bl, br, class: cls = '' } = Astro.props;
+---
+<div class:list={['frame', cls]}>
+  <span class="corner tl" aria-hidden="true"></span>
+  <span class="corner tr" aria-hidden="true"></span>
+  <span class="corner bl" aria-hidden="true"></span>
+  <span class="corner br" aria-hidden="true"></span>
+  {tl && <span class="tc tc-tl" aria-hidden="true">{tl}</span>}
+  {tr && <span class="tc tc-tr" aria-hidden="true">{tr}</span>}
+  {bl && <span class="tc tc-bl" aria-hidden="true">{bl}</span>}
+  {br && <span class="tc tc-br" aria-hidden="true">{br}</span>}
+  <slot />
+</div>

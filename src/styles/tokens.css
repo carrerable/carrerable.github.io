@@ -1,0 +1,175 @@
+/* Design system tokens: paleta corta (carbón, crema, coral), tipografía de dos voces + mono,
+   espaciado, radios, sombras y motion. Los colores semánticos viven en "tonos" de sección. */
+
+:root {
+  /* Paleta cruda (no cambia con el tema) */
+  --c-ink: #0e0e10;
+  --c-ink-2: #17171a;
+  --c-cream: #f4efe6;
+  --c-cream-2: #fbf8f2;
+  --c-coral: #e8572a;
+  --c-coral-lit: #f06e43;   /* coral para texto sobre carbón */
+  --c-coral-deep: #b53d18;  /* coral para texto sobre crema (AA) */
+  --c-violet: #8b6cf0;      /* acento secundario, escaso */
+  --c-lime: #c6f432;        /* acento secundario, escaso */
+
+  /* Tipografía */
+  --f-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --f-serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --f-body: 'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --t-xs: 0.75rem;
+  --t-sm: 0.875rem;
+  --t-md: 1rem;
+  --t-lg: 1.25rem;
+  --t-xl: clamp(1.4rem, 1.1rem + 1.2vw, 2rem);
+  --t-2xl: clamp(2rem, 1.2rem + 3.2vw, 3.6rem);
+  --t-3xl: clamp(2.6rem, 1rem + 6vw, 6rem);
+  --t-hero: clamp(3rem, 9vw, 7.5rem);
+
+  /* Espaciado */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4.5rem;
+  --s-9: 7rem;
+  --gutter: clamp(1rem, 4vw, 2rem);
+  --measure: 70ch;
+  --wrap: 76rem;
+
+  /* Radios */
+  --r-s: 4px;
+  --r-m: 10px;
+  --r-l: 18px;
+  --r-pill: 999px;
+
+  /* Sombras */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.14);
+  --shadow-2: 0 2px 4px rgba(0, 0, 0, 0.2), 0 18px 44px rgba(0, 0, 0, 0.26);
+
+  /* Motion: micro-interacciones <= 400 ms */
+  --dur-fast: 150ms;
+  --dur: 250ms;
+  --dur-slow: 400ms;
+  --dur-reveal: 600ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ---------- Tonos de superficie ----------
+   .s-base sigue el tema; .s-alt es su opuesto; .s-coral es el bloque de color.
+   .tone-* fija un tono (se usa en la página del design system). */
+
+/* Claro por defecto (sin preferencia ni JS) */
+.s-base, .tone-cream,
+:root[data-theme="dark"] .s-alt {
+  --bg: var(--c-cream);
+  --fg: #14120f;
+  --mut: #5d574c;
+  --line: rgba(20, 18, 15, 0.16);
+  --acc: var(--c-coral-deep);
+  --card: var(--c-cream-2);
+  --card-fg: #14120f;
+  --card-mut: #5d574c;
+  --card-acc: var(--c-coral-deep);
+  --chip-bg: rgba(20, 18, 15, 0.08);
+  --chip-fg: #14120f;
+  --focus: var(--c-coral-deep);
+}
+
+.s-alt, .tone-dark,
+:root[data-theme="dark"] .s-base {
+  --bg: var(--c-ink);
+  --fg: var(--c-cream);
+  --mut: #a8a296;
+  --line: rgba(244, 239, 230, 0.16);
+  --acc: var(--c-coral-lit);
+  --card: var(--c-ink-2);
+  --card-fg: var(--c-cream);
+  --card-mut: #a8a296;
+  --card-acc: var(--c-coral-lit);
+  --chip-bg: rgba(244, 239, 230, 0.1);
+  --chip-fg: var(--c-cream);
+  --focus: var(--c-coral-lit);
+}
+
+:root[data-theme="dark"] .s-alt {
+  --bg: var(--c-cream);
+  --fg: #14120f;
+  --mut: #5d574c;
+  --line: rgba(20, 18, 15, 0.16);
+  --acc: var(--c-coral-deep);
+  --card: var(--c-cream-2);
+  --card-fg: #14120f;
+  --card-mut: #5d574c;
+  --card-acc: var(--c-coral-deep);
+  --chip-bg: rgba(20, 18, 15, 0.08);
+  --chip-fg: #14120f;
+  --focus: var(--c-coral-deep);
+}
+
+:root[data-theme="light"] .s-alt {
+  --bg: var(--c-ink);
+  --fg: var(--c-cream);
+  --mut: #a8a296;
+  --line: rgba(244, 239, 230, 0.16);
+  --acc: var(--c-coral-lit);
+  --card: var(--c-ink-2);
+  --card-fg: var(--c-cream);
+  --card-mut: #a8a296;
+  --card-acc: var(--c-coral-lit);
+  --chip-bg: rgba(244, 239, 230, 0.1);
+  --chip-fg: var(--c-cream);
+  --focus: var(--c-coral-lit);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .s-base {
+    --bg: var(--c-ink);
+    --fg: var(--c-cream);
+    --mut: #a8a296;
+    --line: rgba(244, 239, 230, 0.16);
+    --acc: var(--c-coral-lit);
+    --card: var(--c-ink-2);
+    --card-fg: var(--c-cream);
+    --card-mut: #a8a296;
+    --card-acc: var(--c-coral-lit);
+    --chip-bg: rgba(244, 239, 230, 0.1);
+    --chip-fg: var(--c-cream);
+    --focus: var(--c-coral-lit);
+  }
+  :root:not([data-theme]) .s-alt {
+    --bg: var(--c-cream);
+    --fg: #14120f;
+    --mut: #5d574c;
+    --line: rgba(20, 18, 15, 0.16);
+    --acc: var(--c-coral-deep);
+    --card: var(--c-cream-2);
+    --card-fg: #14120f;
+    --card-mut: #5d574c;
+    --card-acc: var(--c-coral-deep);
+    --chip-bg: rgba(20, 18, 15, 0.08);
+    --chip-fg: #14120f;
+    --focus: var(--c-coral-deep);
+  }
+}
+
+.s-coral, .tone-coral {
+  --bg: var(--c-coral);
+  --fg: var(--c-ink);
+  --mut: #1a0a05;
+  --line: rgba(14, 14, 16, 0.3);
+  --acc: var(--c-ink);
+  --card: var(--c-ink);
+  --card-fg: var(--c-cream);
+  --card-mut: #b9b3a7;
+  --card-acc: var(--c-coral-lit);
+  --chip-bg: rgba(14, 14, 16, 0.14);
+  --chip-fg: var(--c-ink);
+  --focus: var(--c-ink);
+}

@@ -1,0 +1,32 @@
+---
+// Tarjeta de métrica tipo dashboard: contador grande, anillo de progreso opcional y mini barras opcionales.
+// Si `value` es un número con prefijo o sufijo no numérico ("+8,339", "US$8.11", "6×") se anima; si no, se muestra tal cual.
+interface Bar { label: string; value: number; hot?: boolean }
+interface Props { value: string | number; label: string; source?: string; ring?: number; bars?: Bar[]; accent?: boolean; compact?: boolean; delay?: number }
+const { value, label, source, ring, bars, accent = false, compact = false, delay = 0 } = Astro.props;
+const raw = String(value);
+const m = raw.match(/^([^\d]*)(\d[\d,]*(?:\.\d+)?)([^\d]*)$/);
+const counter = m ? { pre: m[1], num: parseFloat(m[2].replace(/,/g, '')), dec: (m[2].split('.')[1] ?? '').length, suf: m[3], shown: m[2] } : null;
+const max = bars ? Math.max(...bars.map((b) => b.value)) : 1;
+---
+<div class:list={['metric', 'reveal', { accent, compact }]} data-metric style={`--d:${delay}`}>
+  <div class:list={['num', { text: !counter }]}>
+    {counter
+      ? <><span class="pre">{counter.pre}</span><span class="counter" data-to={counter.num} data-decimals={counter.dec}>{counter.shown}</span><span class="suf">{counter.suf}</span></>
+      : raw}
+  </div>
+  <p class="label">{label}</p>
+  {(ring !== undefined || bars) && (
+    <div class="viz">
+      {ring !== undefined && (
+        <div class="ring" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><circle class="track" cx="24" cy="24" r="19" pathLength="100"/><circle class="arc" cx="24" cy="24" r="19" pathLength="100" style={`--pct:${ring}`}/></svg>
+          <span class="pct">{Math.round(ring * 100)}%</span>
+        </div>
+      )}
+      {bars && <div class="bars" aria-hidden="true">{bars.map((b, i) => <span class:list={{ hot: b.hot }} style={`--h:${(b.value / max).toFixed(3)};--i:${i}`}></span>)}</div>}
+    </div>
+  )}
+  {bars && <ul class="legend">{bars.map((b) => <li>{b.label} <b>{b.value.toLocaleString('en-US')}</b></li>)}</ul>}
+  {source && <p class="src">{source}</p>}
+</div>

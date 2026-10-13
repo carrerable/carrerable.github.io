@@ -1,0 +1,73 @@
+---
+title: REYBER
+slug: reyber
+lang: es
+kind: project
+order: 11
+summary: Plataforma multi-tenant de core asegurador para aseguradoras y despachos de agentes. Un prototipo falsable con 10 millones de pólizas decidió el modelo de datos antes de construir ninguna función.
+role: Líder de Arquitectura (proyecto paralelo)
+period: "sep 2026 – presente"
+status: building
+stack: [TypeScript, NestJS, Next.js, PostgreSQL, Prisma, Docker]
+aiTools: [Claude Code]
+metrics:
+  - label: Pólizas sintéticas en el benchmark
+    value: "10,000,000"
+    source: Informe del prototipo R1, 2026-09-22
+  - label: Tamaño de índices, tabla de proyección vs híbrido
+    value: 3,030 MB vs 492 MB (6x menos)
+    source: Informe del prototipo R1, 2026-09-22
+  - label: Filtro por dos atributos
+    value: 118 ms vs 1.2 ms
+    source: Informe del prototipo R1, 2026-09-22
+  - label: Migraciones de base de datos
+    value: "38"
+    source: Contadas en disco, 2026-10-13
+demoUrl: https://carrerable.github.io/reyber-dynamic-attributes-demo/
+repoUrl: https://github.com/carrerable/reyber-dynamic-attributes-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Contexto
+
+REYBER es una plataforma multi-tenant que gestiona el ciclo de vida del negocio asegurador: productos, pólizas, coberturas, cobranza, siniestros y comunicación con el asegurado. Sirve a dos segmentos con una sola base: aseguradoras, y despachos de agentes que administran pólizas de muchas aseguradoras en todos los ramos. Lo difícil es el **multirramo de verdad**: vida, salud, autos, embarcaciones, aeronaves, mascotas y carga deben convivir en el mismo motor, con los atributos de riesgo de cada ramo configurables sin programar y sin migrar el esquema.
+
+Es un proyecto paralelo en construcción: 25 documentos de investigación y requerimientos, 71 reglas de negocio y un plan de 36 paquetes; el código arrancó el 22 de septiembre de 2026.
+
+## Mi rol
+
+- **Decidí:** la arquitectura, el orden del trabajo y qué preguntas deben resolverse midiendo antes de construir.
+- **Verifiqué:** cada compuerta rompiéndola a propósito, y cada resultado del benchmark contra los planes de ejecución, no solo contra el reloj.
+- **Delegué a la IA:** el código y los scripts del prototipo, escritos por Claude Code bajo el protocolo escrito, y los borradores de los documentos de investigación, que reviso antes de que cuenten.
+
+## Investigación
+
+La pregunta riesgosa era el modelo de datos de los atributos dinámicos: cómo guardar un riesgo cuya forma cambia por ramo y aun así buscarlo rápido. Escribí la hipótesis para que pudiera fallar: una tabla con columnas relacionales para lo estable y una columna JSONB para lo variable, sosteniendo la cartera de un tenant de 10 millones de pólizas (13,027,325 objetos asegurados), respondiendo los filtros de la pantalla de búsqueda dentro de un presupuesto de tiempo y sin cambio de esquema por ramo nuevo. Las decisiones para cada resultado se escribieron antes de medir. Se compararon cuatro configuraciones sobre los mismos datos y la misma tabla: un índice GIN general, índices de expresión por atributo, una tabla de proyección (una fila por valor de atributo) y columnas generadas.
+
+Los primeros resultados estaban mal de una forma instructiva. Con la seguridad a nivel de fila activa, que es como corre el producto, PostgreSQL no usa un índice sobre una condición cuyo operador no está marcado como leakproof, y ningún operador JSONB lo está. Dos de las cuatro estrategias ni siquiera se medían como índices: eran recorridos de tabla con índices ociosos al lado. El protocolo exigía medir con el rol de la aplicación porque "medir sin RLS es medir otro producto", y el error apareció antes de construir una decisión encima.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Híbrido G′+C: los atributos viven en JSONB; los escalares buscables se copian a una columna normal mantenida por un disparador; los de tipo lista van a una tabla de proyección | Proyección para todo (C); columnas generadas para todo (G); GIN solo | C cuesta 6 veces más índice (3,030 vs 492 MB), escribe 1.7 veces más lento y va 98 veces peor en un filtro de dos atributos (118 vs 1.2 ms). G no puede buscar dentro de listas, que en seguros no son casos de borde (coberturas, beneficiarios, conductores adicionales). |
+| G′ en lugar de G para las columnas escalares | Columnas generadas (G) | Hacer buscable un atributo nuevo tardó 113 s con la cartera bloqueada en G. G′ tarda 233 s pero con la cartera viva: un lector concurrente vio un p95 de 3.6 ms contra 4.1 ms en reposo. El precio, un disparador que puede desincronizarse, se acepta y se deja escrito. |
+| El CI corre el Docker Compose del propio proyecto | El bloque `services:` del proveedor de CI | Un contenedor de base pelado no crea los roles, así que CI se conectaría como superusuario que ignora RLS y las pruebas de aislamiento pasarían sin probar nada. |
+| Mismo stack que VetNova con cinco cambios deliberados: cola de trabajos, API multiinstancia sin estado, API oficial de WhatsApp, observabilidad desde el día uno, CI en cada push | El mismo stack sin cambios; un stack nuevo | Reutilizar lo que llega con sus smoke tests y cambiar solo lo que los nuevos requerimientos no funcionales obligan. |
+
+## Validación y QA
+
+El aislamiento se prueba dos veces: una suite a nivel de base de datos y un smoke por HTTP que prueba lo que la primera no puede. El caso cero de la suite de aislamiento comprueba que la prueba misma puede fallar; sin él, los demás pasarían contra una conexión que esquiva RLS. Cada compuerta se rompió a propósito, sobre el artefacto compilado y nunca sobre el código fuente, antes de confiar en ella. El diccionario de datos se genera desde la base, y CI falla si se queda atrás o si una columna no tiene comentario. Las pantallas se comparan par por par contra los diseños aprobados.
+
+## Resultados
+
+<Chart id="reyber-benchmark" lang="es" />
+
+- El modelo de datos de los atributos dinámicos está decidido con evidencia, con las cifras de arriba, antes de escribir la primera función.
+- 38 migraciones, 70 tablas con tenant y seguridad a nivel de fila forzada en todas.
+- La ronda uno del prototipo cerró el 22 de septiembre de 2026. El informe conserva sus propios errores: el hallazgo de leakproof, una búsqueda por prefijo que estaba rota en los dos candidatos y un resultado que parecía una victoria y no lo era.
+
+## Qué haría distinto
+
+Escribiría la regla "medir con el rol real" desde el primer día de cualquier prototipo, porque solo confié en ella después de ver qué pasa sin ella. El benchmark midió un tenant dominante de 10 millones de pólizas; varios tenants de ese tamaño a la vez no se midieron, y agregaría ese escenario antes de dar el modelo por cerrado. Las consultas que ningún índice arregla (contar una lista enorme, agregarla) resultaron ser una decisión de producto y no de base de datos. El producto todavía no está desplegado: el hosting está decidido pero no aprovisionado.

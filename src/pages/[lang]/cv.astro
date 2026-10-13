@@ -1,0 +1,91 @@
+---
+import Base from '../../layouts/Base.astro';
+import Section from '../../components/ui/Section.astro';
+import SectionHeader from '../../components/ui/SectionHeader.astro';
+import Frame from '../../components/ui/Frame.astro';
+import Button from '../../components/ui/Button.astro';
+import Words from '../../components/ui/Words.astro';
+import Metrics from '../../components/cv/Metrics.astro';
+import Timeline from '../../components/cv/Timeline.astro';
+import Skills from '../../components/cv/Skills.astro';
+import Chart from '../../components/charts/Chart.astro';
+import { validar } from '../../data/cv-schema.mjs';
+import cvRaw from '../../data/cv.json';
+import { ui, NAME, type Lang } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'es' } }];
+}
+const lang = Astro.params.lang as Lang;
+const t = ui[lang];
+const L = lang.toUpperCase();
+const cv = validar(cvRaw); // si los datos son inválidos, el build falla
+const key = (e: any) => { const [y, m] = e.start.split('-').map(Number); return y + (m ? (m - 1) / 12 : 0); };
+const byStartDesc = (a: any, b: any) => key(b) - key(a);
+const jobs = cv.entries.filter((e: any) => e.kind === 'job').sort(byStartDesc);
+const projects = cv.entries.filter((e: any) => e.kind === 'project').sort(byStartDesc);
+const earlier = cv.entries.filter((e: any) => e.kind === 'earlier').sort(byStartDesc);
+const awards = cv.awards.filter((a: any) => a.cv);
+---
+<Base lang={lang} title={`CV — ${NAME}`} description={t['cv.summary']} path={`/${lang}/cv/`}>
+  <Section tone="base" bg="grid" class="cv-head">
+    <Frame tl="CV · INTERACTIVE" tr={L} bl={cv.meta.location[lang]} br={`UPD ${cv.meta.updated}`}>
+      <p class="role mono" style="color: var(--acc)">{cv.meta.headline[lang]}</p>
+      <Words tag="h1" text={cv.meta.name} class="ph1" />
+      <p class="lead serif" style="font-size: var(--t-xl); line-height: 1.3; max-width: 62ch; margin-top: var(--s-5)">{cv.meta.summary[lang]}</p>
+      <div class="row" style="margin-top: var(--s-5)">
+        <Button href={`/cv/Luis-Carrera-CV-${L}.pdf`}>{lang === 'es' ? 'Descargar PDF' : 'Download PDF'}</Button>
+        <Button href={`mailto:${cv.meta.email}`} variant="ghost">{t['cta.email']}</Button>
+        {cv.meta.links.map((l: any) => <Button href={l.url} variant="ghost" arrow={false}>{l.label}</Button>)}
+      </div>
+    </Frame>
+  </Section>
+
+  <Section tone="coral" bg="dots" id="metrics">
+    <SectionHeader index="01" eyebrow="Metrics" title={t['cv.metrics']} em={lang === 'es' ? 'fuente' : 'sources'} />
+    <Metrics metrics={cv.metrics} lang={lang} />
+  </Section>
+
+  <Section tone="alt" id="timeline">
+    <SectionHeader index="02" eyebrow="Timeline" title={t['cv.timeline']} />
+    <div class="two-col" style="margin-bottom: var(--s-7)">
+      <Chart id="career-gantt" lang={lang} />
+      <Chart id="collections-funnel" lang={lang} />
+    </div>
+    <Timeline entries={jobs} lang={lang} />
+    <h3 class="mono" style="margin: var(--s-7) 0 var(--s-4); font-size: var(--t-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--acc)">{lang === 'es' ? 'Proyectos independientes' : 'Independent projects'}</h3>
+    <Timeline entries={projects} lang={lang} />
+    <h3 class="mono" style="margin: var(--s-7) 0 var(--s-4); font-size: var(--t-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--acc)">{lang === 'es' ? 'Experiencia previa' : 'Earlier experience'}</h3>
+    <Timeline entries={earlier} lang={lang} />
+  </Section>
+
+  <Section tone="base" bg="dots" id="skills">
+    <SectionHeader index="03" eyebrow="Skills" title={t['cv.skills']} lead={t['cv.skills.hint']} />
+    <Skills groups={cv.groups} skills={cv.skills} lang={lang} />
+  </Section>
+
+  <Section tone="alt" id="more">
+    <div class="grid two">
+      <div>
+        <SectionHeader index="04" eyebrow="Education" title={t['cv.education']} />
+        <div class="prose">
+          {cv.education.map((e: any) => <p>{e.text[lang]}</p>)}
+          <p>{cv.languages[lang]}</p>
+        </div>
+      </div>
+      <div>
+        <SectionHeader index="05" eyebrow="Awards" title={t['cv.awards']} />
+        <ul class="prose">
+          {awards.map((a: any) => <li>{a.text[lang]}</li>)}
+        </ul>
+        <h3 class="mono" style="margin: var(--s-6) 0 var(--s-3); font-size: var(--t-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--acc)">{t['cv.ai']}</h3>
+        <ul class="prose">
+          {cv.aiProjects.map((p: any) => <li>{p.text[lang]} — <a href={`/${lang}/projects/${p.caseSlug}/`}>{t['cv.case']}</a></li>)}
+        </ul>
+      </div>
+    </div>
+  </Section>
+  <script>
+    import '../../scripts/cv.ts';
+  </script>
+</Base>

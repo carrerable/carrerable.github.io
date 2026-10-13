@@ -1,0 +1,34 @@
+{
+  "name": "carrerable-portfolio",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "check:cases": "node scripts/check-case-studies.mjs",
+    "build": "astro check && node scripts/check-case-studies.mjs && node scripts/check-cv.mjs && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.0.0",
+    "@astrojs/sitemap": "^3.2.0",
+    "@fontsource/archivo": "^5.0.0",
+    "@fontsource/ibm-plex-mono": "^5.0.0",
+    "@fontsource/ibm-plex-sans": "^5.0.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.3.0"
+  },
+  "overrides": {
+    "@astrojs/language-server": "2.15.4",
+    "lodash": "^4.18.1",
+    "yaml": "^2.9.1",
+    "braces": "^3.0.3"
+  }
+}

@@ -1,0 +1,74 @@
+---
+title: VetNova
+slug: vetnova
+lang: es
+kind: project
+order: 10
+summary: SaaS multi-tenant para clínicas veterinarias, construido con arquitectura dirigida con IA. Pre-revenue; listo para producción; en modo mantenimiento.
+role: Arquitecto de Producto y Software (proyecto independiente)
+period: "ago 2026 – presente"
+status: production
+stack: [TypeScript, NestJS, Next.js, PostgreSQL, Prisma, Playwright]
+aiTools: [Claude Code, ElevenLabs, Playwright]
+metrics:
+  - label: Modelos de datos (Prisma)
+    value: "137"
+    source: Contados en el esquema, 2026-10-13
+  - label: Migraciones
+    value: "96"
+    source: Contadas en disco, 2026-10-13
+  - label: Smoke tests de extremo a extremo
+    value: "107"
+    source: Contados en disco, 2026-10-13
+  - label: Decoradores de ruta REST
+    value: "722"
+    source: Contados en el código de la API, 2026-10-13
+demoUrl: https://carrerable.github.io/vetnova-demo/
+repoUrl: https://github.com/carrerable/vetnova-demo
+---
+
+## Contexto
+
+VetNova es un SaaS multi-tenant para clínicas veterinarias: agenda de citas, expedientes clínicos, recetas, inventario, punto de venta, facturación electrónica fiscal de México (CFDI 4.0), portal para dueños de mascotas, notificaciones por WhatsApp y correo, API pública y cinco idiomas de interfaz. El primer commit es del 14 de agosto de 2026. Está en producción desde el 7 de septiembre y congelado desde el 21 de septiembre: ahora toca marketing y soporte, no funciones nuevas. Es **pre-revenue**: listo para producción, sin cliente que pague todavía. Entre el producto y su primer ingreso hay trámites legales y fiscales, no ingeniería.
+
+Partí de un estudio de mercado de clínicas veterinarias de la Ciudad de México (agosto de 2026): contra un expediente clínico genérico y a favor de retención y visibilidad financiera. El alcance sigue esa línea.
+
+## Mi rol
+
+- **Decidí:** el alcance del producto, el modelo de datos multi-tenant, la estrategia de aislamiento, lo que se deja fuera a propósito (colas de trabajo, app móvil nativa a favor de una app web instalable) y cuándo dejar de construir.
+- **Verifiqué:** el comportamiento contra la base de datos y los 107 scripts de smoke, las rondas de QA pantalla por pantalla y cada cifra de la documentación contra el disco.
+- **Delegué a la IA:** la implementación. Claude Code escribe el código bajo mis especificaciones y reglas, y yo reviso cada cambio; puedo leer, depurar y explicar cualquier parte.
+
+## Investigación
+
+Tres investigaciones dieron forma a la construcción. El estudio de mercado fijó el alcance. Una revisión del stack frente al equipo real (una persona dirigiendo a un agente de IA) favoreció un stack aburrido y fácil de contratar: TypeScript, NestJS, Prisma, Next.js y PostgreSQL en un monorepo con pnpm. Y comparé tres motores de voz sintética a oído y por licencia, y medí el costo real del de pago en vez de creerle a su documentación (un tutorial de tres minutos costó 613 créditos, no los 1,227 que sugería).
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Seguridad a nivel de fila (RLS) en PostgreSQL, fijada por petición, con la app conectada como rol que no es dueño | Filtros por tenant en el código; una base de datos por tenant | Un `where` olvidado filtra datos de otra clínica; la RLS falla cerrada. Una base por tenant no escala en Postgres serverless. |
+| Sin Redis ni cola de trabajos; los procesos programados corren dentro de la API (28 cron en 25 archivos, con candados) | BullMQ sobre Redis | Una pieza más de infraestructura que operar sin volumen que la justifique. El costo se midió y se aceptó: el envío de WhatsApp es un solo intento con timeout corto. |
+| Migraciones SQL escritas a mano y aplicadas solo con deploy; `migrate dev` no se corre nunca | `prisma migrate dev`; editar las dos migraciones rotas | El esquema y la base real difieren en 97 detalles cosméticos en 33 tablas, así que `migrate dev` escribiría una migración de renombrados. Editar migraciones ya aplicadas rompe sus checksums. |
+| Voz de pago con ElevenLabs para los tutoriales, Piper gratis para iterar | Solo Kokoro o Piper; XTTS-v2; Edge TTS | Los gratis tienen mejor acento mexicano pero prosodia plana. ElevenLabs da tiempos por carácter, o sea subtítulos exactos. XTTS-v2 prohíbe uso comercial; Edge TTS usa un endpoint sin licencia. |
+| Apagar Google Ads a los diez días | Dejarlo correr; dejar solo Búsqueda | El 59.3% de los clics eran de Display, que Google activa por omisión; solo 18 de 54 clics venían de intención real de búsqueda. Un canal se juzga por los clics de intención, no por los clics. |
+| No enrutar Claude Code a otros proveedores de modelos | Proxies de la comunidad mediante `ANTHROPIC_BASE_URL` | Todo el contexto, incluidos datos de clientes que aparecen en un smoke, llegaría a un proveedor ajeno al aviso de privacidad, y los skills y hooks se rompen en silencio. |
+
+## Validación y QA
+
+La calidad pasa por 107 scripts de smoke de extremo a extremo, más verificaciones de clasificación, de integridad y del banco del asistente, y por rondas de QA escritas con una tabla de hallazgos por ronda (tres rondas para el primer candidato a release). El QA visual corre con Playwright en varios anchos y en tema claro y oscuro.
+
+Arriba del archivo de estado hay tres advertencias que no caducan, y cada una salió de un fallo real. Antes de dar un smoke por rojo, comprobar que la API sirve el código de hoy. Un smoke en verde no prueba corrección fiscal: el modo de pruebas del proveedor de facturación acepta lo que la autoridad fiscal rechazaría. Y una ruta que ningún smoke llama no está probada aunque la suite esté en verde: el endpoint de factura múltiple contestó 409 a todo hasta que un smoke por fin lo llamó.
+
+También recuento. El archivo de estado decía 118 pantallas; el disco dice 117, y 117 es lo que publico.
+
+## Resultados
+
+- 137 modelos de datos, 96 migraciones, 722 decoradores de ruta REST y 117 pantallas, en cinco idiomas (8,597 claves de traducción en 158 namespaces).
+- 125 tablas llevan identificador de tenant y están cubiertas por RLS.
+- En producción desde el 7 de septiembre de 2026; congelado desde el 21 de septiembre; pre-revenue.
+- Diez días de Google Ads no produjeron registros y dejaron un hallazgo sobre cómo leer los datos de un canal.
+
+## Qué haría distinto
+
+Este repositorio no tiene integración continua: las compuertas son locales, y por eso existen las tres advertencias de arriba. Mi siguiente proyecto (REYBER) tiene CI en cada push desde el primer día, y se lo agregaría aquí. También revisaría la configuración de redes por omisión de una campaña de anuncios antes de lanzarla, y no después de una semana de números engañosos. Y ejercitaría el circuito de cobro completo antes de declarar el producto listo: la cuenta de pagos en vivo nunca ha procesado un cargo de extremo a extremo, y dejé ese riesgo documentado.

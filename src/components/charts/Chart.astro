@@ -1,0 +1,19 @@
+---
+// Busca la gráfica por id en charts.json y delega según su tipo.
+import raw from '../../data/charts.json';
+import { validarCharts } from '../../data/charts-schema.mjs';
+import BarsCompare from './BarsCompare.astro';
+import Rounds from './Rounds.astro';
+import Funnel from './Funnel.astro';
+import Gantt from './Gantt.astro';
+import StackMatrix from './StackMatrix.astro';
+interface Props { id: string; lang: 'en' | 'es' }
+const { id, lang } = Astro.props;
+const chart = validarCharts(raw).find((c: any) => c.id === id);
+if (!chart) throw new Error(`Gráfica inexistente: ${id}`);
+---
+{chart.kind === 'bars-compare' && <BarsCompare chart={chart} lang={lang} />}
+{chart.kind === 'rounds' && <Rounds chart={chart} lang={lang} />}
+{chart.kind === 'funnel' && <Funnel chart={chart} lang={lang} />}
+{chart.kind === 'gantt' && <Gantt chart={chart} lang={lang} />}
+{chart.kind === 'matrix' && <StackMatrix chart={chart} lang={lang} />}

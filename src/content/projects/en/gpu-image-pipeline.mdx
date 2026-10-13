@@ -1,0 +1,80 @@
+---
+title: GPU image pipeline with ComfyUI and RunPod
+slug: gpu-image-pipeline
+lang: en
+kind: project
+order: 14
+summary: A node-based image workflow that runs on my laptop and on rented GPU pods, scripted so every pod is created, used and deleted in one run. October's total GPU bill was US$8.11.
+role: Pipeline builder (personal project)
+period: "2026"
+status: production
+stack: [ComfyUI, RunPod, Python, SDXL, ControlNet, IP-Adapter, kohya sd-scripts]
+aiTools: [ComfyUI, SDXL, ControlNet, IP-Adapter, LoRA, Wan 2.2, InsightFace]
+metrics:
+  - label: RunPod spend in October 2026 (GPU $7.83, disk $0.28)
+    value: US$8.11
+    source: Provider billing view, 2026-10-13
+  - label: Faster than generating on the laptop, on a Community RTX 3090 at about US$0.19 to 0.22 per hour
+    value: ~70×
+    source: Own measurements, 2026-10-13
+  - label: To train a LoRA of 1,880 steps on a rented GPU
+    value: ~41 min
+    source: Own run log, 2026-10-13
+  - label: Pods left running
+    value: "0"
+    source: Provider console, read 2026-10-13
+demoUrl: https://carrerable.github.io/gpu-image-pipeline-demo/
+repoUrl: https://github.com/carrerable/gpu-image-pipeline-demo
+---
+## Context
+
+I generate images with ComfyUI, a node-graph tool where a workflow is a diagram of models and operations rather than a script. The same set of nodes runs on my laptop and on rented RunPod pods, so the question is where each job should run and what it costs. This case is about the infrastructure and cost decisions behind the workflow; the images themselves are not the point, and neither are the specific models. A typical workflow chains an SDXL checkpoint, IP-Adapter and ControlNet guidance, a sampler, a detailer and an upscaler.
+
+## My role
+
+- **Decided:** which GPU each kind of job runs on, how a batch is started and stopped, and the spending cap for every run.
+- **Verified:** the provider's billing view and the list of running resources, so I can state the cost and confirm that no pod, volume or serverless endpoint is left behind. I also measured output quality with a number instead of by eye.
+- **Delegated to AI:** the image and video generation itself, which the models do inside the workflow I design. Spending and shutdown rules stay with me; I do not hand cloud spending decisions to an agent.
+
+## Research
+
+I compared three places to run a job and kept the numbers.
+
+- **Laptop.** The baseline.
+- **RunPod Community, RTX 3090.** About US$0.19 to 0.22 per hour, and about 70 times faster than the laptop for image generation.
+- **RunPod Secure, RTX 4090.** US$0.89 per hour. It costs more per hour, so I use it only for short batches of about 0.34 hours, where the rate matters little.
+
+For video, I rent an L40S and run Wan 2.2 in image-to-video mode. A clip takes about 24 minutes at 20 steps, around 70 seconds per step. The model also has a 4-step fast mode; I tested it and discarded it because the quality dropped, so the 24 minutes is the price of the result I want.
+
+Training a LoRA, a small adapter that teaches a base model a style or an identity without retraining it, ran for 1,880 steps in about 41 minutes on a rented GPU using kohya sd-scripts (v0.9.1), an open-source training toolkit.
+
+To choose a final recipe I did not rely on eyesight. I measured how consistent a generated character's face stayed across variants of the recipe, using InsightFace as the similarity metric between face embeddings, and picked the variant with the best score.
+
+For the cost side I read the provider's actual bill rather than estimating it. For October 2026 the spend is US$8.11, of which US$7.83 is GPU time on pods and US$0.28 is disk. There are no serverless endpoints and no network volumes.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| A script creates the pod for each batch, downloads the models in parallel, starts ComfyUI, and deletes the pod when the batch ends | Start and stop pods by hand from the console | Shutdown is part of the same command, so it never depends on me remembering. October's whole GPU bill is US$7.83 because no pod idles overnight. |
+| A spending cap per run, set by me before the script starts (for example US$5) | Open-ended runs billed at the end of the month | A script that creates paid resources needs a hard limit that I choose, not one an agent picks for itself. |
+| Community RTX 3090 for most image work; Secure RTX 4090 only for short batches | One premium GPU for everything | At about US$0.19 to 0.22 per hour the Community card is the cheapest way to get a 70x speedup; the Secure card is worth its US$0.89 only when the batch is short. |
+| L40S for video, full 20 steps | The 4-step fast mode | The fast mode was faster but its quality was not acceptable, so I accepted about 24 minutes per clip. |
+| No persistent network volume; models are downloaded again on each pod | A network volume holding models between sessions | A volume bills every day whether or not I generate. The script downloads them in parallel, and the bill has no storage line beyond US$0.28 of disk. |
+| Pods rather than serverless endpoints | A serverless endpoint | An endpoint suits a service answering requests; this is batch work that I start and stop myself. |
+
+## Validation & QA
+
+What I check is what the provider reports: the count of active pods (zero today), the line items of the month, and that no volume or endpoint exists. Before any heavy job on my own machine I also check that the ComfyUI queue is idle, so two jobs never compete for the same GPU.
+
+For quality, the face-similarity score gives each recipe variant a number, so choosing the final recipe is a comparison and not an opinion.
+
+## Results
+
+- A repeatable way to rent GPUs: one script creates the pod, runs the batch and deletes the pod, under a cap I set.
+- A cost model that is easy to read: US$8.11 in October, all of it usage-based.
+- A clean end state: zero active pods, no volumes, no endpoints.
+
+## What I'd do differently
+
+I would log throughput, step time and cost at the moment each run happens, in the same notes as the workflow, because once a pod is deleted I can no longer read those numbers off the console. The figures on this page come from that kind of log, and I would start it earlier. I would also make the spending cap a required argument of the script, so a run cannot start without one.

@@ -1,0 +1,40 @@
+---
+// Línea de tiempo vertical con dos carriles (main y parallel). Todo se renderiza en el servidor.
+interface Props { entries: any[]; lang: 'en' | 'es' }
+const { entries, lang } = Astro.props;
+const es = lang === 'es';
+const present = es ? 'Actual' : 'Present';
+const MES_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MES_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+// Fechas aproximadas: solo el año. Confirmadas: mes y año.
+const d = (s: string, approx: boolean) => {
+  const [y, m] = s.split('-');
+  return approx || !m ? y : `${(es ? MES_ES : MES_EN)[parseInt(m, 10) - 1]} ${y}`;
+};
+const when = (e: any) => `${d(e.start, e.approx)} – ${e.end ? d(e.end, e.approx) : present}`;
+const caseLabel = es ? 'Caso de estudio' : 'Case study';
+const slugTitle: Record<string, string> = {
+  'qa-release-gate': es ? 'Puerta de QA' : 'QA release gate',
+  'data-migration-pipeline': es ? 'Migración de datos' : 'Data migration',
+  'pagination-root-cause': es ? 'Causa raíz de paginación' : 'Pagination root cause',
+};
+---
+<div class="timeline">
+  {entries.map((e) => (
+    <article id={`entry-${e.id}`} data-entry={e.id} data-lane={e.lane} class="tl-entry reveal">
+      <p class="when">{when(e)}{e.approx ? (es ? ' · aprox.' : ' · approx.') : ''}{e.note ? ` · ${e.note[lang]}` : ''}</p>
+      <h3>{e.title[lang]}</h3>
+      <p class="org">{e.org[lang]}</p>
+      <ul>
+        {e.bullets.map((b: any) => <li data-bullet={b.id}>{b.text[lang]}</li>)}
+      </ul>
+      {(e.caseSlug || e.cases.length > 0 || e.demoUrl) && (
+        <p class="links">
+          {e.caseSlug && <a href={`/${lang}/projects/${e.caseSlug}/`}>{caseLabel} →</a>}
+          {e.cases.map((c: string) => <a href={`/${lang}/projects/${c}/`}>{slugTitle[c] ?? c} →</a>)}
+          {e.demoUrl && <a href={e.demoUrl}>Demo →</a>}
+        </p>
+      )}
+    </article>
+  ))}
+</div>

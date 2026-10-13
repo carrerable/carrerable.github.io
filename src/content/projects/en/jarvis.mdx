@@ -1,0 +1,72 @@
+---
+title: JARVIS
+slug: jarvis
+lang: en
+kind: project
+order: 12
+summary: A local voice and text assistant that runs on a laptop CPU with no paid APIs. Safety is enforced by code, not by the model, and a fast path answers common requests without calling the LLM.
+role: Designer & AI-directed developer (personal project)
+period: "Oct 2026"
+status: paused
+stack: [Python, Ollama, faster-whisper, Kokoro, openWakeWord]
+aiTools: [Claude Code, Ollama, faster-whisper, Kokoro, openWakeWord, Silero VAD]
+metrics:
+  - label: Intents answered without an LLM
+    value: "13"
+    source: Project status file, 2026-10-13
+  - label: Router test suite
+    value: 47/47
+    source: Project status file, 2026-10-13
+  - label: Latency, fast path
+    value: 2.7 s
+    source: Latency test, 2026-10-13
+  - label: Latency, LLM with streaming
+    value: 8.6 s
+    source: Latency test, 2026-10-13
+demoUrl: https://carrerable.github.io/jarvis-safety-router-demo/
+repoUrl: https://github.com/carrerable/jarvis-safety-router-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Context
+
+JARVIS is a local assistant, by text and by voice, for my own laptop. It understands spoken commands, queries the PC and my projects through tools classified by risk, and answers aloud. Everything is free and local: speech recognition, the language model and the voice all run on the CPU, with no paid API. It is bilingual, Spanish or English, selected in one configuration file. The project is paused: the code is committed and nothing runs in the background.
+
+## My role
+
+- **Decided:** the architecture, the risk classification of every tool, what is prohibited outright, the models, and the latency targets.
+- **Verified:** each change against the test batteries, and the model's behavior on the security cases, which I check with the real model and not a stub.
+- **Delegated to AI:** the Python implementation, under my rules and review. Claude Code wrote it; I own what it is allowed to do.
+
+## Research
+
+The central question was how to give a small local model the ability to act without trusting it. I compared a 4-billion-parameter model against a 1.7-billion one on 14 chat prompts and 6 action prompts. The small model was 79% faster in chat, but it claimed to have performed an action it had not performed in 1 of 6 cases by an automatic check and in 3 of 6 on my own reading. The 4B model stayed. A second experiment let the same 4B model answer free conversation without tool definitions, which cut median latency from 7.95 s to 3.05 s while keeping zero false claims of action. For the wake word I trained a verifier on my own recordings and measured it: 8 of 10 positives, 0 of 11 negatives, evaluated on the same recordings that trained it, so the result is optimistic.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| Confirmation of dangerous tools is required by code, never by the model | Letting the model ask for confirmation in its prompt | A prompt is a request, not a guarantee. The execution function refuses a dangerous tool without a confirmation; destructive actions (deleting or moving files, a console, publishing, reading secret files) do not exist as tools. |
+| A fast path before the LLM: shortcut, then a command catalog, then 13 intents, then the model | Send every request to the LLM | Time, date, system state and playlists do not need a language model. The fast path answers in 2.7 s; the LLM path takes 8.6 s. Risk words and negations always go to the LLM. |
+| One local 4B model on the CPU | A 1.7B model; a paid API | The 1.7B invented completed actions. A paid API breaks the free-and-local rule. |
+| Keep the wake-word verifier off | Enable it | Two of ten positive recordings stayed below the base model's threshold, and the evaluation is optimistic. The documented fallback is the F9 key. |
+
+## Validation & QA
+
+The assistant has test batteries for tools, router, catalog, streaming, activation, voice-activity detection and English mode. The router suite passes 47/47. The brain test, with the real model and the PC idle beforehand, passes 8/8, including three safety cases (delete a file, run a generation script, read a secret file) with no failure in either language. English transcription was checked on 16 spoken commands with two synthetic voices: 16/16 after normalization.
+
+I also record what does not pass. The fixed fast path (2.7 s) meets its 3.5 s target, the time-of-day answer meets 4.5 s only some of the time, and the LLM path (8.6 s) misses its 6.0 s target. "Hey Jarvis" fails often with Spanish pronunciation because the model is English. And a full human test with a real microphone and keyboard has not been done: only synthetic voices were used for English mode.
+
+## Results
+
+<Chart id="jarvis-latency" lang="en" />
+
+- 13 intents are answered without the LLM; 47/47 router tests pass.
+- Fast path: 2.7 s. LLM with streaming: 8.6 s, missing the target.
+- Brain test 8/8, with every safety case passing.
+- Four tool groups (general, project status, music, projects), each tool tagged safe or dangerous, with the command catalog restricted to a closed list of actions.
+
+## What I'd do differently
+
+I would measure the end-to-end latency first and design the fast path around it, instead of discovering after the fact that the LLM path misses its target. I would collect more than ten wake-word recordings and evaluate the verifier on recordings it never trained on. And I would run the human voice test before building the second language, since only that test tells me whether the assistant is pleasant to use.

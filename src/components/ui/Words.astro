@@ -1,0 +1,21 @@
+---
+// Titular con revelado por palabras. Sin JS el texto se ve completo.
+// `em`: frase que se resalta (coral). `serif`: la frase resaltada va en cursiva serif.
+interface Props { text: string; em?: string; tag?: string; class?: string; serif?: boolean }
+const { text, em, tag = 'span', class: cls = '', serif = false } = Astro.props;
+const parts: { t: string; em: boolean }[] = [];
+if (em && text.includes(em)) {
+  const at = text.indexOf(em);
+  const a = text.slice(0, at);
+  const b = text.slice(at + em.length);
+  if (a.trim()) parts.push({ t: a, em: false });
+  parts.push({ t: em, em: true });
+  if (b.trim()) parts.push({ t: b, em: false });
+} else parts.push({ t: text, em: false });
+let i = 0;
+const words = parts.flatMap((p) => p.t.trim().split(/\s+/).map((w) => ({ w, em: p.em, i: i++ })));
+const Wrapper = tag as any;
+---
+<Wrapper class:list={['words', cls]} aria-label={text}>
+  {words.map((x) => <><span class:list={['w', { em: x.em, serif: x.em && serif }]} aria-hidden="true"><span style={`--i:${x.i}`}>{x.w}</span></span>{' '}</>)}
+</Wrapper>

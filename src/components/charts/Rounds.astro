@@ -1,0 +1,53 @@
+---
+// Rondas de QA: un bloque por ronda con barras horizontales; la escala es común dentro de la ronda.
+import ChartFrame from './ChartFrame.astro';
+import { fmt, barPath, textW, type Lang } from './lib';
+interface Props { chart: any; lang: Lang }
+const { chart, lang } = Astro.props;
+const W = 640, LABEL = 236, GUTTER = 64, BAR_W = W - LABEL - GUTTER, ROW = 34, BAR_H = 20, HEAD = 30, GAP = 14;
+const title = chart.title[lang];
+const desc = chart.desc[lang];
+let y = 0;
+const rounds = chart.data.rounds.map((r: any) => {
+  const max = Math.max(...r.items.map((i: any) => i.of ?? i.value)) || 1;
+  const top = y;
+  const rows = r.items.map((it: any, i: number) => {
+    const ry = top + HEAD + i * ROW;
+    const w = (it.value / max) * BAR_W;
+    const track = it.of ? (it.of / max) * BAR_W : 0;
+    const txt = it.of ? `${fmt(it.value, lang)} / ${fmt(it.of, lang)}` : fmt(it.value, lang);
+    return { ry, w, track, it, txt, tip: `${it.label[lang]}: ${txt}` };
+  });
+  const height = HEAD + r.items.length * ROW;
+  y = top + height + GAP;
+  return { r, top, rows, height };
+});
+const H = y - GAP + 4;
+const head = [lang === 'es' ? 'Ronda' : 'Round', lang === 'es' ? 'Concepto' : 'Item', lang === 'es' ? 'Valor' : 'Value'];
+const trows = chart.data.rounds.flatMap((r: any) => r.items.map((it: any) => [r.label[lang], it.label[lang], it.of ? `${it.value} / ${it.of}` : String(it.value)]));
+---
+<ChartFrame id={chart.id} lang={lang} title={title} desc={desc} source={chart.source[lang]} date={chart.date} head={head} rows={trows}>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={`t-${chart.id} d-${chart.id}`}>
+    <title id={`t-${chart.id}`}>{title}</title>
+    <desc id={`d-${chart.id}`}>{desc}</desc>
+    {rounds.map((rd: any) => (
+      <g>
+        <text class="muted" x="0" y={rd.top + 12}>{rd.r.label[lang]}</text>
+        <line x1={LABEL} x2={LABEL} y1={rd.top + HEAD - 6} y2={rd.top + rd.height - 4} stroke="var(--line)" stroke-width="1" />
+        {rd.rows.map((r: any) => {
+          const tw = textW(r.tip);
+          const tx = Math.max(4, Math.min(LABEL + r.w + 8, W - tw - 4));
+          return (
+            <g class="mark" tabindex="0" aria-label={r.tip}>
+              <text x="0" y={r.ry + BAR_H / 2 + 4}>{r.it.label[lang]}</text>
+              {r.track > 0 && <path d={barPath(LABEL, r.ry, r.track, BAR_H)} fill="var(--line)" />}
+              <path class="shape" d={barPath(LABEL, r.ry, r.w, BAR_H)} fill={r.it.hot ? 'var(--c-coral)' : 'color-mix(in srgb, var(--fg) 38%, transparent)'} />
+              <text class="big" x={LABEL + Math.max(r.track, r.w) + 8} y={r.ry + BAR_H / 2 + 5}>{r.txt}</text>
+              <g class="tip"><rect x={tx} y={r.ry - 24} width={tw} height="20" rx="4" /><text x={tx + 8} y={r.ry - 10}>{r.tip}</text></g>
+            </g>
+          );
+        })}
+      </g>
+    ))}
+  </svg>
+</ChartFrame>

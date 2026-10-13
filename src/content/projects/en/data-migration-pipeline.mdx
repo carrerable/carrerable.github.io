@@ -1,0 +1,80 @@
+---
+title: Auditable data migration, from Excel to production
+slug: data-migration-pipeline
+lang: en
+kind: work
+order: 2
+summary: Moving the history and catalogs of multi-branch customers out of their old systems with a two-step pipeline, dry-run to QA to production, and a reconciliation against the source at every stage.
+role: Implementation & data migration owner (current role)
+period: "May – Sep 2026"
+status: delivered
+stack: [TypeScript, Excel, MySQL, Prisma (read-only schema), Claude Code]
+aiTools: [Claude Code]
+metrics:
+  - label: Historical orders migrated (3 branches)
+    value: "8,339, 0 errors"
+    source: Production reconciliation, Sep 2026
+  - label: Spare parts loaded (24 accounts)
+    value: "5,908"
+    source: Production load, Jul 2026
+  - label: Purchases regenerated into homogenized groups
+    value: "1,485"
+    source: QA and production, Jul 2026
+  - label: Mobile-unit dry run
+    value: "58 of 59 rows mapped, 0 errors"
+    source: Dry run, Jul 2026
+demoUrl: https://carrerable.github.io/migration-reconciliation-demo/
+repoUrl: https://github.com/carrerable/migration-reconciliation-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Context
+
+A B2B SaaS for auto-repair shops (my current role) onboards customers that already have years of history somewhere else. Two projects show the pattern. In the first, new multi-branch customers needed their orders, payments, receivables and bank movements loaded from their previous system, exported to Excel files whose layout differed by branch. In the second, a corporate fleet-maintenance customer with 24 branches and mobile units needed its spare-parts catalog, standardized suppliers and a year of purchases loaded so it could run inventory and costs. This case is anonymous, and the demo uses invented data.
+
+## My role
+
+- **Decided:** the migration rules per branch, the order of stages, what gets documented as partial instead of filled in, and when a run is good enough to go to production.
+- **Verified:** every run in the QA environment and a reconciliation against the original Excel before anything touched production, and the first purchase load in production, which I audited myself.
+- **Delegated to AI:** writing the TypeScript migration and repair scripts and the written analyses, with Claude Code, under my rules. I own the written analysis that management signs off on before any code is written.
+
+## Research
+
+Before programming I directed a written analysis of the migration rules per branch and took it to management for approval. In one branch I compared the structure of 18 files (6,657 rows, 2,636 documents). Management noticed that my first analysis had missed 3 files; I corrected the analysis itself before writing any code. In another branch the files mixed several locations, so I filtered by label, and in a third only about 15% of the orders had a complete report: I documented a partial migration instead of inventing the rest.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| Two steps: build a homogenized, auditable JSON from the Excel files, then load the database from the JSON | Load directly from Excel | The JSON can be diffed, reviewed and reconciled before any write; the source file is never the thing being loaded. |
+| Always dry-run, then QA, then production, verified against the source | Apply directly | Production writes need a number to compare. The first purchase load reached production with 3 errors, which is why it was rebuilt this way. |
+| Document a partial migration (about 15% of orders in one branch) | Fill gaps to look complete | Invented data in a customer's history is worse than a documented gap. |
+| Merge duplicate suppliers into the one with the most dependencies, matching by tax ID (RFC), then normalized name, then manual alias | Delete duplicates | Deleting breaks history that points at them; merging keeps it. |
+| Soft delete for spare parts | Physical delete | History must remain readable. |
+
+## Validation & QA
+
+Findings I made, and the rules they produced:
+
+- **Omitted columns.** Four bugs came from manual inserts that skipped columns (description, payment method, customer approval, parts). They were fixed with backfills, and the rule is now "decide every column; never omit one".
+- **A field the schema marks optional but the app requires** broke 188 orders when opened. I generated it in the app's own format, checked uniqueness and repaired the 188.
+- **Missing mirror financial movements** from earlier runs were backfilled.
+- **First purchase load.** Three errors: wrong branch assigned, suppliers mixed into one purchase and costs left at zero. A batch cost had also been captured as a unit cost. I rebuilt it with the auditable pipeline and verified it after loading.
+- **Exclusions with a reason.** Rows that were not real branches (4 of 8,262) and one document with an unresolvable tie were left out and documented.
+
+QA ran the full cycle: delete, load, verify, delete, before production.
+
+## Results
+
+<Chart id="migration-reconcile" lang="en" />
+
+- 8,339 historical orders from 3 branches migrated to production with 0 errors; 2 more branches followed.
+- A base branch's catalog cloned to 5 branches: 1,101 labor concepts and 126 service packages.
+- 5,908 spare parts loaded across 24 accounts.
+- 1,393 purchases with 7,975 lines from the first load, regenerated as 1,485 homogenized groups.
+- A mobile-unit dry run mapped 58 of 59 rows with 0 errors.
+
+## What I'd do differently
+
+The first purchase load reached production with three errors and had to be rebuilt; I would make the full dry-run to QA cycle a precondition for every load, whoever runs it. I would also write the "decide every column" rule as an automated check instead of a convention, so a script that omits a column fails before it runs. And I would push for complete reports from the customer before the analysis starts: the branch with 15% complete data could only be documented, not solved.

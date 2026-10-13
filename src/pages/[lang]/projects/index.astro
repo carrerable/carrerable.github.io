@@ -1,0 +1,41 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import ProjectCard from '../../../components/ProjectCard.astro';
+import Section from '../../../components/ui/Section.astro';
+import SectionHeader from '../../../components/ui/SectionHeader.astro';
+import Chart from '../../../components/charts/Chart.astro';
+import { ui, NAME, type Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'es' } }];
+}
+const lang = Astro.params.lang as Lang;
+const t = ui[lang];
+const all = (await getCollection('projects')).filter((e) => e.data.lang === lang);
+const work = all.filter((e) => e.data.kind === 'work').sort((a, b) => a.data.order - b.data.order);
+const projects = all.filter((e) => e.data.kind === 'project').sort((a, b) => a.data.order - b.data.order);
+---
+<Base lang={lang} title={`${t['nav.projects']} — ${NAME}`} description={t['how.teaser']} path={`/${lang}/projects/`}>
+  <Section tone="base" bg="grid" class="tight">
+    <SectionHeader level="h1" eyebrow={t['nav.projects']} title={t['nav.projects']} lead={t['projects.lead']} />
+  </Section>
+  {work.length > 0 && (
+    <Section tone="alt" id="work">
+      <SectionHeader index="01" eyebrow={t['nav.work']} title={t['section.work']} />
+      <div class="grid">
+        {work.map((e, i) => <ProjectCard lang={lang} slug={e.data.slug} title={e.data.title} summary={e.data.summary} stack={e.data.stack} status={e.data.status} index={`W${i + 1}`} />)}
+      </div>
+    </Section>
+  )}
+  <Section tone="base" bg="dots" id="projects">
+    <SectionHeader index="02" eyebrow={t['nav.projects']} title={t['section.projects']} />
+    <div class="grid">
+      {projects.map((e, i) => <ProjectCard lang={lang} slug={e.data.slug} title={e.data.title} summary={e.data.summary} stack={e.data.stack} status={e.data.status} index={`P${i + 1}`} />)}
+    </div>
+  </Section>
+  <Section tone="alt" id="stack">
+    <SectionHeader index="03" eyebrow="Evidence" title={t['stack.title']} em={lang === 'en' ? 'evidence' : 'evidencia'} />
+    <Chart id="stack-matrix" lang={lang} />
+  </Section>
+</Base>

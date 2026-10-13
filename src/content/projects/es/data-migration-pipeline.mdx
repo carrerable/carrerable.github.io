@@ -1,0 +1,80 @@
+---
+title: Migración de datos auditable, de Excel a producción
+slug: data-migration-pipeline
+lang: es
+kind: work
+order: 2
+summary: Cómo llevar el historial y los catálogos de clientes multisucursal desde sus sistemas anteriores con un pipeline de dos pasos, dry-run, QA y producción, y una conciliación contra la fuente en cada etapa.
+role: Responsable de implementaciones y migración de datos (puesto actual)
+period: "may – sep 2026"
+status: delivered
+stack: [TypeScript, Excel, MySQL, Prisma (esquema en solo lectura), Claude Code]
+aiTools: [Claude Code]
+metrics:
+  - label: Órdenes históricas migradas (3 sucursales)
+    value: "8,339, 0 errores"
+    source: Conciliación en producción, sep 2026
+  - label: Refacciones cargadas (24 cuentas)
+    value: "5,908"
+    source: Carga en producción, jul 2026
+  - label: Compras regeneradas en grupos homologados
+    value: "1,485"
+    source: QA y producción, jul 2026
+  - label: Dry-run de unidades móviles
+    value: "58 de 59 filas mapeadas, 0 errores"
+    source: Dry-run, jul 2026
+demoUrl: https://carrerable.github.io/migration-reconciliation-demo/
+repoUrl: https://github.com/carrerable/migration-reconciliation-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Contexto
+
+Un SaaS B2B para talleres automotrices (mi puesto actual) recibe clientes que ya tienen años de historia en otro lugar. Dos proyectos muestran el patrón. En el primero, clientes nuevos con varias sucursales necesitaban ver en la plataforma sus órdenes, pagos, cuentas por cobrar y movimientos bancarios, exportados de su sistema anterior en archivos de Excel con formatos distintos por sucursal. En el segundo, un cliente corporativo de mantenimiento de flotillas con 24 sucursales y unidades móviles necesitaba su catálogo de refacciones, proveedores homologados y las compras de un año para operar inventario y costos. Este caso es anónimo y la demo usa datos inventados.
+
+## Mi rol
+
+- **Decidí:** las reglas de migración por sucursal, el orden de las etapas, qué se documenta como parcial en lugar de rellenarse y cuándo una corrida está lista para producción.
+- **Verifiqué:** cada corrida en el ambiente de QA y una conciliación contra el Excel original antes de tocar producción, y la primera carga de compras ya en producción, que audité yo.
+- **Delegué a la IA:** escribir los scripts de migración y reparación en TypeScript y los análisis escritos, con Claude Code, bajo mis reglas. Yo respondo por el análisis escrito que dirección aprueba antes de escribir código.
+
+## Investigación
+
+Antes de programar dirigí un análisis escrito de las reglas de migración por sucursal y lo llevé a dirección para su visto bueno. En una sucursal comparé la estructura de 18 archivos (6,657 filas, 2,636 folios). Dirección notó que mi primer análisis había pasado por alto 3 archivos; corregí el análisis mismo antes de escribir código. En otra sucursal los archivos mezclaban varias sedes, así que filtré por etiqueta, y en una tercera solo cerca del 15% de las órdenes tenía reporte completo: documenté una migración parcial en lugar de inventar el resto.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Dos pasos: generar un JSON homologado y auditable desde los Excel, y cargar la base desde ese JSON | Cargar directo desde Excel | El JSON se puede comparar, revisar y conciliar antes de cualquier escritura; el archivo fuente nunca es lo que se carga. |
+| Siempre dry-run, luego QA, luego producción, verificando contra la fuente | Aplicar directo | Escribir en producción exige un número contra el cual comparar. La primera carga de compras llegó a producción con 3 errores, y por eso se rehízo así. |
+| Documentar una migración parcial (cerca del 15% de las órdenes en una sucursal) | Rellenar huecos para que parezca completa | Un dato inventado en el historial de un cliente es peor que un hueco documentado. |
+| Fusionar proveedores duplicados en el que tiene más dependencias, emparejando por RFC, luego nombre normalizado y luego alias manual | Borrar duplicados | Borrar rompe el historial que apunta a ellos; fusionar lo conserva. |
+| Baja lógica para las refacciones | Borrado físico | El historial debe seguir siendo legible. |
+
+## Validación y QA
+
+Hallazgos míos y las reglas que produjeron:
+
+- **Columnas omitidas.** Cuatro bugs vinieron de INSERT manuales que omitían columnas (descripción, método de pago, aprobación del cliente, refacciones). Se corrigieron con backfills, y la regla ahora es "decidir cada columna, no omitir".
+- **Un campo que el esquema marca como opcional pero la app exige** rompía 188 órdenes al abrirlas. Lo generé con el formato de la propia app, validé unicidad y reparé las 188.
+- **Movimientos financieros espejo faltantes** de corridas previas se completaron con backfill.
+- **Primera carga de compras.** Tres errores: sucursal equivocada, proveedores mezclados en una sola compra y costos en cero. Además, un costo de lote se había capturado como costo unitario. La rehíce con el pipeline auditable y la verifiqué después de cargar.
+- **Exclusiones con motivo.** Se dejaron fuera, documentadas, las filas que no eran sucursales reales (4 de 8,262) y un folio con un empate imposible de resolver.
+
+QA corrió el ciclo completo antes de producción: borrar, cargar, verificar, borrar.
+
+## Resultados
+
+<Chart id="migration-reconcile" lang="es" />
+
+- 8,339 órdenes históricas de 3 sucursales migradas a producción con 0 errores; después, 2 sucursales más.
+- Catálogo de una sucursal base clonado a 5 sucursales: 1,101 conceptos de mano de obra y 126 paquetes de servicio.
+- 5,908 refacciones cargadas en 24 cuentas.
+- 1,393 compras con 7,975 líneas de la primera carga, regeneradas como 1,485 grupos homologados.
+- Un dry-run de unidades móviles mapeó 58 de 59 filas con 0 errores.
+
+## Qué haría distinto
+
+La primera carga de compras llegó a producción con tres errores y hubo que rehacerla; haría del ciclo completo de dry-run y QA una condición previa de toda carga, la corra quien la corra. También escribiría la regla "decidir cada columna" como una verificación automática y no como una convención, para que un script que omita una columna falle antes de ejecutarse. Y exigiría reportes completos al cliente antes de empezar el análisis: la sucursal con 15% de datos completos solo se pudo documentar, no resolver.

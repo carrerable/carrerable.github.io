@@ -1,0 +1,59 @@
+---
+// Barras horizontales comparativas. Cada panel tiene su propia escala lineal y el valor escrito junto a la barra.
+import ChartFrame from './ChartFrame.astro';
+import { fmt, barPath, textW, type Lang } from './lib';
+interface Props { chart: any; lang: Lang }
+const { chart, lang } = Astro.props;
+const W = 640, LABEL = 176, GUTTER = 104, BAR_W = W - LABEL - GUTTER, ROW = 36, BAR_H = 20, HEAD = 30, GAP = 18;
+const title = chart.title[lang];
+const desc = chart.desc[lang];
+
+let y = 0;
+const panels = chart.data.panels.map((p: any) => {
+  const max = Math.max(...p.series.map((s: any) => s.value), p.ref?.value ?? 0) || 1;
+  const top = y;
+  const rows = p.series.map((s: any, i: number) => {
+    const ry = top + HEAD + i * ROW;
+    const w = (s.value / max) * BAR_W;
+    const txt = `${fmt(s.value, lang, p.decimals ?? 0)}${p.unit ?? ''}`;
+    return { ry, w, s, txt, tip: `${s.label[lang]}: ${txt}` };
+  });
+  const height = HEAD + p.series.length * ROW;
+  y = top + height + GAP;
+  return { p, top, rows, max, height };
+});
+const H = y - GAP + 4;
+
+const head = [lang === 'es' ? 'Panel' : 'Panel', lang === 'es' ? 'Serie' : 'Series', lang === 'es' ? 'Valor' : 'Value'];
+const trows = chart.data.panels.flatMap((p: any) => p.series.map((s: any) => [p.label[lang], s.label[lang], `${fmt(s.value, lang, p.decimals ?? 0)}${p.unit ?? ''}`]));
+---
+<ChartFrame id={chart.id} lang={lang} title={title} desc={desc} source={chart.source[lang]} date={chart.date} head={head} rows={trows}>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={`t-${chart.id} d-${chart.id}`}>
+    <title id={`t-${chart.id}`}>{title}</title>
+    <desc id={`d-${chart.id}`}>{desc}</desc>
+    {panels.map((pn: any) => (
+      <g>
+        <text class="muted" x="0" y={pn.top + 12}>{pn.p.label[lang]}</text>
+        <line x1={LABEL} x2={LABEL} y1={pn.top + HEAD - 6} y2={pn.top + pn.height - 4} stroke="var(--line)" stroke-width="1" />
+        {pn.p.ref && (() => {
+          const rx = LABEL + (pn.p.ref.value / pn.max) * BAR_W;
+          return <g><line x1={rx} x2={rx} y1={pn.top + HEAD - 8} y2={pn.top + pn.height - 4} stroke="var(--fg)" stroke-width="1.5" /><text x={rx} y={pn.top + 12} text-anchor="middle">{pn.p.ref.label[lang]}</text></g>;
+        })()}
+        {pn.rows.map((r: any) => {
+          const tw = textW(r.tip);
+          const tx = Math.max(4, Math.min(LABEL + r.w + 8, W - tw - 4));
+          return (
+            <g class="mark" tabindex="0" aria-label={r.tip}>
+              <text x="0" y={r.ry + BAR_H / 2 + 4}>{r.s.label[lang]}</text>
+              {r.w > 0
+                ? <path class="shape" d={barPath(LABEL, r.ry, r.w, BAR_H)} fill={r.s.hot ? 'var(--c-coral)' : 'color-mix(in srgb, var(--fg) 38%, transparent)'} />
+                : <rect class="shape" x={LABEL} y={r.ry + 2} width="3" height={BAR_H - 4} fill="var(--c-coral)" />}
+              <text class="big" x={LABEL + Math.max(r.w, 3) + 8} y={r.ry + BAR_H / 2 + 5}>{r.txt}</text>
+              <g class="tip"><rect x={tx} y={r.ry - 24} width={tw} height="20" rx="4" /><text x={tx + 8} y={r.ry - 10}>{r.tip}</text></g>
+            </g>
+          );
+        })}
+      </g>
+    ))}
+  </svg>
+</ChartFrame>

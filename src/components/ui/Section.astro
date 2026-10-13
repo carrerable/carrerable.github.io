@@ -1,0 +1,10 @@
+---
+// Sección con tono (base = sigue el tema, alt = opuesto, coral = bloque de color) y fondo opcional.
+import Background from './Background.astro';
+interface Props { tone?: 'base' | 'alt' | 'coral'; bg?: 'grid' | 'dots' | 'none'; id?: string; class?: string; tight?: boolean }
+const { tone = 'base', bg = 'none', id, class: cls = '', tight = false } = Astro.props;
+---
+<section id={id} class:list={['section', `s-${tone}`, { tight }, cls]}>
+  {bg !== 'none' && <Background variant={bg} />}
+  <div class="wrap"><slot /></div>
+</section>

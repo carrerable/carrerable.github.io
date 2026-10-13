@@ -1,0 +1,69 @@
+---
+title: Lyric videos con un solo comando
+slug: lyric-videos
+lang: es
+kind: project
+order: 15
+summary: Un pipeline local que convierte una canción generada con IA en un lyric video sincronizado más un Short vertical y sube ambos, en 15 a 25 minutos por canción y sin servicios de pago.
+role: Creador y desarrollador dirigiendo IA (proyecto personal)
+period: "2026"
+status: production
+stack: [Remotion, React, TypeScript, PowerShell, Python]
+aiTools: [Claude Code, whisper.cpp, WhisperX, Remotion, Suno]
+metrics:
+  - label: Canciones en el catálogo
+    value: "57"
+    source: Archivo de estado del proyecto, 2026-10-13
+  - label: Alineación de la letra, dos corridas de muestra
+    value: 268/286 (94%) y 243/302 (80%)
+    source: Corridas del pipeline, ago-sep 2026
+  - label: Tiempo por canción
+    value: 15 a 25 min
+    source: Reportes del pipeline, 2026-10-13
+demoUrl: https://carrerable.github.io/lyric-sync-demo/
+repoUrl: https://github.com/carrerable/lyric-sync-demo
+---
+
+## Contexto
+
+Hago canciones con un generador de música con IA y quería que cada una se volviera un lyric video sin abrir un editor de video. El pipeline toma el mp3, encuentra la letra incrustada en sus metadatos, alinea cada palabra con el audio, renderiza un video de 1920 por 1080 con la palabra actual resaltada, renderiza un Short vertical de 1080 por 1920 con el estribillo y sube ambos. Todo corre en local en Windows, sin costo, y un solo comando procesa todo lo nuevo de la carpeta de descargas.
+
+<div class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/7dKB-EBO3WU" title="Lyric video de ejemplo generado por el pipeline" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen style="width:100%;aspect-ratio:16/9;border:0"></iframe></div>
+
+## Mi rol
+
+- **Decidí:** las etapas del pipeline, el criterio de calidad de la alineación, qué muestra el Short, las reglas de idempotencia de las subidas y cuándo una corrida es aceptable.
+- **Verifiqué:** la proporción de alineación de cada corrida, la ventana del estribillo y el resultado subido, con un archivo de estado que actualizo a mano después de cada corrida importante.
+- **Delegué a la IA:** el código (scripts de PowerShell, scripts de Node y los componentes de Remotion), escrito por Claude Code bajo mi especificación y revisión.
+
+## Investigación
+
+El problema central es el tiempo: la letra de una canción se conoce, pero cuándo se canta cada palabra no. Una transcripción rápida (whisper.cpp, modelo small) da tiempos aproximados pero lee mal el texto cantado. Después WhisperX hace alineación forzada con un modelo wav2vec2 contra la letra real, de modo que el texto es exacto y del audio solo salen los tiempos. Si el modelo small devuelve solo marcadores y menos de 20 palabras reales, el pipeline reintenta con el modelo medium. El archivo alineado se guarda de forma permanente por canción para poder regenerar un Short después sin alinear otra vez.
+
+También revisé las métricas del canal con un script de solo lectura que cuesta unas tres unidades de cuota. Las impresiones y el CTR no se pueden leer por API, y la retención vive en otra API de analítica con su propio permiso, así que solo recolecto lo que la plataforma realmente expone.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| whisper.cpp para una transcripción aproximada, WhisperX para alinear a la fuerza contra la letra real | Un solo modelo; transcribir la letra desde el audio | La letra ya es exacta. Transcribirla agregaría errores; alinearla solo agrega tiempos. |
+| Estribillo detectado automáticamente (el primero con duración útil, acotado entre 8 y 45 segundos), con una ventana de respaldo al 35% de la canción | Elegir el estribillo a mano cada vez; fallar si no hay estribillo | Un Short nunca debe bloquear una corrida. El respaldo siempre produce algo razonable y queda registrado. |
+| Script de analítica que solo lee | Analítica con permiso de escritura sobre el canal | El pipeline puede publicar; el análisis nunca debe poder cambiar nada. |
+| Subidas rastreadas por canción en un archivo de resultado | Rastrear por título o por el archivo de estado | Un título puede repetirse entre canciones y el archivo de estado es documentación, no estado. Un archivo de resultado junto al video sí es estado real. |
+
+## Validación y QA
+
+Cada corrida imprime la proporción de alineación. Las dos corridas de muestra registradas son 268 de 286 palabras (94%) y 243 de 302 (80%); las dos son sanas y ninguna necesitó el reintento. Se comprueba en las notas de la corrida que la ventana del estribillo sea real y no el respaldo.
+
+El pipeline tiene protecciones que nacieron de fallos. Dos canciones distintas con el mismo título chocan en la misma carpeta, y una corrida forzada pisaría los archivos de la primera; un sufijo en el identificador las mantiene separadas. Las subidas son idempotentes, así que una corrida que falla a la mitad se puede reintentar sin reprocesar. Cuando la primera subida de un lote falló porque el token de autorización había vencido, los dos videos ya estaban renderizados, y reintentar solo la subida lo resolvió sin reprocesar nada.
+
+## Resultados
+
+- 57 canciones en el catálogo, cada una producida con el mismo comando.
+- De 15 a 25 minutos por canción, de extremo a extremo, y el script reporta el tiempo real de cada corrida.
+- Dos salidas por canción, un video largo y un Short, subidas sin pasos manuales.
+- Sin costo de operación del pipeline en sí: Remotion, whisper.cpp y WhisperX son gratis y locales.
+
+## Qué haría distinto
+
+El proyecto de nube que guarda las credenciales de subida se quedó en modo de pruebas, lo que hace que el token venza cada siete días; lo pasaría a producción desde el primer día, para que un lote no dependa de que me acuerde de reautorizar. También agregaría un umbral automático de alineación: por debajo de cierta proporción la corrida debería detenerse y pedir revisión, en lugar de dejar ese juicio a que yo mire un número.

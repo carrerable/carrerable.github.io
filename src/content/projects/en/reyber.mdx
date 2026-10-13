@@ -1,0 +1,73 @@
+---
+title: REYBER
+slug: reyber
+lang: en
+kind: project
+order: 11
+summary: Multi-tenant core insurance platform for insurers and insurance agencies. A falsifiable prototype on 10 million policies decided the data model before any feature was built.
+role: Architecture Lead (side project)
+period: "Sep 2026 – present"
+status: building
+stack: [TypeScript, NestJS, Next.js, PostgreSQL, Prisma, Docker]
+aiTools: [Claude Code]
+metrics:
+  - label: Synthetic policies in the benchmark
+    value: "10,000,000"
+    source: Prototype R1 report, 2026-09-22
+  - label: Index size, projection table vs hybrid
+    value: 3,030 MB vs 492 MB (6x less)
+    source: Prototype R1 report, 2026-09-22
+  - label: Two-attribute filter
+    value: 118 ms vs 1.2 ms
+    source: Prototype R1 report, 2026-09-22
+  - label: Database migrations
+    value: "38"
+    source: Counted on disk, 2026-10-13
+demoUrl: https://carrerable.github.io/reyber-dynamic-attributes-demo/
+repoUrl: https://github.com/carrerable/reyber-dynamic-attributes-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Context
+
+REYBER is a multi-tenant platform that manages the life cycle of insurance business: products, policies, coverage, collections, claims and communication with the insured. It serves two segments with one base: insurers, and insurance agencies that administer policies from many insurers across every line. The promise that makes it hard is **multi-line for real**: life, health, autos, boats, aircraft, pets and cargo must live in the same engine, with each line's risk attributes configurable without writing code or migrating the schema.
+
+It is a side project in construction: 25 research and requirements documents, 71 business rules and a build plan of 36 work packages; code started on 22 September 2026.
+
+## My role
+
+- **Decided:** the architecture, the order of work, and which questions must be answered by measurement before anything is built.
+- **Verified:** every gate by breaking it on purpose, and every benchmark result against the query plans, not just the clock.
+- **Delegated to AI:** code and prototype scripts, written by Claude Code under the written protocol, and drafts of the research documents, which I review before they count.
+
+## Research
+
+The risky question was the data model for dynamic attributes: how to store a risk whose shape changes by line and still search it fast. I wrote the hypothesis so it could fail: one table with relational columns for the stable parts and a JSONB column for the variable ones, holding one tenant's portfolio of 10 million policies (13,027,325 insured objects), answering the search-screen filters inside a time budget, with no schema change per new line. The decisions for each outcome were written down before measuring. Four configurations were compared on the same data and the same table: a general GIN index, per-attribute expression indexes, a projection table (one row per attribute value), and generated columns.
+
+The first results were wrong in an instructive way. With row-level security on, which is how the product runs, PostgreSQL will not use an index on a condition whose operator is not marked leakproof, and every JSONB operator is not. Two of the four strategies were not being measured as index strategies at all; they were table scans with indexes sitting unused beside them. The protocol had required measuring under the application's role precisely because "measuring without RLS is measuring a different product", so the error showed up before a decision was built on it.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| Hybrid G′+C: attributes stay in JSONB; searchable scalar attributes are copied to a plain column kept by a trigger; list attributes go to a projection table | Projection table for everything (C); generated columns for everything (G); GIN alone | C costs 6x more index (3,030 vs 492 MB), writes 1.7x slower and is 98x worse on a two-attribute filter (118 vs 1.2 ms). G cannot search inside lists, which in insurance are not edge cases (coverages, beneficiaries, additional drivers). |
+| G′ over G for the scalar columns | Generated columns (G) | Adding a searchable attribute to G took 113 s with the portfolio locked. G′ takes 233 s but with the portfolio live: a concurrent reader saw p95 of 3.6 ms against 4.1 ms at rest. The price, a trigger that can drift, is accepted and written down. |
+| CI runs the project's own Docker Compose | The `services:` block of the CI provider | A bare database container has no role setup, so CI would connect as a superuser that ignores RLS and the isolation tests would pass while proving nothing. |
+| Same stack as VetNova with five deliberate changes: a job queue, stateless multi-instance API, the official WhatsApp API, observability from day one, CI on every push | The same stack unchanged; a new stack | Reuse what ships with its smoke tests; change only what the new non-functional requirements force. |
+
+## Validation & QA
+
+Isolation is tested twice: a database-level suite and an HTTP-level smoke that proves what the first cannot. Case zero of the isolation suite checks that the test itself can fail; without it, the other cases would pass against a connection that bypasses RLS. Every gate was deliberately broken, on the compiled artifact and never on source, before I trusted it. The data dictionary is generated from the database, and a CI gate fails if it is stale or any column lacks a comment. Screens are compared pair by pair against the approved designs.
+
+## Results
+
+<Chart id="reyber-benchmark" lang="en" />
+
+- The data model for dynamic attributes is decided on evidence, with the numbers above, before the first feature was written.
+- 38 migrations, 70 tables with a tenant, row-level security enforced on all of them.
+- Round one of the prototype closed on 22 September 2026. The report keeps its own mistakes in it: the leakproof finding, a prefix search that was broken in both candidates, and a result that looked like a win and was not.
+
+## What I'd do differently
+
+I would write the protocol's "measure under the real role" rule on day one of any prototype, because I only trusted it after seeing what happened without it. The benchmark measured one dominant tenant of 10 million policies; several tenants of that size at once were not measured, and I would add that scenario before calling the model closed. The queries that no index can fix (counting a huge list, aggregating it) turned out to be a product decision, not a database one. The product is not deployed yet: hosting is decided but not provisioned.

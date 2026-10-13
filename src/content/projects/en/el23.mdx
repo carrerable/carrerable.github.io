@@ -1,0 +1,66 @@
+---
+title: El 23, an online catalog for a silver jewelry store
+slug: el23
+lang: en
+kind: project
+order: 17
+summary: "An online catalog for a physical silver jewelry store. No prices, no payment: customers build a list and send it by WhatsApp to get a quote. Documented and legally analyzed before the first line of code."
+role: Web architect & AI-directed developer (independent project)
+period: "Sep – Oct 2026"
+status: production
+stack: [WordPress, WooCommerce, PHP, WP-CLI, Docker]
+aiTools: [Claude Code]
+metrics:
+  - label: Pieces in the live catalog
+    value: "26"
+    source: Project status file, 2026-09-23
+  - label: Live since
+    value: "2026-09-23"
+    source: Project status file, 2026-09-23
+  - label: Largest Contentful Paint, listing page, vs 2.5 s target (accepted)
+    value: 2.63 s
+    source: Performance test on the staging site, 2026-09-23
+demoUrl: https://carrerable.github.io/el23-catalog-demo/
+repoUrl: https://github.com/carrerable/el23-catalog-demo
+---
+
+## Context
+
+El 23 is a physical store that sells silver jewelry: necklaces, chains, bracelets, rings, earrings and charms for men and women. This project built its online storefront: a public catalog, well indexed by search engines, where each piece shows its name and measurements, and where the customer builds a list and sends it to the store by WhatsApp to ask for a quote and buy in the shop or with an agreed delivery. The store's staff publish products, photos and posts from an admin panel, without a developer, and the store allowed itself to be named here. The live site is at [el23.com.mx](https://el23.com.mx).
+
+It does not include a payment gateway or tax invoicing, and the site launched on 23 September 2026 with 26 real pieces.
+
+## My role
+
+- **Decided:** the platform and its limits, the criteria for choosing hosting, how the order list is built, and the legal posture of the site. The owner decided what the store sells and how it sells it; I wrote down what each of those choices costs.
+- **Verified:** the hosting with a five-step connection test before committing, the theme with measured page speed, and the legal analysis against the texts of the laws in force.
+- **Delegated to AI:** the theme customization, the small plugin and the content-loading scripts, written by Claude Code under my requirements; and the first drafts of the legal analysis, which I check against the sources.
+
+## Research
+
+Fifteen documents came before the code: vision and scope, product catalog, requirements (49 functional ones), SEO and measurement, hosting, data model, design brief, roadmap and risks. The legal analysis was done on the texts in force, not left for later: the silver standard that governs what can be called silver, the industrial property law on third-party brand names, consumer protection law on prices and warranties, and Mexico's data-privacy law (LFPDPPP) on the privacy notice and cookies. It produced a vocabulary list without third-party brand names and drafted legal texts for the site.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| No prices on the site: each piece says "Price to be quoted" and is quoted by WhatsApp (the owner's decision) | A fixed price per piece; price by weight; a "from" price | The price of silver changes, so any published number goes stale. The cost is accepted and written down: less search visibility (no price data for search results) and a legal risk about showing the total price, mitigated in the wording. |
+| An order list that lives in the browser and opens WhatsApp with the message already written | The WooCommerce cart; the official WhatsApp business API | The cart opens a server session and breaks page caching. The business API needs verification and bills per conversation, and here it is the customer who writes. The list costs nothing and stores no data on the site. |
+| A hosting plan chosen by whether Claude can connect to it (SSH and WP-CLI), not by price alone | The shared plan that was first proposed; a cheaper plan without SSH | The first provider confirmed that its shared plans have no SSH. Without it, every deployment would have been manual through a file manager. |
+
+## Validation & QA
+
+Two tests decided the platform before launch. P0 checked the connection to the hosting in five steps (key-based SSH, WP-CLI, file transfer, the REST API and a database backup), and all five passed. P1, on a staging site, compared two commercial themes on measured speed, taking the median of three runs: the one I kept had a Largest Contentful Paint of 2.63 seconds on the listing and 2.85 on a product page, against a 2.5 second target. That is a miss, so I documented it and accepted it deliberately. The alternative did worse (4.4 to 4.8 seconds and four mandatory plugins). A load test of 60 simultaneous requests returned 60 successful responses.
+
+The production site is built from repeatable scripts: one for the site settings and one that loads the catalog from a single source file, so more pieces mean editing that file and running the loader again. The documentation has a gate of its own and a battery of 21 test cases for the automation hooks; a cross-review of the documents corrected 17 gaps before the build started.
+
+## Results
+
+- The site went live on 23 September 2026 with a catalog of 26 pieces.
+- A home page video, an engraving gallery and a workshop page for repairs and custom work, in production since 26 September.
+- The order list works without storing anything on the server.
+- Pending: Search Console verification and photos of the workshop's work, which depend on the owner.
+
+## What I'd do differently
+
+I would test the order list on a real WhatsApp before the design was finished, not after: the whole business flow depends on it. I would also get the real product photos before building the layout, since the first catalog used placeholder photos and the page speed depends on image weight. And I would decide the price question earlier: it changed once during the project and rewrote parts of the requirements, the data model and the SEO plan.

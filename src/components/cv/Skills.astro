@@ -1,0 +1,28 @@
+---
+// Habilidades agrupadas. Cada chip es un botón; con JS, al enfocarlo se iluminan las entradas donde se usó.
+// La lista de casos relacionados es visible y estática sin JS.
+import { getCollection } from 'astro:content';
+interface Props { groups: any[]; skills: any[]; lang: 'en' | 'es' }
+const { groups, skills, lang } = Astro.props;
+const all = (await getCollection('projects')).filter((e) => e.data.lang === lang);
+const title = (slug: string) => all.find((e) => e.data.slug === slug)?.data.title ?? slug;
+---
+<div class="skill-groups">
+  {groups.map((g) => (
+    <div class="skill-group reveal">
+      <h3>{g.label[lang]}</h3>
+      <div class="chips">
+        {skills.filter((s) => s.group === g.id).map((s) => (
+          <span class="skill-chip">
+            <button type="button" class="chip-btn" data-skill={s.id} data-entries={s.entries.join(' ')} aria-describedby={s.cases.length ? `skill-${s.id}-rel` : undefined}>{s.label[lang]}</button>
+            {s.cases.length > 0 && (
+              <ul id={`skill-${s.id}-rel`} class="rel">
+                {s.cases.map((c: string) => <li><a href={`/${lang}/projects/${c}/`}>{title(c)}</a></li>)}
+              </ul>
+            )}
+          </span>
+        ))}
+      </div>
+    </div>
+  ))}
+</div>

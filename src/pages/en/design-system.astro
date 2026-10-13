@@ -1,0 +1,111 @@
+---
+// Página interna: muestra tokens y componentes. noindex, fuera de la navegación y del sitemap.
+import Base from '../../layouts/Base.astro';
+import Section from '../../components/ui/Section.astro';
+import SectionHeader from '../../components/ui/SectionHeader.astro';
+import Button from '../../components/ui/Button.astro';
+import Chip from '../../components/ui/Chip.astro';
+import Card from '../../components/ui/Card.astro';
+import MetricCard from '../../components/ui/MetricCard.astro';
+import Frame from '../../components/ui/Frame.astro';
+import ThemeToggle from '../../components/ui/ThemeToggle.astro';
+import Words from '../../components/ui/Words.astro';
+
+const colors = [
+  ['--c-ink', '#0e0e10', 'Carbón'],
+  ['--c-ink-2', '#17171a', 'Carbón 2 (tarjetas)'],
+  ['--c-cream', '#f4efe6', 'Crema'],
+  ['--c-cream-2', '#fbf8f2', 'Crema 2 (tarjetas)'],
+  ['--c-coral', '#e8572a', 'Coral (acento principal)'],
+  ['--c-coral-lit', '#f06e43', 'Coral para texto sobre carbón'],
+  ['--c-coral-deep', '#b53d18', 'Coral para texto sobre crema'],
+  ['--c-violet', '#8b6cf0', 'Violeta (secundario, escaso)'],
+  ['--c-lime', '#c6f432', 'Lima (secundario, escaso)'],
+];
+const text = [
+  ['--t-xs', '0.75rem'], ['--t-sm', '0.875rem'], ['--t-md', '1rem'], ['--t-lg', '1.25rem'],
+  ['--t-xl', 'clamp(1.4rem…2rem)'], ['--t-2xl', 'clamp(2rem…3.6rem)'], ['--t-3xl', 'clamp(2.6rem…6rem)'], ['--t-hero', 'clamp(3rem…10rem)'],
+];
+const space = ['--s-1 0.25rem', '--s-2 0.5rem', '--s-3 0.75rem', '--s-4 1rem', '--s-5 1.5rem', '--s-6 2rem', '--s-7 3rem', '--s-8 4.5rem', '--s-9 7rem'];
+const motion = ['--dur-fast 150 ms (hover de botones, enlaces)', '--dur 250 ms (tarjetas, tooltips)', '--dur-slow 400 ms (tope de micro-interacción)', '--dur-reveal 600 ms (aparición al scroll, no es micro-interacción)', '--ease cubic-bezier(.2,.7,.2,1)'];
+---
+<Base lang="en" title="Design system — internal" description="Tokens and components used by the portfolio." path="/en/design-system/" noindex>
+  <Section tone="base" bg="grid">
+    <SectionHeader level="h1" eyebrow="Internal · noindex" title="Design system" em="system" lead="Tokens and components. Not linked from the navigation." />
+    <div class="row"><ThemeToggle /><span class="mono mut">Toggle the theme to check both.</span></div>
+  </Section>
+
+  <Section tone="alt">
+    <SectionHeader index="01" eyebrow="Tokens" title="Color" lead="Short, fixed palette. Surfaces: base follows the theme, alt is its opposite, coral is the block of color." />
+    <div class="swatches">
+      {colors.map(([v, hex, name]) => <div class="swatch" style={`background: var(${v}); color: ${['--c-ink', '--c-ink-2', '--c-coral-deep', '--c-violet'].includes(v) ? '#f4efe6' : '#0e0e10'}`}><b>{name}</b><span>{v} · {hex}</span></div>)}
+    </div>
+    <div class="grid" style="margin-top: var(--s-6)">
+      <div class="tone-dark" style="padding: var(--s-5); background: var(--bg); color: var(--fg); border-radius: var(--r-m)"><p class="mono">tone-dark</p><p>Text on carbón.</p><p class="mut">Muted text.</p><a href="#">Accent link</a></div>
+      <div class="tone-cream" style="padding: var(--s-5); background: var(--bg); color: var(--fg); border-radius: var(--r-m)"><p class="mono">tone-cream</p><p>Text on crema.</p><p class="mut">Muted text.</p><a href="#">Accent link</a></div>
+      <div class="tone-coral" style="padding: var(--s-5); background: var(--bg); color: var(--fg); border-radius: var(--r-m)"><p class="mono">tone-coral</p><p>Text on coral (always carbón).</p><p class="mut">Muted text.</p></div>
+    </div>
+  </Section>
+
+  <Section tone="base">
+    <SectionHeader index="02" eyebrow="Tokens" title="Type, space, motion" />
+    <div class="grid two">
+      <div>
+        <div class="specimen"><span class="mono mut">Display · Archivo 800, caps</span><span style="font-family: var(--f-display); font-weight: 800; text-transform: uppercase; font-size: var(--t-2xl); line-height: 1">Technical lead</span></div>
+        <div class="specimen"><span class="mono mut">Serif · Instrument Serif italic</span><span class="serif" style="font-size: var(--t-2xl); line-height: 1">gate every release</span></div>
+        <div class="specimen"><span class="mono mut">Mono · IBM Plex Mono 500</span><span class="mono">00:00:10 · timecode · label</span></div>
+        <div class="specimen"><span class="mono mut">Body · IBM Plex Sans 400 / 600</span><span>Body text for reading. <strong>Strong text.</strong></span></div>
+        {text.map(([v, val]) => <div class="specimen"><span class="mono mut">{v} · {val}</span><span style={`font-family: var(--f-display); font-weight: 800; font-size: var(${v}); line-height: 1`}>Aa</span></div>)}
+      </div>
+      <div>
+        <p class="mono mut">Spacing</p>
+        {space.map((s) => { const [v, val] = s.split(' '); return <div class="row" style="margin-bottom: 6px"><span style={`display:block; height: 10px; width: var(${v}); background: var(--c-coral)`}></span><span class="mono mut">{v} {val}</span></div>; })}
+        <p class="mono mut" style="margin-top: var(--s-5)">Radii</p>
+        <div class="row">
+          <span style="display:block; width: 4rem; height: 4rem; background: var(--chip-bg); border-radius: var(--r-s)" title="--r-s"></span>
+          <span style="display:block; width: 4rem; height: 4rem; background: var(--chip-bg); border-radius: var(--r-m)" title="--r-m"></span>
+          <span style="display:block; width: 4rem; height: 4rem; background: var(--chip-bg); border-radius: var(--r-l)" title="--r-l"></span>
+          <span style="display:block; width: 4rem; height: 4rem; background: var(--chip-bg); border-radius: var(--r-pill)" title="--r-pill"></span>
+        </div>
+        <p class="mono mut" style="margin-top: var(--s-5)">Shadows</p>
+        <div class="row">
+          <span style="display:block; width: 6rem; height: 4rem; background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow-1)"></span>
+          <span style="display:block; width: 6rem; height: 4rem; background: var(--card); border-radius: var(--r-m); box-shadow: var(--shadow-2)"></span>
+        </div>
+        <p class="mono mut" style="margin-top: var(--s-5)">Motion</p>
+        <ul>{motion.map((m) => <li class="mono">{m}</li>)}</ul>
+        <p class="mut"><small>With prefers-reduced-motion everything is static and visible. Content is readable without JS.</small></p>
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="alt" bg="dots">
+    <SectionHeader index="03" eyebrow="Components" title="Buttons, chips, cards" />
+    <div class="stack">
+      <div class="row"><Button href="#">Primary</Button><Button href="#" variant="ghost">Ghost</Button><Button variant="ghost" arrow={false}>No arrow</Button></div>
+      <div class="chips"><Chip>Default</Chip><Chip tone="accent">Accent</Chip><Chip tone="violet">Violet</Chip><Chip tone="lime">Lime</Chip></div>
+      <div class="grid">
+        <Card title="Card with link" href="#" index="01"><p>Hover: elevation and a coral border (250 ms).</p></Card>
+        <Card title="Plain card" index="02"><p>Cards sit on the surface tone they are placed in.</p></Card>
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="base" bg="grid">
+    <SectionHeader index="04" eyebrow="Components" title="Frame and section header" />
+    <Frame tl="REC ● 00:00:10" tr="MX CITY · UTC−6" bl="Frame" br="01 / 04">
+      <Words tag="p" class="serif" text="Viewfinder brackets and timecode labels in the corners." em="Viewfinder brackets" serif />
+    </Frame>
+    <p class="mono mut" style="margin-top: var(--s-4)">Backgrounds: grid (this section) and dots (previous section) via the Background component.</p>
+  </Section>
+
+  <Section tone="coral">
+    <SectionHeader index="05" eyebrow="Components" title="Metric cards" em="Metric" lead="Counter, progress ring and mini bars." />
+    <div class="metrics">
+      <MetricCard value="+8,339" label="Counter with ring" source="Source line" ring={1} accent />
+      <MetricCard value="6×" label="Counter with bars" source="Source line" bars={[{ label: 'a', value: 492, hot: true }, { label: 'b', value: 3030 }]} delay={1} />
+      <MetricCard value="US$8.11" label="Counter with prefix" source="Source line" delay={2} />
+      <MetricCard value="3 / 11" label="Non-numeric value shown as text" source="Source line" delay={3} />
+    </div>
+  </Section>
+</Base>

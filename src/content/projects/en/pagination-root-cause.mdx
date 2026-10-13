@@ -1,0 +1,68 @@
+---
+title: Root cause - pagination without ORDER BY
+slug: pagination-root-cause
+lang: en
+kind: work
+order: 3
+summary: A dry run counted about 3,400 service packages when 11,934 existed. Tracing the mismatch to unordered pagination, and to nulls the first filter dropped, made a bulk cost correction safe.
+role: Correction owner & verifier (current role)
+period: "May – Jun 2026"
+status: delivered
+stack: [TypeScript, MySQL, Claude Code]
+aiTools: [Claude Code]
+metrics:
+  - label: Packages counted by the unordered dry run vs real
+    value: "about 3,400 vs 11,934"
+    source: Dry run vs production count, Jun 2026
+  - label: Null-valued records the first filter excluded
+    value: "about 8,506"
+    source: Production check, Jun 2026
+  - label: Labor concepts corrected
+    value: "about 21,539"
+    source: Production validation, 4 Jun 2026
+  - label: Service packages corrected
+    value: "about 11,934"
+    source: Production validation, 4 Jun 2026
+demoUrl: https://carrerable.github.io/pagination-bug-demo/
+repoUrl: https://github.com/carrerable/pagination-bug-demo
+---
+
+## Context
+
+A B2B SaaS for auto-repair shops (my current role) changed the formula that computes labor cost. Shops that used the quantity field to adjust the cost were left with wrong costs, and a bulk correction was needed across thousands of records. A bulk write is only as safe as the count it is based on, so the first job was making sure the dry run was telling the truth. This case is anonymous, and the demo reproduces the bug with synthetic data.
+
+## My role
+
+- **Decided:** that the correction would not run until the dry-run count could be explained, the explicit filtering rules, and that the script is single-use.
+- **Verified:** the dry-run output, the discrepancy that led to the root cause, and the final counts in production.
+- **Delegated to AI:** writing the correction script and the investigation queries with Claude Code. The AI wrote the code; I noticed the numbers did not add up and asked for the investigation.
+
+## Research
+
+The dry run reported about 3,400 service packages. The real number was 11,934, roughly 3.5 times more. A number like that is not noise, so I asked for an investigation instead of adjusting the filter until the figure looked plausible.
+
+The cause was pagination without a stable order. A query that reads page after page without an `ORDER BY` on a unique key gives the database permission to return rows in any order from one page to the next, so pages can repeat or skip records and the total silently shrinks. Fixing the order was the first correction. A second one surfaced right after: about 8,506 records with a null value were being excluded by the first filter, even though the shop's front end treated them as valid.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| Paginate with an `ORDER BY` on a stable key | Paginate without order | Without a stable order the pages overlap and skip rows, so the count and the write set are wrong. |
+| Treat nulls the same way the front end does | Exclude them with the filter | Excluding them left about 8,506 records uncorrected, so the correction would have been incomplete. |
+| Mark the script as single-use, with an option to restrict it to one account | A re-runnable script | A second run would double the effect. Making that impossible is safer than relying on someone remembering not to run it twice. |
+
+## Validation & QA
+
+The correction rules were explicit: only records from before the formula change, active, and with a cost. I reviewed the dry run before any write, and the final counts were validated in production on 4 June 2026.
+
+The single-use marker and the account restriction came from the same thinking as the rest of my data-change standard: dry run, QA, production, verification afterward, and idempotent scripts wherever possible. Here idempotency was not possible by nature of the change, so the control moved to the script itself.
+
+## Results
+
+- The dry-run count went from about 3,400 to the real 11,934 packages once pagination was ordered.
+- About 8,506 null-valued records that the first filter excluded were included.
+- About 21,539 labor concepts and about 11,934 service packages corrected (about 17,799 embedded concepts), validated in production on 4 June 2026.
+
+## What I'd do differently
+
+I would make the dry run assert its own count: compare it, in the same script, with an independent count taken without pagination, and refuse to continue if they differ. In this case I found the gap by looking; it should have failed by itself. I would also add the "unordered pagination" check to the review of any script that reads in pages, since the bug is easy to write and invisible when the table is small.

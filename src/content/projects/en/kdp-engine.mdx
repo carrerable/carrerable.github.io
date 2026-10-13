@@ -1,0 +1,68 @@
+---
+title: A config-driven engine for print-ready coloring books
+slug: kdp-engine
+lang: en
+kind: project
+order: 16
+summary: A four-script pipeline that turns a small config file into a print-ready coloring book, interior and full-wrap cover, with prompts from Claude, images from FLUX and layout in PDFKit.
+role: Designer & AI-directed developer (personal project)
+period: "2026"
+status: paused
+stack: [TypeScript, Node.js, Sharp, PDFKit]
+aiTools: [Claude Code, Anthropic API, FLUX (fal.ai), Sharp, PDFKit]
+metrics:
+  - label: Volumes generated (published)
+    value: 19 (1)
+    source: Project status file, 2026-10-13
+  - label: Pages per volume / print resolution
+    value: 30 / 300 DPI
+    source: Engine architecture notes, 2026-10-13
+  - label: Anatomy failures on curled-animal scenes, manual review
+    value: up to 30%
+    source: Review of one volume, 2026
+demoUrl: https://carrerable.github.io/kdp-engine-demo/
+repoUrl: https://github.com/carrerable/kdp-engine-demo
+---
+
+## Context
+
+Self-publishing a coloring book on a print-on-demand platform needs a lot of repetitive, exacting work: thirty clean line-art pages, an interior PDF with a title page, welcome page and closing page, and a full-wrap cover with spine and back cover that respects the printer's barcode zone. I built an engine that produces all of it from a single configuration file per volume, so a new book is a new config and not new code.
+
+The collection reached nineteen generated volumes. One is published; the others wait for visual review and upload. The project is paused.
+
+## My role
+
+- **Decided:** the pipeline, the contract of a volume's config, the line-art style, and the acceptance rule that a human reviews pages before anything is published.
+- **Verified:** every page of a volume by eye (anatomy, composition, illegible text) before it counts as reviewed.
+- **Delegated to AI:** the code, written by Claude Code; the page prompts, written by Claude; and the images, drawn by FLUX. The engine decides nothing about content on its own.
+
+## Research
+
+The first engine had its four scripts hardcoded to one volume. Generalizing them taught me where the real variability lives. The scripts are now generic and contain no theme, text, palette or path of any particular book. A volume's `config.ts` supplies the collection name, volume number, subtitle, page count (30 by default), the theme description that goes into the prompt, the cover prompt, welcome texts, back-cover bullets, the brand palette and an optional teaser for the next volume.
+
+The scripts run in order: generate the prompts (Claude returns thirty scene titles and prompts as JSON), build the images (FLUX renders them concurrently, then Sharp normalizes contrast, binarizes the line art to avoid black blocks at the borders and sets 300 DPI), build the cover (a color illustration plus computed spine and back cover) and compile the interior PDF with PDFKit.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| A `config.ts` per volume and generic scripts | Scripts copied and edited per book | Copies drift. When a fix lands in the shared engine, every future volume gets it. |
+| A fixed anti-fusion clause in the shared style suffix | Fixing each bad image after the fact | Prompts that ask for bodies with the correct number of limbs and a single tail reduce anatomical failures in every volume, though not completely. |
+| Generate three sample pages and have them approved before producing all thirty | Generating the whole book first | A wrong style discovered after thirty pages wastes the whole run. A sample catches it in three. |
+| Avoid risky poses in the scene design | Switching to a heavier image model | The heavier model improved anatomy but under-exposed images in a Sharp step tuned for the faster model. Changing the scenes was cheaper than re-tuning the pipeline. |
+
+## Validation & QA
+
+I reviewed all thirty pages of the third volume. The failure rate on scenes with an animal curled up on itself was high, up to 30% in a full manual pass: fused bodies, double tails, mis-proportioned tails. The anti-fusion clause helped but was not decisive, since the same prompt sometimes came out right and sometimes wrong. The fix I adopted was in the scene design: the shared prompt generator now tells Claude to describe animals only sitting, standing, in profile or front-facing, never curled, balled or with the tail wrapped around the body. Pages that failed were regenerated individually with an option to render only chosen pages.
+
+A separate recurring problem was the prompt generator sometimes returning 32 scenes instead of 30. I added a check and a retry so a volume cannot continue with the wrong page count. A scene sheet can also contain unreadable text on signs, which is typical of image models, so signage is part of the visual review.
+
+## Results
+
+- A reusable four-script engine, with every volume defined by one config file.
+- Nineteen volumes generated, each 30 pages at 300 DPI with a cover, and one published.
+- Quality rules written back into the shared engine instead of patched in a single book.
+
+## What I'd do differently
+
+The bottleneck is not generation; it is review. Eighteen volumes are generated but unpublished, and most still wait for a visual pass or an upload; an unreviewed volume is inventory, not product. I would build a review tool that shows all thirty pages as one contact sheet with automatic flags (blank images, too much black, wrong page count) and ask for human attention only on flagged pages.

@@ -1,0 +1,42 @@
+---
+---
+
+# How I work
+
+I direct AI coding agents inside rules, reviews and verification gates that I design. The agent writes fast; my job is to make sure it is writing the right thing and that I can prove it.
+
+## Documents before code
+
+Nothing starts with code. A project begins with written research, a scope, and the decisions that must be made by measurement, each recorded with the alternatives I rejected and why. REYBER ran through 25 research and requirements documents and a 36-package build plan before its first feature. The El 23 storefront had 15 documents and a legal analysis before the theme was chosen. Video work and data migrations follow the same order: a script, a plan or written rules, approved before anything is rendered or loaded.
+
+## Rules the AI follows
+
+Every project carries a `CLAUDE.md` with the rules the agent must obey, and around it I use subagents, skills, hooks and MCP connectors. The main session plans and decides; heavy execution goes to specialized subagents; hooks log each session and block a task from being declared finished while a required step is missing. The rules that matter most:
+
+- **Zero invention.** If a figure does not come from the database or a file, it is marked and I am asked.
+- **Verify the real result** before saying "done": open the file, run the query, read the number.
+- **Idempotent scripts**: running one twice must not do damage.
+- **Ask for approval before structural changes**, and never commit or push unless I ask in that same turn.
+- **Production writes only with a prior dry run and a verification afterward.**
+
+## Verification gates
+
+My gates are the build, the type check, the smoke tests and, where it exists, continuous integration. They differ per project and I say which is which. VetNova has 107 end-to-end smoke scripts that I run locally, and no CI, which is a known gap. REYBER runs its isolation tests, data-dictionary check and API smoke tests in CI on every push. This site's build runs a type check and a script that fails if any case study is missing a required section.
+
+A green check is not proof: every check asserts a concrete number. A test that returns 200 proves a route answered, not that it answered correctly. A check that asserts an exact count ("60 of 60 requests succeeded") or a time limit can fail in a way I can see.
+
+## A test that cannot fail is not a test
+
+Before I trust a gate, I break the thing it guards and watch it fail. REYBER's isolation suite has a case zero that checks the suite itself can fail, because without it the other cases would pass against a database connection that bypasses the rules they are testing. Each gate there was broken on purpose, on the compiled artifact and never on the source. VetNova's status file carries three warnings born from real failures: check the API runs today's code before calling a smoke red; a green smoke does not prove tax correctness; a route no smoke calls is untested.
+
+## Measure before deciding
+
+When a decision is expensive to reverse, I write the hypothesis so that it can fail and I write what I will do with each outcome before I measure. For REYBER's data model I benchmarked four strategies on 10 million synthetic policies, and the measurement under the real security rules exposed that two of them were not really being tested as indexes. For VetNova's paid advertising, 59.3% of Google clicks turned out to be display clicks the platform enables by default, and only 18 came from real search intent: a channel is judged by intent, not by clicks. In a bulk correction at work, a dry run counted about 3,400 packages when 11,934 existed; that gap led to the root cause.
+
+## Data changes: dry-run, QA, production
+
+Any change to customer data goes through the same sequence: a dry run that I read, a full cycle in the QA environment, and only then production, with a reconciliation against the source afterwards. Scripts are idempotent where the change allows it and marked single-use where it does not. Columns the team fills in by hand are never overwritten, and every column in an insert is decided explicitly instead of omitted.
+
+<h2 id="ai">How I use AI (disclosure)</h2>
+
+In my independent projects, Claude Code writes most of the code under my direction; at work, 71 of my 243 commits are AI co-authored. I own the scope, the rules, the code review of every change, the verification against real data and the decision to ship. I can read, debug and explain any part of it.

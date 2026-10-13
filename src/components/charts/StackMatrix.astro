@@ -1,0 +1,31 @@
+---
+// Matriz de stack: tabla semántica (no SVG). Cada celda marcada lleva su evidencia.
+import { caption, type Lang } from './lib';
+interface Props { chart: any; lang: Lang }
+const { chart, lang } = Astro.props;
+const { columns, rows } = chart.data;
+const ev = lang === 'es' ? 'Evidencia' : 'Evidence';
+const head = lang === 'es' ? 'Proyecto o caso' : 'Project or case';
+---
+<figure class="chart" data-chart={chart.id}>
+  <p class="ct" id={`t-${chart.id}`}>{chart.title[lang]}</p>
+  <p class="cd" id={`d-${chart.id}`}>{chart.desc[lang]}</p>
+  <div class="matrix-wrap">
+    <table class="matrix" aria-labelledby={`t-${chart.id}`} aria-describedby={`d-${chart.id}`}>
+      <thead><tr><th scope="col">{head}</th>{columns.map((c: any) => <th scope="col">{c.label}</th>)}</tr></thead>
+      <tbody>
+        {rows.map((r: any) => (
+          <tr>
+            <th scope="row"><a href={`/${lang}/projects/${r.slug}/`}>{r.label[lang]}</a></th>
+            {columns.map((c: any) => (
+              <td>{r.cells[c.id]
+                ? <><abbr title={`${ev}: ${r.cells[c.id]}`}>✓</abbr><span class="vh">{ev.toLowerCase()}: {r.cells[c.id]}</span></>
+                : <span class="vh">{lang === 'es' ? 'sin evidencia' : 'no evidence'}</span>}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <figcaption>{caption(lang, chart.source[lang], chart.date)}</figcaption>
+</figure>

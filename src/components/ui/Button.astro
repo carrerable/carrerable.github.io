@@ -1,0 +1,9 @@
+---
+// Botón o enlace con aspecto de botón. Variantes: primary (coral) y ghost.
+interface Props { href?: string; variant?: 'primary' | 'ghost'; arrow?: boolean; class?: string; type?: 'button' | 'submit'; [k: string]: unknown }
+const { href, variant = 'primary', arrow = true, class: cls = '', type = 'button', ...rest } = Astro.props;
+const Tag = href ? 'a' : 'button';
+---
+<Tag href={href} type={href ? undefined : type} class:list={['btn', `btn-${variant}`, cls]} {...rest}>
+  <slot />{arrow && <span class="arrow" aria-hidden="true">→</span>}
+</Tag>

@@ -1,0 +1,1507 @@
+{
+  "meta": {
+    "name": "Luis Eduardo Carrera Bernal",
+    "headline": {
+      "en": "Technical Lead · TypeScript & SQL · AI-Augmented Engineering",
+      "es": "Líder Técnico · TypeScript y SQL · Ingeniería aumentada con IA"
+    },
+    "summary": {
+      "en": "Technical operations lead with 10+ years in software, 4+ leading teams, from automotive-software implementations to development and leadership. At a B2B SaaS I directed its CRM, WhatsApp automation and 6-VPS production; now I own QA, releases and data migrations, delivering with AI coding agents under verification gates I design. Earlier I led teams of up to 40 at IPN.",
+      "es": "Líder de operaciones técnicas con más de 10 años en software y más de 4 liderando equipos: de implementaciones de software automotriz a desarrollo y liderazgo. En un SaaS B2B dirigí su CRM, la automatización de WhatsApp y la producción en 6 VPS; hoy lidero QA, releases y migraciones de datos con agentes de IA bajo puertas de verificación. Antes dirigí equipos de hasta 40 personas en el IPN."
+    },
+    "location": {
+      "en": "Mexico City (UTC−6)",
+      "es": "Ciudad de México, CDMX"
+    },
+    "email": "carrerabernal@gmail.com",
+    "updated": "2026-10-13",
+    "links": [
+      {
+        "label": "GitHub",
+        "url": "https://github.com/carrerable"
+      },
+      {
+        "label": "VetNova",
+        "url": "https://vetnova.mx"
+      }
+    ]
+  },
+  "groups": [
+    {
+      "id": "ai",
+      "label": {
+        "en": "AI-augmented engineering",
+        "es": "Ingeniería aumentada con IA"
+      }
+    },
+    {
+      "id": "quality",
+      "label": {
+        "en": "Quality & releases",
+        "es": "Calidad y releases"
+      }
+    },
+    {
+      "id": "data",
+      "label": {
+        "en": "Data & migrations",
+        "es": "Datos y migraciones"
+      }
+    },
+    {
+      "id": "lead",
+      "label": {
+        "en": "Leadership & delivery",
+        "es": "Liderazgo y entrega"
+      }
+    },
+    {
+      "id": "stack",
+      "label": {
+        "en": "Backend, frontend & platform",
+        "es": "Backend, frontend y plataforma"
+      }
+    },
+    {
+      "id": "pay",
+      "label": {
+        "en": "Payments, e-commerce & compliance",
+        "es": "Pagos, e-commerce y cumplimiento"
+      }
+    }
+  ],
+  "metrics": [
+    {
+      "id": "qa-approved",
+      "value": 76,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "sprint tickets approved in QA",
+        "es": "tickets de sprint aprobados en QA"
+      },
+      "source": {
+        "en": "Own QA records · 2026-10",
+        "es": "Registros propios de QA · 2026-10"
+      }
+    },
+    {
+      "id": "qa-returned",
+      "value": 18,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "tickets returned to rework",
+        "es": "tickets regresados a reproceso"
+      },
+      "source": {
+        "en": "Own QA records · 2026-10",
+        "es": "Registros propios de QA · 2026-10"
+      }
+    },
+    {
+      "id": "qa-prod",
+      "value": 30,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "validations in production",
+        "es": "validaciones en producción"
+      },
+      "source": {
+        "en": "Own QA records · 2026-10",
+        "es": "Registros propios de QA · 2026-10"
+      }
+    },
+    {
+      "id": "orders",
+      "value": 8339,
+      "prefix": "+",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "historical orders migrated, 3 branches, 0 errors",
+        "es": "órdenes históricas migradas, 3 sucursales, 0 errores"
+      },
+      "source": {
+        "en": "Own migration records · 2026-09",
+        "es": "Registros propios de la migración · 2026-09"
+      }
+    },
+    {
+      "id": "parts",
+      "value": 5908,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "parts loaded into fleet-client accounts",
+        "es": "refacciones cargadas en cuentas de un cliente de flotillas"
+      },
+      "source": {
+        "en": "Own data-load records · 2026-07",
+        "es": "Registros propios de la carga de datos · 2026-07"
+      }
+    },
+    {
+      "id": "accounts",
+      "value": 24,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "fleet-client accounts loaded",
+        "es": "cuentas de cliente de flotillas cargadas"
+      },
+      "source": {
+        "en": "Own data-load records · 2026-07",
+        "es": "Registros propios de la carga de datos · 2026-07"
+      }
+    },
+    {
+      "id": "labor",
+      "value": 21539,
+      "prefix": "~",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "labor concepts corrected and validated",
+        "es": "conceptos de mano de obra corregidos y validados"
+      },
+      "source": {
+        "en": "Own data-correction records · 2026-06",
+        "es": "Registros propios de la corrección de datos · 2026-06"
+      }
+    },
+    {
+      "id": "packages",
+      "value": 11934,
+      "prefix": "~",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "packages corrected and validated (the dry-run counted ~3,400)",
+        "es": "paquetes corregidos y validados (el dry-run contaba ~3,400)"
+      },
+      "source": {
+        "en": "Own data-correction records · 2026-06",
+        "es": "Registros propios de la corrección de datos · 2026-06"
+      }
+    },
+    {
+      "id": "collections",
+      "value": 11,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "overdue accounts regularized, of 22 contacted",
+        "es": "cuentas atrasadas regularizadas, de 22 contactadas"
+      },
+      "source": {
+        "en": "Own collections-campaign records · 2026-09",
+        "es": "Registros propios de la campaña de cobranza · 2026-09"
+      }
+    },
+    {
+      "id": "ai-commits",
+      "value": 71,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "commits with AI co-authorship, of 243",
+        "es": "commits con coautoría de IA, de 243"
+      },
+      "source": {
+        "en": "Repository commit history · 2026-10",
+        "es": "Historial de commits del repositorio · 2026-10"
+      }
+    },
+    {
+      "id": "ipn-team",
+      "value": 40,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "people on the largest team led at IPN (up to)",
+        "es": "personas en el equipo más grande dirigido en el IPN (hasta)"
+      },
+      "source": {
+        "en": "Own records (CV) · 2026-10-13",
+        "es": "Registros propios (CV) · 2026-10-13"
+      }
+    },
+    {
+      "id": "vn-tables",
+      "value": 137,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "database models in VetNova (125 tenant-scoped)",
+        "es": "modelos de base de datos en VetNova (125 con tenant)"
+      },
+      "source": {
+        "en": "VetNova repository count · 2026-10-13",
+        "es": "Recuento del repositorio de VetNova · 2026-10-13"
+      }
+    },
+    {
+      "id": "vn-smokes",
+      "value": 107,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "end-to-end smoke scripts in VetNova",
+        "es": "scripts de humo end-to-end en VetNova"
+      },
+      "source": {
+        "en": "VetNova repository count · 2026-10-13",
+        "es": "Recuento del repositorio de VetNova · 2026-10-13"
+      }
+    },
+    {
+      "id": "songs",
+      "value": 57,
+      "prefix": "",
+      "suffix": "",
+      "decimals": 0,
+      "label": {
+        "en": "songs in the lyric-video catalog",
+        "es": "canciones en el catálogo de lyric videos"
+      },
+      "source": {
+        "en": "Project status file · 2026-10-13",
+        "es": "Archivo de estado del proyecto · 2026-10-13"
+      }
+    }
+  ],
+  "skills": [
+    {
+      "id": "claude-code",
+      "group": "ai",
+      "label": {
+        "en": "Claude Code (subagents, hooks, MCP)",
+        "es": "Claude Code (subagentes, hooks, MCP)"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "vetnova",
+        "reyber",
+        "jarvis",
+        "ai-video-production",
+        "data-migration-pipeline",
+        "qa-release-gate"
+      ]
+    },
+    {
+      "id": "llm",
+      "group": "ai",
+      "label": {
+        "en": "LLM integration (Anthropic API)",
+        "es": "LLM (Anthropic API)"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "jarvis"
+      ]
+    },
+    {
+      "id": "agentic",
+      "group": "ai",
+      "label": {
+        "en": "Agentic workflows (tool calling)",
+        "es": "Flujos agénticos"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "jarvis"
+      ]
+    },
+    {
+      "id": "prompt",
+      "group": "ai",
+      "label": {
+        "en": "Prompt & context engineering",
+        "es": "Ingeniería de prompts y contexto"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "ai-video-production"
+      ]
+    },
+    {
+      "id": "verification",
+      "group": "ai",
+      "label": {
+        "en": "Verification rules for AI output",
+        "es": "Reglas de verificación para IA"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "qa-release-gate",
+        "data-migration-pipeline"
+      ]
+    },
+    {
+      "id": "whisper",
+      "group": "ai",
+      "label": {
+        "en": "Whisper pipelines",
+        "es": "Whisper"
+      },
+      "entries": [],
+      "cases": [
+        "jarvis",
+        "lyric-videos",
+        "ai-video-production"
+      ]
+    },
+    {
+      "id": "comfyui",
+      "group": "ai",
+      "label": {
+        "en": "ComfyUI (SDXL)",
+        "es": "ComfyUI (SDXL)"
+      },
+      "entries": [],
+      "cases": [
+        "gpu-image-pipeline"
+      ]
+    },
+    {
+      "id": "runpod",
+      "group": "ai",
+      "label": {
+        "en": "Runpod GPU pods",
+        "es": "Runpod GPU"
+      },
+      "entries": [],
+      "cases": [
+        "gpu-image-pipeline"
+      ]
+    },
+    {
+      "id": "ollama",
+      "group": "ai",
+      "label": {
+        "en": "Ollama",
+        "es": "Ollama"
+      },
+      "entries": [],
+      "cases": [
+        "jarvis"
+      ]
+    },
+    {
+      "id": "kokoro",
+      "group": "ai",
+      "label": {
+        "en": "Kokoro",
+        "es": "Kokoro"
+      },
+      "entries": [],
+      "cases": [
+        "jarvis"
+      ]
+    },
+    {
+      "id": "elevenlabs",
+      "group": "ai",
+      "label": {
+        "en": "ElevenLabs",
+        "es": "ElevenLabs"
+      },
+      "entries": [],
+      "cases": [
+        "ai-video-production"
+      ]
+    },
+    {
+      "id": "e2e",
+      "group": "quality",
+      "label": {
+        "en": "E2E test design",
+        "es": "Diseño de pruebas E2E"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova"
+      ],
+      "cases": [
+        "qa-release-gate"
+      ]
+    },
+    {
+      "id": "matrices",
+      "group": "quality",
+      "label": {
+        "en": "Test matrices & test cases",
+        "es": "Matrices y casos de prueba"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "qa-release-gate"
+      ]
+    },
+    {
+      "id": "release",
+      "group": "quality",
+      "label": {
+        "en": "Release management (QA → production)",
+        "es": "Gestión de releases (QA → producción)"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "qa-release-gate"
+      ]
+    },
+    {
+      "id": "regression",
+      "group": "quality",
+      "label": {
+        "en": "Regression & load checks",
+        "es": "Pruebas de regresión y carga"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "qa-release-gate"
+      ]
+    },
+    {
+      "id": "playwright",
+      "group": "quality",
+      "label": {
+        "en": "Playwright",
+        "es": "Playwright"
+      },
+      "entries": [
+        "vetnova"
+      ],
+      "cases": [
+        "qa-release-gate",
+        "vetnova"
+      ]
+    },
+    {
+      "id": "rca",
+      "group": "quality",
+      "label": {
+        "en": "Root cause analysis",
+        "es": "Análisis de causa raíz"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "pagination-root-cause"
+      ]
+    },
+    {
+      "id": "jira",
+      "group": "quality",
+      "label": {
+        "en": "Jira (REST API)",
+        "es": "Jira (API REST)"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "qa-release-gate"
+      ]
+    },
+    {
+      "id": "sql",
+      "group": "data",
+      "label": {
+        "en": "SQL (MySQL, PostgreSQL)",
+        "es": "SQL (MySQL, PostgreSQL)"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "data-migration-pipeline",
+        "pagination-root-cause"
+      ]
+    },
+    {
+      "id": "migration",
+      "group": "data",
+      "label": {
+        "en": "Data migration & ETL",
+        "es": "Migración de datos y ETL"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "data-migration-pipeline"
+      ]
+    },
+    {
+      "id": "reconcile",
+      "group": "data",
+      "label": {
+        "en": "Reconciliation against source",
+        "es": "Conciliación contra la fuente"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "data-migration-pipeline"
+      ]
+    },
+    {
+      "id": "idempotent",
+      "group": "data",
+      "label": {
+        "en": "Idempotent scripts with dry-run",
+        "es": "Scripts idempotentes con dry-run"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "data-migration-pipeline"
+      ]
+    },
+    {
+      "id": "excel",
+      "group": "data",
+      "label": {
+        "en": "Excel/CSV pipelines",
+        "es": "Pipelines Excel/CSV"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "data-migration-pipeline"
+      ]
+    },
+    {
+      "id": "prisma",
+      "group": "data",
+      "label": {
+        "en": "Prisma",
+        "es": "Prisma"
+      },
+      "entries": [
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "vetnova",
+        "reyber",
+        "data-migration-pipeline"
+      ]
+    },
+    {
+      "id": "techlead",
+      "group": "lead",
+      "label": {
+        "en": "Technical leadership",
+        "es": "Liderazgo técnico"
+      },
+      "entries": [
+        "mmx2",
+        "ipn",
+        "vengala"
+      ],
+      "cases": []
+    },
+    {
+      "id": "sysdesign",
+      "group": "lead",
+      "label": {
+        "en": "System design",
+        "es": "Diseño de sistemas"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "vetnova",
+        "reyber"
+      ]
+    },
+    {
+      "id": "codereview",
+      "group": "lead",
+      "label": {
+        "en": "Code review",
+        "es": "Revisión de código"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova",
+        "reyber"
+      ],
+      "cases": []
+    },
+    {
+      "id": "mentoring",
+      "group": "lead",
+      "label": {
+        "en": "Mentoring",
+        "es": "Mentoría"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": []
+    },
+    {
+      "id": "stakeholders",
+      "group": "lead",
+      "label": {
+        "en": "Stakeholder management",
+        "es": "Gestión de stakeholders"
+      },
+      "entries": [
+        "mmx2",
+        "vengala"
+      ],
+      "cases": []
+    },
+    {
+      "id": "onboarding",
+      "group": "lead",
+      "label": {
+        "en": "Customer onboarding",
+        "es": "Onboarding de clientes"
+      },
+      "entries": [
+        "mmx2",
+        "vengala"
+      ],
+      "cases": []
+    },
+    {
+      "id": "agile",
+      "group": "lead",
+      "label": {
+        "en": "Agile (sprints, daily stand-ups, weekly reviews)",
+        "es": "Agile"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": []
+    },
+    {
+      "id": "kpi",
+      "group": "lead",
+      "label": {
+        "en": "KPI design",
+        "es": "Diseño de KPIs"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": []
+    },
+    {
+      "id": "typescript",
+      "group": "stack",
+      "label": {
+        "en": "TypeScript",
+        "es": "TypeScript"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "vetnova",
+        "reyber"
+      ]
+    },
+    {
+      "id": "node",
+      "group": "stack",
+      "label": {
+        "en": "Node.js",
+        "es": "Node.js"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "vetnova",
+        "reyber"
+      ]
+    },
+    {
+      "id": "nestjs",
+      "group": "stack",
+      "label": {
+        "en": "NestJS",
+        "es": "NestJS"
+      },
+      "entries": [
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "vetnova",
+        "reyber"
+      ]
+    },
+    {
+      "id": "trpc",
+      "group": "stack",
+      "label": {
+        "en": "tRPC",
+        "es": "tRPC"
+      },
+      "entries": [
+        "mmx2"
+      ],
+      "cases": [
+        "qa-release-gate"
+      ]
+    },
+    {
+      "id": "rest",
+      "group": "stack",
+      "label": {
+        "en": "REST APIs",
+        "es": "APIs REST"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova"
+      ],
+      "cases": [
+        "vetnova"
+      ]
+    },
+    {
+      "id": "redis",
+      "group": "stack",
+      "label": {
+        "en": "Redis",
+        "es": "Redis"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova"
+      ],
+      "cases": [
+        "vetnova"
+      ]
+    },
+    {
+      "id": "react",
+      "group": "stack",
+      "label": {
+        "en": "React",
+        "es": "React"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova"
+      ],
+      "cases": [
+        "qa-release-gate"
+      ]
+    },
+    {
+      "id": "nextjs",
+      "group": "stack",
+      "label": {
+        "en": "Next.js",
+        "es": "Next.js"
+      },
+      "entries": [
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "vetnova",
+        "reyber"
+      ]
+    },
+    {
+      "id": "angularjs",
+      "group": "stack",
+      "label": {
+        "en": "AngularJS",
+        "es": "AngularJS"
+      },
+      "entries": [
+        "mmx1",
+        "vengala",
+        "ptree"
+      ],
+      "cases": [
+        "qa-release-gate"
+      ]
+    },
+    {
+      "id": "docker",
+      "group": "stack",
+      "label": {
+        "en": "Docker",
+        "es": "Docker"
+      },
+      "entries": [
+        "reyber"
+      ],
+      "cases": [
+        "reyber"
+      ]
+    },
+    {
+      "id": "gha",
+      "group": "stack",
+      "label": {
+        "en": "GitHub Actions CI/CD",
+        "es": "CI/CD con GitHub Actions"
+      },
+      "entries": [
+        "reyber"
+      ],
+      "cases": [
+        "reyber"
+      ]
+    },
+    {
+      "id": "rls",
+      "group": "stack",
+      "label": {
+        "en": "multi-tenant RLS",
+        "es": "RLS multi-tenant"
+      },
+      "entries": [
+        "vetnova",
+        "reyber"
+      ],
+      "cases": [
+        "vetnova",
+        "reyber"
+      ]
+    },
+    {
+      "id": "jwt",
+      "group": "stack",
+      "label": {
+        "en": "JWT + 2FA",
+        "es": "JWT + 2FA"
+      },
+      "entries": [
+        "vetnova"
+      ],
+      "cases": [
+        "vetnova"
+      ]
+    },
+    {
+      "id": "stripe",
+      "group": "pay",
+      "label": {
+        "en": "Stripe",
+        "es": "Stripe"
+      },
+      "entries": [
+        "vetnova"
+      ],
+      "cases": [
+        "vetnova"
+      ]
+    },
+    {
+      "id": "spei",
+      "group": "pay",
+      "label": {
+        "en": "SPEI bank transfers",
+        "es": "SPEI"
+      },
+      "entries": [
+        "vetnova"
+      ],
+      "cases": [
+        "vetnova"
+      ]
+    },
+    {
+      "id": "cfdi",
+      "group": "pay",
+      "label": {
+        "en": "Mexican tax e-invoicing (CFDI 4.0)",
+        "es": "CFDI 4.0"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova"
+      ],
+      "cases": [
+        "vetnova"
+      ]
+    },
+    {
+      "id": "whatsapp",
+      "group": "pay",
+      "label": {
+        "en": "WhatsApp integrations",
+        "es": "WhatsApp"
+      },
+      "entries": [
+        "mmx2",
+        "vetnova"
+      ],
+      "cases": [
+        "vetnova"
+      ]
+    },
+    {
+      "id": "wordpress",
+      "group": "pay",
+      "label": {
+        "en": "WordPress",
+        "es": "WordPress"
+      },
+      "entries": [
+        "vengala"
+      ],
+      "cases": [
+        "el23"
+      ]
+    },
+    {
+      "id": "shopify",
+      "group": "pay",
+      "label": {
+        "en": "Shopify",
+        "es": "Shopify"
+      },
+      "entries": [
+        "vengala"
+      ],
+      "cases": []
+    },
+    {
+      "id": "privacy",
+      "group": "pay",
+      "label": {
+        "en": "Data-privacy compliance (Mexico's LFPDPPP)",
+        "es": "LFPDPPP"
+      },
+      "entries": [],
+      "cases": [
+        "el23"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "mmx2",
+      "kind": "job",
+      "lane": "main",
+      "org": {
+        "en": "Mecánica MX (rejoined) — B2B SaaS for auto-repair shops",
+        "es": "Mecánica MX (reingreso) — SaaS B2B para talleres mecánicos"
+      },
+      "title": {
+        "en": "Technical Operations Lead — Architecture, QA, Releases & Data Migrations",
+        "es": "Líder Técnico de Operaciones (arquitectura, QA, releases y migraciones de datos)"
+      },
+      "short": {
+        "en": "Mecánica MX · lead",
+        "es": "Mecánica MX · líder"
+      },
+      "start": "2024",
+      "end": null,
+      "approx": true,
+      "cases": [
+        "qa-release-gate",
+        "data-migration-pipeline",
+        "pagination-root-cause"
+      ],
+      "bullets": [
+        {
+          "id": "mmx2.arch",
+          "text": {
+            "en": "Designed the architecture and 6-VPS production (TypeScript, Node.js, tRPC, Prisma, MySQL/PostgreSQL, Redis) with per-server observability dashboards and a dedicated production environment for an enterprise client.",
+            "es": "Diseñé la arquitectura y la producción en 6 VPS (TypeScript, Node.js, tRPC, Prisma, MySQL/PostgreSQL, Redis) con dashboards de observabilidad por servidor y un entorno de producción dedicado para un cliente enterprise."
+          },
+          "skills": [],
+          "metrics": []
+        },
+        {
+          "id": "mmx2.crm",
+          "text": {
+            "en": "Directed the build of a CRM (6,000+ contacts, health score, churn risk), a Customer Success system (KYC scoring, 14-day SLAs, 3-level protocol; 300+ active accounts) and WhatsApp automation (Evolution API, 4 scoring strategies) that removed ~60 h/month of manual work; integrated LLMs (Claude, Gemini, OpenAI) for ticket triage and summaries.",
+            "es": "Dirigí la construcción de un CRM (6,000+ contactos, health score, riesgo de churn), Customer Success (KYC scoring, SLAs de 14 días, protocolo de 3 niveles; 300+ cuentas activas) y la automatización de WhatsApp (Evolution API, 4 estrategias de scoring) que eliminó ~60 h/mes de trabajo manual; integré LLM (Claude, Gemini, OpenAI) para triage y resúmenes."
+          },
+          "skills": [],
+          "metrics": []
+        },
+        {
+          "id": "mmx2.cfdi",
+          "text": {
+            "en": "Led research and QA for the CFDI 4.0 e-invoicing integration; led 10+ on-site implementations and 100+ remote deployments.",
+            "es": "Dirigí la investigación y el QA de la integración de facturación electrónica CFDI 4.0; lideré 10+ implementaciones presenciales y 100+ despliegues remotos."
+          },
+          "skills": [],
+          "metrics": []
+        },
+        {
+          "id": "mmx2.qa",
+          "text": {
+            "en": "Gate every release: test each sprint ticket in QA, approve or return it, and re-validate in production (76 approved, 18 returned, 30 production validations); E2E matrices of 13–45 test cases during the AngularJS → React migration. Found a session token in plain text in server logs; validated a search fix on a ~30,000-customer account (6 searches in < 0.9 s).",
+            "es": "Valido cada release: pruebo cada ticket en QA, lo apruebo o regreso y lo revalido en producción (76 aprobados, 18 regresados, 30 en producción); matrices E2E de 13 a 45 casos en la migración de AngularJS a React. Detecté un token de sesión en claro en logs y validé un fix de búsqueda (cuenta de ~30,000 clientes, 6 búsquedas en < 0.9 s)."
+          },
+          "skills": [],
+          "metrics": [
+            "qa-approved",
+            "qa-returned",
+            "qa-prod"
+          ]
+        },
+        {
+          "id": "mmx2.migration",
+          "text": {
+            "en": "Migrated 8,339 historical orders from 3 branches' Excel exports to production with 0 errors via an auditable ETL pipeline (Excel → JSON → database; dry-run → QA → production, reconciled against source); later 2 more branches.",
+            "es": "Migré a producción, con 0 errores, 8,339 órdenes históricas de 3 sucursales desde sus Excel con un pipeline ETL auditable (Excel → JSON → base de datos; dry-run → QA → producción, conciliado contra la fuente); después, 2 sucursales más."
+          },
+          "skills": [],
+          "metrics": [
+            "orders"
+          ]
+        },
+        {
+          "id": "mmx2.data",
+          "text": {
+            "en": "Data correctness: loaded a 5,908-part catalog into 24 fleet-client accounts, caught 3 defects in the first purchase load and rebuilt it with supplier deduplication (tax ID (RFC) → name → alias); root-caused a bulk correction counting ~3,400 packages instead of 11,934 (pagination without ORDER BY) and validated ~21,539 labor concepts and ~11,934 packages in production.",
+            "es": "Corrección de datos: cargué 5,908 refacciones en 24 cuentas de un cliente de flotillas y rehíce la primera carga de compras (3 errores) con deduplicación de proveedores; hallé la causa raíz de una corrección masiva que contaba ~3,400 paquetes en vez de 11,934 (paginación sin ORDER BY) y validé ~21,539 conceptos y ~11,934 paquetes."
+          },
+          "skills": [],
+          "metrics": [
+            "parts",
+            "accounts",
+            "labor",
+            "packages"
+          ]
+        },
+        {
+          "id": "mmx2.support",
+          "text": {
+            "en": "Own L2/L3 escalations, collections and renewals (SQL diagnosis, authorized data fixes): one campaign regularized 11 of 22 overdue accounts. Redesigned CS scorecards into 4 automatic KPIs.",
+            "es": "Atiendo escalaciones L2/L3, cobranza y renovaciones (SQL, correcciones autorizadas): una campaña regularizó 11 de 22 cuentas atrasadas; rediseñé la evaluación de CS con 4 KPIs automáticos."
+          },
+          "skills": [],
+          "metrics": [
+            "collections"
+          ]
+        },
+        {
+          "id": "mmx2.mentor",
+          "text": {
+            "en": "Mentor new team members and review the support team's work; built N1–N3 playbooks, role-based training and tutorials.",
+            "es": "Capacito al personal nuevo y reviso el trabajo del equipo de soporte; creé playbooks N1–N3, capacitación por perfil y tutoriales."
+          },
+          "skills": [],
+          "metrics": []
+        }
+      ]
+    },
+    {
+      "id": "ipn",
+      "kind": "job",
+      "lane": "main",
+      "org": {
+        "en": "Instituto Politécnico Nacional, one of Mexico's largest public universities",
+        "es": "Instituto Politécnico Nacional"
+      },
+      "title": {
+        "en": "Head of School Records & Supervision Department, Registrar's Office (DAE), IPN",
+        "es": "Responsable del Departamento de Registro y Supervisión Escolar, Dirección de Administración Escolar (IPN)"
+      },
+      "short": {
+        "en": "IPN · DAE",
+        "es": "IPN · DAE"
+      },
+      "start": "2022",
+      "end": "2024",
+      "approx": true,
+      "note": {
+        "en": "full-time",
+        "es": "tiempo completo"
+      },
+      "bullets": [
+        {
+          "id": "ipn.team",
+          "text": {
+            "en": "Led teams of up to 40 people (developers, QA, support, analysts).",
+            "es": "Lideré equipos de hasta 40 personas (desarrollo, QA, soporte y análisis)."
+          },
+          "skills": [],
+          "metrics": [
+            "ipn-team"
+          ]
+        },
+        {
+          "id": "ipn.systems",
+          "text": {
+            "en": "Led operations of the critical student-information systems (SAES/SICOES): 490+ modules across 52 campuses.",
+            "es": "Dirigí la operación de los sistemas críticos SAES/SICOES: más de 490 módulos en 52 unidades."
+          },
+          "skills": [],
+          "metrics": []
+        }
+      ]
+    },
+    {
+      "id": "vengala",
+      "kind": "job",
+      "lane": "parallel",
+      "org": {
+        "en": "Vengala Company",
+        "es": "Vengala Company"
+      },
+      "title": {
+        "en": "Head of Implementations",
+        "es": "Jefe de Implementaciones"
+      },
+      "short": {
+        "en": "Vengala",
+        "es": "Vengala"
+      },
+      "start": "2022",
+      "end": "2023",
+      "approx": true,
+      "note": {
+        "en": "project-based, in parallel",
+        "es": "por proyecto, en paralelo"
+      },
+      "bullets": [
+        {
+          "id": "vengala.impl",
+          "text": {
+            "en": "Led customer implementations end to end: planning, resourcing, process design with clients, user training and pre-delivery testing.",
+            "es": "Dirigí implementaciones de clientes de principio a fin: planeación, asignación de recursos, diseño de procesos con el cliente, capacitación de usuarios y pruebas previas a la entrega."
+          },
+          "skills": [],
+          "metrics": []
+        },
+        {
+          "id": "vengala.web",
+          "text": {
+            "en": "Built web interfaces (HTML5, CSS3, JavaScript, AngularJS) and e-commerce stores on WordPress and Shopify.",
+            "es": "Desarrollé interfaces web (HTML5, CSS3, JavaScript, AngularJS) y tiendas en WordPress y Shopify."
+          },
+          "skills": [],
+          "metrics": []
+        }
+      ]
+    },
+    {
+      "id": "mmx1",
+      "kind": "job",
+      "lane": "main",
+      "org": {
+        "en": "Mecánica MX — B2B SaaS for auto-repair shops",
+        "es": "Mecánica MX — SaaS B2B para talleres mecánicos"
+      },
+      "title": {
+        "en": "Software Developer",
+        "es": "Desarrollador de Software"
+      },
+      "short": {
+        "en": "Mecánica MX · dev",
+        "es": "Mecánica MX · dev"
+      },
+      "start": "2020",
+      "end": "2022",
+      "approx": true,
+      "bullets": [
+        {
+          "id": "mmx1.frontend",
+          "text": {
+            "en": "Front-end development of the web app in AngularJS: invoice validation, role-based filters, tax and diagnostics fixes, English localization of the UI and cost and sales dashboard charts.",
+            "es": "Desarrollo front-end de la aplicación web en AngularJS: validación de facturas, filtros por rol, correcciones de impuestos y diagnósticos, traducción de la interfaz al inglés y gráficas del dashboard de costos y ventas."
+          },
+          "skills": [],
+          "metrics": []
+        }
+      ]
+    },
+    {
+      "id": "vetnova",
+      "kind": "project",
+      "lane": "parallel",
+      "org": {
+        "en": "VetNova — multi-tenant B2B SaaS for veterinary clinics · vetnova.mx",
+        "es": "VetNova — SaaS B2B multi-tenant para clínicas veterinarias · vetnova.mx"
+      },
+      "title": {
+        "en": "Product & Software Architect (independent project)",
+        "es": "Arquitecto de Producto y Software (proyecto independiente)"
+      },
+      "short": {
+        "en": "VetNova",
+        "es": "VetNova"
+      },
+      "start": "2026-08",
+      "end": null,
+      "approx": false,
+      "note": {
+        "en": "maintenance mode",
+        "es": "en mantenimiento"
+      },
+      "caseSlug": "vetnova",
+      "cases": [],
+      "bullets": [
+        {
+          "id": "vetnova.owner",
+          "text": {
+            "en": "Took a multi-tenant SaaS from zero to production-ready as sole technical owner, with Claude Code as the implementer: I wrote the specs and architecture rules, did code review on every change and owned QA. Pre-revenue; live at vetnova.mx.",
+            "es": "Llevé un SaaS multi-tenant de cero a producción como único responsable técnico, con Claude Code como implementador: escribí especificaciones y reglas de arquitectura, revisé el código de cada cambio y fui dueño del QA. Pre-revenue; en línea en vetnova.mx."
+          },
+          "skills": [],
+          "metrics": []
+        },
+        {
+          "id": "vetnova.rls",
+          "text": {
+            "en": "Tenant isolation in PostgreSQL via Row-Level Security rather than application filters (137 tables, 125 tenant-scoped, permission-based RBAC); 722 REST routes (NestJS), 117 Next.js/React screens, Stripe and SPEI bank-transfer payments, Mexican tax e-invoicing (CFDI 4.0) and a WhatsApp appointment assistant.",
+            "es": "Aislamiento entre clínicas con Row-Level Security de PostgreSQL, no con filtros de aplicación (137 tablas, 125 con tenant_id, RBAC por permiso); 722 rutas REST (NestJS), 117 pantallas Next.js/React, Stripe y SPEI, facturación CFDI 4.0 y asistente de citas por WhatsApp."
+          },
+          "skills": [],
+          "metrics": [
+            "vn-tables"
+          ]
+        },
+        {
+          "id": "vetnova.gates",
+          "text": {
+            "en": "Quality gates as infrastructure: 107 end-to-end smoke tests against the real API, 96 hand-written versioned migrations, mandatory 2FA and encrypted backups with tested restore; every decision documented with its trade-offs.",
+            "es": "Calidad como infraestructura: 107 pruebas E2E contra la API real, 96 migraciones versionadas, 2FA obligatorio y respaldos cifrados con restauración probada; decisiones documentadas."
+          },
+          "skills": [],
+          "metrics": [
+            "vn-smokes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reyber",
+      "kind": "project",
+      "lane": "parallel",
+      "org": {
+        "en": "REYBER — multi-tenant insurance platform for carriers and insurance agencies",
+        "es": "REYBER — plataforma multi-tenant de seguros para aseguradoras y despachos de agentes"
+      },
+      "title": {
+        "en": "Architecture Lead (side project)",
+        "es": "Líder de Arquitectura (proyecto paralelo)"
+      },
+      "short": {
+        "en": "REYBER",
+        "es": "REYBER"
+      },
+      "start": "2026-09",
+      "end": null,
+      "approx": false,
+      "caseSlug": "reyber",
+      "cases": [],
+      "bullets": [
+        {
+          "id": "reyber.phase1",
+          "text": {
+            "en": "Defined Phase 1: 25 research and requirements documents, 71 business rules and a 36-package build plan.",
+            "es": "Definí la fase 1: 25 documentos de investigación y requerimientos, 71 reglas de negocio y plan de construcción en 36 paquetes."
+          },
+          "skills": [],
+          "metrics": []
+        },
+        {
+          "id": "reyber.benchmark",
+          "text": {
+            "en": "Chose the dynamic-attribute data model with a falsifiable benchmark on 10,000,000 synthetic policies under RLS (6× less index: 492 vs 3,030 MB; 1.2 ms vs 118 ms on a two-attribute filter); CI/CD on GitHub Actions with RLS and tenant-isolation tests on every push.",
+            "es": "Elegí el modelo de atributos dinámicos con un benchmark falsable sobre 10,000,000 de pólizas sintéticas con RLS (6× menos índice: 492 vs 3,030 MB; 1.2 ms vs 118 ms en un filtro de dos atributos); CI/CD en GitHub Actions con pruebas de RLS y de aislamiento en cada push."
+          },
+          "skills": [],
+          "metrics": []
+        }
+      ]
+    },
+    {
+      "id": "ptree",
+      "kind": "earlier",
+      "lane": "main",
+      "org": {
+        "en": "PTREE",
+        "es": "PTREE"
+      },
+      "title": {
+        "en": "Web Developer",
+        "es": "Desarrollador Web"
+      },
+      "short": {
+        "en": "PTREE",
+        "es": "PTREE"
+      },
+      "start": "2018",
+      "end": "2019",
+      "approx": true,
+      "bullets": [
+        {
+          "id": "ptree.web",
+          "text": {
+            "en": "JavaScript, AngularJS, Firebase, Google APIs; approval-workflow and HR apps.",
+            "es": "JavaScript, AngularJS, Firebase, Google APIs; apps de aprobación y RR. HH."
+          },
+          "skills": [],
+          "metrics": []
+        }
+      ]
+    },
+    {
+      "id": "itgroup",
+      "kind": "earlier",
+      "lane": "main",
+      "org": {
+        "en": "All Software – IT Group",
+        "es": "All Software – IT Group"
+      },
+      "title": {
+        "en": "Implementation & Integration Consultant (automotive software)",
+        "es": "Consultor de implementaciones e interfaces (software automotriz)"
+      },
+      "short": {
+        "en": "IT Group",
+        "es": "IT Group"
+      },
+      "start": "2015-10",
+      "end": "2016-12",
+      "approx": false,
+      "bullets": [
+        {
+          "id": "itgroup.impl",
+          "text": {
+            "en": "Remote installs, SQL Server configuration, IIS servers, client support and training.",
+            "es": "Instalaciones remotas, configuración de SQL Server, servidores IIS, soporte y capacitación a clientes."
+          },
+          "skills": [],
+          "metrics": []
+        }
+      ]
+    }
+  ],
+  "aiProjects": [
+    {
+      "id": "jarvis",
+      "text": {
+        "en": "JARVIS (local voice assistant: Python, Ollama, faster-whisper, Kokoro; code-enforced risk tiers; LLM-free router, 47/47 tests)",
+        "es": "JARVIS (asistente local de voz: Python, Ollama, faster-whisper, Kokoro; niveles de riesgo impuestos por código; router sin LLM, 47/47 pruebas)"
+      },
+      "caseSlug": "jarvis"
+    },
+    {
+      "id": "ai-video-production",
+      "text": {
+        "en": "AI video (editing as code, ElevenLabs voice, −14 LUFS)",
+        "es": "Video con IA (edición como código, voz ElevenLabs, −14 LUFS)"
+      },
+      "caseSlug": "ai-video-production"
+    },
+    {
+      "id": "gpu-image-pipeline",
+      "text": {
+        "en": "GPU (ComfyUI (SDXL) pipelines on Runpod GPU pods)",
+        "es": "GPU (ComfyUI (SDXL) en pods GPU de Runpod)"
+      },
+      "caseSlug": "gpu-image-pipeline"
+    }
+  ],
+  "education": [
+    {
+      "text": {
+        "en": "B.S. Computer Information Science, coursework completed — IPN, UPIICSA, 2018–2022 (studied while working) · GPA 8.34/10 · Relevant: Software Engineering, Algorithms (10/10).",
+        "es": "Lic. en Ciencias de la Informática — IPN, UPIICSA (2018–2022, estudiando y trabajando); pasante, promedio 8.34; prácticas y servicio social concluidos. Destacadas: Ing. de Software y Algoritmos (10)."
+      }
+    },
+    {
+      "text": {
+        "en": "Computer Technician — IPN, CECyT 12, 2015",
+        "es": "Técnico en Informática — CECyT 12 (2015)"
+      }
+    }
+  ],
+  "languages": {
+    "en": "Spanish (native), English B2 — CENLEX IPN, Oct 2023; listening 100/100",
+    "es": "Español nativo, inglés B2 — CENLEX IPN, oct-2023; auditiva 100/100"
+  },
+  "awards": [
+    {
+      "text": {
+        "en": "Performance Award — IT Group (2016)",
+        "es": "Reconocimiento por gran desempeño laboral — IT Group (2016)"
+      },
+      "cv": true
+    },
+    {
+      "text": {
+        "en": "Speaker, 15th Academic Computing Conference — IPN UPIICSA (2018)",
+        "es": "Ponente, 15ª Jornada Académica de Computación — IPN UPIICSA (2018)"
+      },
+      "cv": true
+    },
+    {
+      "text": {
+        "en": "Member, School Technical Advisory Council — IPN UPIICSA (2018–2019)",
+        "es": "Miembro del H. Consejo Técnico Consultivo Escolar — IPN UPIICSA (2018–2019)"
+      },
+      "cv": true
+    },
+    {
+      "text": {
+        "en": "ISO 9001:2015 QMS workshop — Technology Global Certification (2022)",
+        "es": "Taller ISO 9001:2015 — Technology Global Certification (2022)"
+      },
+      "cv": true
+    }
+  ]
+}

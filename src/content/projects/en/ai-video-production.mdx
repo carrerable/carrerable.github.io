@@ -1,0 +1,66 @@
+---
+title: AI video production, with editing as code
+slug: ai-video-production
+lang: en
+kind: project
+order: 13
+summary: A workflow where short vertical videos are edited as code, scripts and plans are approved before any footage is touched, and analyzing a video costs about 35% fewer tokens thanks to cropped contact sheets.
+role: Producer & AI-directed developer (personal project)
+period: "2026"
+status: production
+stack: [Python, ffmpeg, Remotion, Node.js]
+aiTools: [Claude Code, ElevenLabs, demucs, faster-whisper]
+metrics:
+  - label: Audio level on export
+    value: -14 LUFS
+    source: Project rules, 2026-10-13
+  - label: Tokens saved by cropping contact sheets to the useful area
+    value: "about 35% (2,400 to 1,540)"
+    source: Measured on a reference video, 2026-10-08
+demoUrl: https://carrerable.github.io/ai-video-studio-demo/
+repoUrl: https://github.com/carrerable/ai-video-studio-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Context
+
+I make short vertical videos (1080 by 1920, 30 frames per second) with narration, word-by-word subtitles, titles, zooms and music. The goal is to produce them without editing by hand: the edit is a set of files that code turns into a video, so I can describe a change in plain language and re-render the same result deterministically. Working with an AI agent adds a second constraint: looking at video is expensive, because images are what cost tokens.
+
+## My role
+
+- **Decided:** the workflow, the approval gates, the visual style of each video, the sound rules, and when a video is good enough to publish.
+- **Verified:** the final audio level with a loudness measurement, the voice track by transcribing the mix locally rather than by listening, and every render with a cropped contact sheet.
+- **Delegated to AI:** writing the scene files, the render code and the helper scripts with Claude Code. I approve the script and the edit plan first, and spend voice credits only with my explicit go-ahead.
+
+## Research
+
+The key finding was about cost, not about editing. An image costs roughly its width times its height divided by 750 tokens, capped near 1,600; a minute of transcript costs about 600. So the order of analysis is fixed: read the metadata with `ffprobe` (free); transcribe the audio locally with faster-whisper (no image tokens); build one contact sheet with a frame per scene change, not one per fixed interval, with the timestamp printed on each thumbnail; crop to the useful area; zoom into a single full frame only when the transcript mentions something on screen that the sheet cannot show; and write the analysis to a file so the next session reads the file instead of re-analyzing the video. On a phone screen recording, about 60% of the frame is app interface, so cropping cut the cost of the sheet from about 2,400 to about 1,540 tokens.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| Editing as code: scenes in files, one render command | A manual timeline editor | A deterministic render can be iterated in plain language without redoing anything by hand, and a change is reviewed as a diff. |
+| One contact-sheet frame per scene change, cropped | A frame every N seconds; full frames | Fewer images and none wasted on repeated scenes; the crop removes interface chrome. |
+| My own music, ducked under the voice | Third-party music | No rights risk, and the track can be silenced at loud moments. I check the alignment file against a transcript of the song, because repeated choruses can carry copied timings. |
+| demucs to extract an instrumental when the song has no instrumental gaps | Skipping music; cutting the narration | Separating the vocals keeps the music under a voice-over without a vocal clash. |
+
+## Validation & QA
+
+Every video follows the same gate: a folder per project; documents before footage (an inventory made with `ffprobe` and contact sheets, a script and an edit plan); approval of the script and the plan; voice generation; a first version; review; a final version.
+
+The sound rules come from mistakes. Peaks stay at −12 dB and never reach 0, after one of my own product demos came out clipped; final loudness is measured with an `ebur128` pass before publishing and normalized to −14 LUFS. A screenshot is never cropped: if the focus does not fit the frame, the app background fills the rest, after a cut-off inventory screen. Proper nouns are written the way they sound so the voice pronounces them, with a map back to the correct spelling for the subtitles. For fast iteration I render a single frame or a clip of two to three seconds at low resolution, never the whole video.
+
+## Results
+
+<Chart id="video-tokens" lang="en" />
+
+- A shared render engine for typography, easing, timeline-from-voice, subtitles, audio normalization and export, so a new video only writes its scenes.
+- A catalog of 18 approved visual styles to start from, each with a recipe and sample images, so videos do not all look the same.
+- Narration generated one line at a time with character-level timestamps, which drives the word-by-word subtitles; lines that already exist are never regenerated.
+- Final audio at −14 LUFS and a roughly 35% cheaper way to let an AI agent review video.
+
+## What I'd do differently
+
+I now have two engines for the same job: a Remotion template that I copy into each project, and a Python and ffmpeg engine that I use for newer videos. I would converge on one, because the same sound and subtitle rules are implemented twice and they drift. I would also write the "measure loudness before publishing" step into the export command itself, instead of relying on myself to run it.

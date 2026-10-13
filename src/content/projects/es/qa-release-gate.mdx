@@ -1,0 +1,75 @@
+---
+title: Compuerta de QA en dos tiempos para releases semanales
+slug: qa-release-gate
+lang: es
+kind: work
+order: 1
+summary: "Cómo someto cada release de un SaaS B2B para talleres automotrices a una compuerta doble, en QA y en producción, con matrices E2E de 13 a 45 casos y una regla: QA reporta, nunca corrige."
+role: Responsable de QA y releases (puesto actual)
+period: "2026"
+status: production
+stack: [React, AngularJS (legado), Node.js, TypeScript, tRPC, MySQL, Jira, Playwright]
+aiTools: [Claude Code, Playwright]
+metrics:
+  - label: Tickets aprobados en QA
+    value: "76 (103 eventos de aprobación)"
+    source: Snapshot de Jira, oct 2026
+  - label: Rechazos enviados a reproceso
+    value: "18"
+    source: Snapshot de Jira, oct 2026
+  - label: Validaciones en producción
+    value: "30"
+    source: Snapshot de Jira, oct 2026
+  - label: Carpetas de casos de QA documentadas
+    value: "27"
+    source: Archivo de QA, oct 2026
+demoUrl: https://carrerable.github.io/qa-release-matrix-demo/
+repoUrl: https://github.com/carrerable/qa-release-matrix-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Contexto
+
+Un SaaS B2B para talleres automotrices (mi puesto actual) está migrando su aplicación web de AngularJS a React y a la vez libera funciones nuevas cada semana: facturación múltiple, un portal de reportes, permisos, notificaciones. Los talleres usan el sistema todos los días, así que un release malo se nota en una hora. Hacía falta una compuerta de calidad antes y después de cada despliegue. Este caso es anónimo a propósito y todos los ejemplos de la demo son ficticios.
+
+## Mi rol
+
+- **Decidí:** el formato de QA, el veredicto de aprobar o regresar a reproceso cada ticket, la prioridad de la cola de QA (primero bugs, luego React, luego el resto, negociada con dirección en el weekly) y la regla de que QA solo reporta.
+- **Verifiqué:** cada ticket en el ambiente de QA y otra vez en producción después del deploy, combinando pruebas en navegador, lectura del código de la rama de QA y consultas de solo lectura a la base de datos para confirmar efectos (por ejemplo, que ninguna factura quedara huérfana después de un fix).
+- **Delegué a la IA:** corridas de automatización de navegador (Playwright, mediante un agente de validación) y borradores de reportes y consultas, bajo mi diseño de casos. Reviso lo que entrega; el veredicto es mío.
+
+## Investigación
+
+Cuando un ticket falló con un error 400 en el API de QA, lo rastreé hasta una relación de modelo faltante después de un deploy nocturno y lo documenté como regresión del ambiente, no como defecto del ticket. Esa distinción importa: evita que desarrollo persiga un defecto que el ticket nunca tuvo.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Matriz estándar de dos hojas (resumen y matriz E2E) con listas desplegables de estado | Formato libre con una columna "Bitácora" | Nadie llenaba la bitácora. Menos columnas, más matrices completas. |
+| QA solo reporta: falla, evidencia y pasos | Reportes con corrección sugerida | La corrección les toca a producto y desarrollo. Una corrección sugerida mete a QA en el diseño y esconde el problema real. |
+| Dos tiempos, QA y producción, con criterios distintos registrados por separado | Validar solo en QA | Los criterios cambian entre ambientes (volúmenes de datos y configuración reales), así que cada etapa se juzga y se registra por su cuenta. |
+| Prioridad de la cola: bugs, luego migración a React, luego lo demás | Primero en llegar, primero en salir | Los bugs lastiman a los talleres hoy; la migración tiene fecha; lo demás puede esperar. |
+
+## Validación y QA
+
+Las matrices van de 13 a 45 casos por ticket (45 para el portal de reportes, 40 para el módulo de servicios en React, 36 para compras, pagos y proveedores). Cuatro hallazgos muestran cómo funciona la compuerta:
+
+- **Portal de reportes.** La ronda uno validó 15 casos y encontró 14 fallas con 6 bloqueados. En la ronda dos se corrigieron 8 de 10 errores. En la ronda tres se corrigió un error de zona horaria y dos diferencias se aceptaron como no-bug, cada una con justificación escrita.
+- **Seguridad.** El servidor de sockets imprimía el token de sesión en claro en el log. Se reportó con evidencia y se corrigió.
+- **Facturación.** Un complemento de pago que cubría varias facturas quedaba bloqueado (facturación electrónica fiscal de México, CFDI 4.0). Tras la corrección revalidé los 22 casos de 22.
+- **Rendimiento.** Una búsqueda de clientes sin caché en memoria había causado la caída de un servidor. La validé en un taller chico y en uno de unos 30,000 clientes: una ráfaga de 6 búsquedas respondió en menos de 0.9 segundos sin reinicio.
+
+## Resultados
+
+<Chart id="qa-rounds" lang="es" />
+
+- 76 tickets distintos aprobados (103 eventos de aprobación contando rondas repetidas), 18 rechazos a reproceso y 30 validaciones en producción, sobre un histórico de 171 tickets (snapshot de Jira, octubre de 2026).
+- 27 carpetas de casos de QA documentadas.
+- En la semana del 6 al 12 de octubre de 2026 la bitácora registra más de 30 veredictos de QA (aprobaciones, reprocesos y pases a producción).
+- La tasa de reapertura y los días en QA los calcula el tablero, pero todavía no los extraje, así que no los cito.
+
+## Qué haría distinto
+
+Extraería cada semana la tasa de reapertura y los días en QA del tablero y los publicaría junto a los conteos de veredictos; hoy la compuerta tiene números de volumen pero no una tendencia de resultados. También automatizaría antes la mitad repetitiva de cada matriz, porque las corridas de navegador de los mismos flujos se repiten en cada release, y dejaría el tiempo manual para los casos que piden criterio.

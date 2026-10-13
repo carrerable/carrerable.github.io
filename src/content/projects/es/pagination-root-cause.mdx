@@ -1,0 +1,68 @@
+---
+title: Causa raíz - paginación sin ORDER BY
+slug: pagination-root-cause
+lang: es
+kind: work
+order: 3
+summary: Un dry-run contó unos 3,400 paquetes de servicio cuando existían 11,934. Rastrear la diferencia hasta una paginación sin orden y unos nulos descartados hizo segura una corrección masiva de costos.
+role: Responsable de la corrección y su verificación (puesto actual)
+period: "may – jun 2026"
+status: delivered
+stack: [TypeScript, MySQL, Claude Code]
+aiTools: [Claude Code]
+metrics:
+  - label: Paquetes contados por el dry-run sin orden vs reales
+    value: "unos 3,400 vs 11,934"
+    source: Dry-run vs conteo en producción, jun 2026
+  - label: Registros con valor nulo que el primer filtro excluía
+    value: "unos 8,506"
+    source: Verificación en producción, jun 2026
+  - label: Conceptos de mano de obra corregidos
+    value: "unos 21,539"
+    source: Validación en producción, 4 jun 2026
+  - label: Paquetes de servicio corregidos
+    value: "unos 11,934"
+    source: Validación en producción, 4 jun 2026
+demoUrl: https://carrerable.github.io/pagination-bug-demo/
+repoUrl: https://github.com/carrerable/pagination-bug-demo
+---
+
+## Contexto
+
+Un SaaS B2B para talleres automotrices (mi puesto actual) cambió la fórmula que calcula el costo de mano de obra. Los talleres que usaban el campo de cantidad para ajustar el costo quedaron con costos incorrectos, y hacía falta una corrección masiva sobre miles de registros. Una escritura masiva es tan segura como el conteo en el que se apoya, así que lo primero era asegurar que el dry-run dijera la verdad. Este caso es anónimo y la demo reproduce el bug con datos sintéticos.
+
+## Mi rol
+
+- **Decidí:** que la corrección no correría hasta poder explicar el conteo del dry-run, las reglas de filtrado explícitas y que el script es de una sola ejecución.
+- **Verifiqué:** la salida del dry-run, la diferencia que llevó a la causa raíz y los conteos finales en producción.
+- **Delegué a la IA:** escribir el script de corrección y las consultas de investigación con Claude Code. La IA escribió el código; yo noté que los números no cuadraban y pedí la investigación.
+
+## Investigación
+
+El dry-run reportó unos 3,400 paquetes de servicio. La cifra real era 11,934, unas 3.5 veces más. Un número así no es ruido, así que pedí una investigación en lugar de ajustar el filtro hasta que la cifra pareciera razonable.
+
+La causa fue una paginación sin orden estable. Una consulta que lee página tras página sin un `ORDER BY` sobre una clave única le da permiso a la base de datos de devolver las filas en cualquier orden de una página a la siguiente, así que las páginas pueden repetir u omitir registros y el total se encoge en silencio. Arreglar el orden fue la primera corrección. Justo después apareció una segunda: unos 8,506 registros con valor nulo eran excluidos por el primer filtro, aunque el front-end del taller los trataba como válidos.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Paginar con `ORDER BY` sobre una clave estable | Paginar sin orden | Sin orden estable las páginas se traslapan y omiten filas, así que el conteo y el conjunto de escritura quedan mal. |
+| Tratar los nulos igual que el front-end | Excluirlos con el filtro | Excluirlos dejaba unos 8,506 registros sin corregir, y la corrección habría quedado incompleta. |
+| Marcar el script como de una sola ejecución, con opción para restringirlo a una cuenta | Un script reejecutable | Una segunda corrida duplicaría el efecto. Hacerlo imposible es más seguro que confiar en que nadie lo corra dos veces. |
+
+## Validación y QA
+
+Las reglas de corrección fueron explícitas: solo registros anteriores al cambio de fórmula, activos y con costo. Revisé el dry-run antes de cualquier escritura, y los conteos finales se validaron en producción el 4 de junio de 2026.
+
+El marcador de una sola ejecución y la restricción por cuenta salen del mismo criterio que el resto de mi estándar para cambios de datos: dry-run, QA, producción, verificación posterior y scripts idempotentes siempre que se pueda. Aquí la idempotencia no era posible por la naturaleza del cambio, así que el control se movió al propio script.
+
+## Resultados
+
+- El conteo del dry-run pasó de unos 3,400 a los 11,934 paquetes reales una vez que la paginación tuvo orden.
+- Se incluyeron unos 8,506 registros con valor nulo que el primer filtro excluía.
+- Unos 21,539 conceptos de mano de obra y unos 11,934 paquetes de servicio corregidos (unos 17,799 conceptos embebidos), validados en producción el 4 de junio de 2026.
+
+## Qué haría distinto
+
+Haría que el dry-run afirmara su propio conteo: compararlo, en el mismo script, con un conteo independiente sin paginación y negarse a continuar si difieren. Aquí encontré la diferencia mirando; debió fallar sola. También agregaría la revisión de "paginación sin orden" a cualquier script que lea por páginas, porque el bug es fácil de escribir e invisible cuando la tabla es chica.

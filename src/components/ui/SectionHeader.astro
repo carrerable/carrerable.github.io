@@ -1,0 +1,11 @@
+---
+// Encabezado de sección: eyebrow numerado en mono, titular con revelado por palabras y frase serif de apoyo.
+import Words from './Words.astro';
+interface Props { index?: string; eyebrow?: string; title: string; em?: string; lead?: string; level?: 'h1' | 'h2'; id?: string }
+const { index, eyebrow, title, em, lead, level = 'h2', id } = Astro.props;
+---
+<header class="sh" id={id}>
+  {(index || eyebrow) && <p class="eyebrow mono">{index && <span>{index}</span>}{eyebrow && <span>{eyebrow}</span>}</p>}
+  <Words tag={level} text={title} em={em} />
+  {lead && <p class="lead reveal">{lead}</p>}
+</header>

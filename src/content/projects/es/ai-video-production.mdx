@@ -1,0 +1,66 @@
+---
+title: Producción de video con IA, con la edición como código
+slug: ai-video-production
+lang: es
+kind: project
+order: 13
+summary: Un flujo donde los videos verticales cortos se editan como código, el guion y el plan se aprueban antes de tocar material y analizar un video cuesta cerca de 35% menos tokens gracias a hojas de contactos recortadas.
+role: Productor y desarrollador dirigiendo IA (proyecto personal)
+period: "2026"
+status: production
+stack: [Python, ffmpeg, Remotion, Node.js]
+aiTools: [Claude Code, ElevenLabs, demucs, faster-whisper]
+metrics:
+  - label: Nivel de audio al exportar
+    value: -14 LUFS
+    source: Reglas del proyecto, 2026-10-13
+  - label: Tokens ahorrados al recortar las hojas de contactos a la zona útil
+    value: "cerca de 35% (2,400 a 1,540)"
+    source: Medido en un video de referencia, 2026-10-08
+demoUrl: https://carrerable.github.io/ai-video-studio-demo/
+repoUrl: https://github.com/carrerable/ai-video-studio-demo
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+
+## Contexto
+
+Hago videos verticales cortos (1080 por 1920, 30 cuadros por segundo) con narración, subtítulos palabra por palabra, títulos, zooms y música. La meta es producirlos sin editar a mano: la edición es un conjunto de archivos que el código convierte en video, así que puedo describir un cambio en lenguaje natural y volver a renderizar el mismo resultado de forma determinista. Trabajar con un agente de IA agrega una segunda restricción: mirar video es caro, porque las imágenes son lo que cuesta tokens.
+
+## Mi rol
+
+- **Decidí:** el flujo de trabajo, las compuertas de aprobación, el estilo visual de cada video, las reglas de sonido y cuándo un video está listo para publicarse.
+- **Verifiqué:** el nivel final de audio con una medición de loudness, la pista de voz transcribiendo la mezcla en local y no escuchándola, y cada render con una hoja de contactos recortada.
+- **Delegué a la IA:** escribir los archivos de escenas, el código de render y los scripts de apoyo con Claude Code. Primero apruebo el guion y el plan de edición, y gasto créditos de voz solo con mi visto bueno explícito.
+
+## Investigación
+
+El hallazgo clave fue de costo, no de edición. Una imagen cuesta aproximadamente su ancho por su alto dividido entre 750 tokens, con tope cerca de 1,600; un minuto de transcripción cuesta unos 600. Por eso el orden de análisis es fijo: leer los metadatos con `ffprobe` (gratis); transcribir el audio en local con faster-whisper (cero tokens de imagen); armar una hoja de contactos con un fotograma por cambio de escena, no uno cada intervalo fijo, con el segundo impreso en cada miniatura; recortar a la zona útil; abrir un solo fotograma completo únicamente cuando la transcripción alude a algo en pantalla que la hoja no deja leer; y escribir el análisis en un archivo para que la próxima sesión lea el archivo y no vuelva a analizar el video. En una grabación de pantalla de celular, alrededor del 60% del cuadro es interfaz de la app, así que recortar bajó el costo de la hoja de unos 2,400 a unos 1,540 tokens.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Edición como código: escenas en archivos y un comando de render | Un editor de línea de tiempo manual | Un render determinista se puede iterar en lenguaje natural sin rehacer nada a mano, y un cambio se revisa como diff. |
+| Un fotograma por cambio de escena en la hoja de contactos, recortado | Un fotograma cada N segundos; fotogramas completos | Menos imágenes y ninguna gastada en escenas repetidas; el recorte quita el chrome de la interfaz. |
+| Música propia con ducking bajo la voz | Música de terceros | Sin riesgo de derechos, y la pista se puede callar en momentos fuertes. Reviso el archivo de alineación contra una transcripción de la canción, porque los coros repetidos pueden traer tiempos copiados. |
+| demucs para sacar un instrumental cuando la canción no tiene huecos instrumentales | Omitir la música; recortar la narración | Separar las voces mantiene la música bajo una narración sin choque de voces. |
+
+## Validación y QA
+
+Cada video sigue la misma compuerta: una carpeta por proyecto; documentos antes del material (un inventario hecho con `ffprobe` y hojas de contactos, un guion y un plan de edición); aprobación del guion y del plan; generación de voz; una primera versión; revisión; versión final.
+
+Las reglas de sonido salen de errores. Los picos se quedan en −12 dB y nunca llegan a 0, después de que una demo de uno de mis productos salió con clipping; el loudness final se mide con un paso `ebur128` antes de publicar y se normaliza a −14 LUFS. Una captura de pantalla nunca se corta: si el foco no cabe en el cuadro, el fondo de la app rellena el resto, después de una pantalla de inventario que salió cortada. Los nombres propios se escriben como suenan para que la voz los pronuncie bien, con un mapa de regreso a la ortografía correcta para los subtítulos. Para iterar rápido renderizo un solo fotograma o un tramo de dos a tres segundos en baja resolución, nunca el video completo.
+
+## Resultados
+
+<Chart id="video-tokens" lang="es" />
+
+- Un motor de render compartido para tipografía, easing, línea de tiempo desde la voz, subtítulos, normalización de audio y exportación, de modo que un video nuevo solo escribe sus escenas.
+- Un catálogo de 18 estilos visuales aprobados para partir de ellos, cada uno con receta e imágenes de ejemplo, para que los videos no se vean todos iguales.
+- Narración generada línea por línea con marcas de tiempo por carácter, que alimentan los subtítulos palabra por palabra; las líneas que ya existen nunca se regeneran.
+- Audio final a −14 LUFS y una forma cerca de 35% más barata de que un agente de IA revise video.
+
+## Qué haría distinto
+
+Hoy tengo dos motores para el mismo trabajo: una plantilla de Remotion que copio a cada proyecto y un motor de Python y ffmpeg que uso en los videos más nuevos. Convergería en uno, porque las mismas reglas de sonido y subtítulos están implementadas dos veces y se desalinean. También metería el paso de "medir loudness antes de publicar" dentro del propio comando de exportación, en lugar de depender de que yo me acuerde de correrlo.
