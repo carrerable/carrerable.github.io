@@ -14,6 +14,9 @@ export const ui = {
     'cta.projects': 'See projects',
     'cta.cv': 'Download CV (PDF)',
     'cta.email': 'Email me',
+    'cta.call': 'Call',
+    'hero.english': 'English B2 (EF SET 2026)',
+    'cv.languages': 'Languages',
     'section.work': 'Work cases',
     'section.projects': 'Independent projects',
     'section.how': 'How I work',
@@ -51,7 +54,7 @@ export const ui = {
     'how.quote': 'A green check is not proof.',
     'contact.title': 'Let us build something that holds.',
     'contact.em': 'holds.',
-    'contact.lead': 'Mexico City, working across US time zones. I answer every email.',
+    'contact.lead': 'Mexico City, working across US time zones. Fastest reply: WhatsApp.',
     'projects.lead': 'Case studies with their decisions, validation and results.',
     'stack.title': 'Stack, with evidence',
     'cv.title': 'Interactive CV',
@@ -79,6 +82,9 @@ export const ui = {
     'cta.projects': 'Ver proyectos',
     'cta.cv': 'Descargar CV (PDF)',
     'cta.email': 'Escríbeme',
+    'cta.call': 'Llamar',
+    'hero.english': 'Inglés B2 (EF SET 2026)',
+    'cv.languages': 'Idiomas',
     'section.work': 'Casos de trabajo',
     'section.projects': 'Proyectos propios',
     'section.how': 'Cómo trabajo',
@@ -116,7 +122,7 @@ export const ui = {
     'how.quote': 'Un check en verde no es una prueba.',
     'contact.title': 'Construyamos algo que aguante.',
     'contact.em': 'aguante.',
-    'contact.lead': 'Ciudad de México, en horario compatible con EE. UU. Contesto todos los correos.',
+    'contact.lead': 'Ciudad de México, en horario compatible con EE. UU. Respondo más rápido por WhatsApp.',
     'projects.lead': 'Casos con sus decisiones, su validación y sus resultados.',
     'stack.title': 'Stack, con evidencia',
     'cv.title': 'CV interactivo',
@@ -136,6 +142,11 @@ export const ui = {
 export const NAME = 'Luis Carrera';
 export const EMAIL = 'carrerabernal@gmail.com';
 export const GITHUB = 'https://github.com/carrerable';
+export const PHONE = '+52 56 3706 7998';
+export const PHONE_TEL = 'tel:+525637067998';
+export const EFSET_URL = 'https://cert.efset.org/en/b4kDPM';
+export const whatsapp = (lang: Lang) =>
+  `https://wa.me/525637067998?text=${encodeURIComponent(lang === 'es' ? 'Hola Luis, vi tu portafolio' : 'Hi Luis, I saw your portfolio')}`;
 export function otherLang(lang: Lang): Lang { return lang === 'en' ? 'es' : 'en'; }
 
 export const homeMetrics = {

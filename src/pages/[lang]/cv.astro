@@ -11,7 +11,7 @@ import Skills from '../../components/cv/Skills.astro';
 import Chart from '../../components/charts/Chart.astro';
 import { validar } from '../../data/cv-schema.mjs';
 import cvRaw from '../../data/cv.json';
-import { ui, NAME, type Lang } from '../../i18n/ui';
+import { ui, NAME, PHONE, PHONE_TEL, EFSET_URL, whatsapp, type Lang } from '../../i18n/ui';
 
 export function getStaticPaths() {
   return [{ params: { lang: 'en' } }, { params: { lang: 'es' } }];
@@ -35,6 +35,8 @@ const awards = cv.awards.filter((a: any) => a.cv);
       <p class="lead serif" style="font-size: var(--t-xl); line-height: 1.3; max-width: 62ch; margin-top: var(--s-5)">{cv.meta.summary[lang]}</p>
       <div class="row" style="margin-top: var(--s-5)">
         <Button href={`/cv/Luis-Carrera-CV-${L}.pdf`}>{lang === 'es' ? 'Descargar PDF' : 'Download PDF'}</Button>
+        <Button href={whatsapp(lang)} variant="ghost">WhatsApp</Button>
+        <Button href={PHONE_TEL} variant="ghost" arrow={false}>{PHONE}</Button>
         <Button href={`mailto:${cv.meta.email}`} variant="ghost">{t['cta.email']}</Button>
         {cv.meta.links.map((l: any) => <Button href={l.url} variant="ghost" arrow={false}>{l.label}</Button>)}
       </div>
@@ -70,7 +72,7 @@ const awards = cv.awards.filter((a: any) => a.cv);
         <SectionHeader index="04" eyebrow="Education" title={t['cv.education']} />
         <div class="prose">
           {cv.education.map((e: any) => <p>{e.text[lang]}</p>)}
-          <p>{cv.languages[lang]}</p>
+          <p><strong>{t['cv.languages']}:</strong> {cv.languages[lang]} · <a href={EFSET_URL} target="_blank" rel="noopener">EF SET</a></p>
         </div>
       </div>
       <div>

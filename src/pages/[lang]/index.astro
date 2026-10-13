@@ -8,7 +8,7 @@ import Frame from '../../components/ui/Frame.astro';
 import Button from '../../components/ui/Button.astro';
 import Card from '../../components/ui/Card.astro';
 import MetricCard from '../../components/ui/MetricCard.astro';
-import { ui, homeMetrics, NAME, EMAIL, GITHUB, type Lang } from '../../i18n/ui';
+import { ui, homeMetrics, NAME, EMAIL, GITHUB, PHONE, PHONE_TEL, EFSET_URL, whatsapp, type Lang } from '../../i18n/ui';
 
 export function getStaticPaths() {
   return [{ params: { lang: 'en' } }, { params: { lang: 'es' } }];
@@ -36,6 +36,7 @@ const jsonLd = {
   name: NAME,
   jobTitle: ui.en['hero.title'],
   url: Astro.site!.toString(),
+  telephone: PHONE,
   sameAs: [GITHUB],
   address: { '@type': 'PostalAddress', addressLocality: 'Mexico City' },
 };
@@ -58,8 +59,10 @@ const jsonLd = {
             <Button href={`/${lang}/projects/`}>{t['cta.projects']}</Button>
             <Button href={`/${lang}/cv/`} variant="ghost">{t['nav.cv']}</Button>
             <Button href={`mailto:${EMAIL}`} variant="ghost">{t['cta.email']}</Button>
+            <Button href={whatsapp(lang)} variant="ghost">WhatsApp</Button>
           </div>
           <p class="where mono fade">{t['hero.location']}</p>
+          <p class="where mono fade"><a href={EFSET_URL} target="_blank" rel="noopener">{t['hero.english']}</a></p>
         </div>
         <div class="metrics" style="grid-template-columns: 1fr" aria-label={t['section.numbers']}>
           <MetricCard value={first.value} label={first.label} source={first.source} ring={first.ring} accent />
@@ -112,7 +115,9 @@ const jsonLd = {
   <Section tone="coral" id="contact">
     <SectionHeader index="06" eyebrow={t['section.contact']} title={t['contact.title']} em={t['contact.em']} lead={t['contact.lead']} />
     <div class="row">
-      <Button href={`mailto:${EMAIL}`}>{EMAIL}</Button>
+      <Button href={whatsapp(lang)}>WhatsApp</Button>
+      <Button href={PHONE_TEL} variant="ghost" arrow={false}>{PHONE}</Button>
+      <Button href={`mailto:${EMAIL}`} variant="ghost">{EMAIL}</Button>
       <Button href={GITHUB} variant="ghost">GitHub</Button>
       <Button href={`/${lang}/cv/`} variant="ghost">{t['nav.cv']}</Button>
     </div>
