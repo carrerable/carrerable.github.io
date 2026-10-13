@@ -1,1 +1,13 @@
-[]
+[
+  "qa-release-matrix-demo",
+  "migration-reconciliation-demo",
+  "pagination-bug-demo",
+  "vetnova-demo",
+  "reyber-dynamic-attributes-demo",
+  "jarvis-safety-router-demo",
+  "ai-video-studio-demo",
+  "lyric-sync-demo",
+  "kdp-engine-demo",
+  "el23-catalog-demo",
+  "gpu-image-pipeline-demo"
+]
