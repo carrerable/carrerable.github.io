@@ -1,0 +1,106 @@
+---
+// Galería responsiva con miniaturas <picture> (WebP con PNG de respaldo) y visor con <dialog> nativo.
+// Las miniaturas se cargan diferidas; la imagen completa solo se pide al abrir el visor.
+import { ui, type Lang } from '../../i18n/ui';
+interface Img { id: string; w: number; h: number; tw: number; th: number; en: string; es: string }
+interface Props { slug: string; images: Img[]; lang: Lang; label?: string }
+const { slug, images, lang, label } = Astro.props;
+const t = ui[lang];
+const base = `/work/${slug}/`;
+const uid = `gal-${slug}`;
+const single = images.length === 1;
+---
+<div class:list={['gallery', { single }]} data-gallery={uid} data-prev={t['gallery.prev']} data-next={t['gallery.next']}>
+  <ul class="g-grid" role="list" aria-label={label ?? t['gallery.title']}>
+    {images.map((im, i) => (
+      <li>
+        <button type="button" class="g-item" data-i={i} aria-haspopup="dialog" title={t['gallery.open']}>
+          <picture>
+            <source type="image/webp" srcset={`${base}${im.id}-sm.webp`} />
+            <img src={`${base}${im.id}-sm.png`} alt={im[lang]} width={im.tw} height={im.th} loading="lazy" decoding="async" />
+          </picture>
+        </button>
+      </li>
+    ))}
+  </ul>
+  <dialog class="g-dialog" aria-label={label ?? t['gallery.title']}>
+    <div class="g-bar">
+      <span class="g-count mono" aria-live="polite"></span>
+      <button type="button" class="g-btn g-close" aria-label={t['gallery.close']}>✕</button>
+    </div>
+    <div class="g-stage"></div>
+    <p class="g-cap"></p>
+    <div class="g-nav" hidden={single}>
+      <button type="button" class="g-btn g-prev" aria-label={t['gallery.prev']}>←</button>
+      <button type="button" class="g-btn g-next" aria-label={t['gallery.next']}>→</button>
+    </div>
+    <script is:inline type="application/json" class="g-data" set:html={JSON.stringify(images.map((im) => ({ src: `${base}${im.id}`, w: im.w, h: im.h, alt: im[lang] })))} />
+  </dialog>
+</div>
+
+<style>
+  .g-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
+  .single .g-grid { grid-template-columns: minmax(0, 46rem); }
+  .g-item { display: block; width: 100%; padding: 0; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--card); overflow: hidden; cursor: zoom-in; line-height: 0; transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .g-item img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: top; }
+  .g-item:hover { transform: translateY(-3px); border-color: var(--c-coral); box-shadow: var(--shadow-1); }
+  .g-item:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .g-dialog { width: min(96vw, 80rem); max-height: 94vh; padding: var(--s-4); border: 1px solid var(--line); border-radius: var(--r-l); background: var(--c-ink); color: var(--c-cream); overflow: auto; }
+  .g-dialog::backdrop { background: rgba(0, 0, 0, 0.8); }
+  .g-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--s-3); }
+  .g-count { font-size: var(--t-xs); letter-spacing: 0.08em; color: #a8a296; }
+  .g-stage { text-align: center; }
+  .g-stage img { max-width: 100%; height: auto; max-height: 76vh; width: auto; border-radius: var(--r-s); }
+  .g-stage img.tall { max-height: none; }
+  .g-cap { margin: var(--s-3) 0 0; font-size: var(--t-sm); color: #d8d2c6; text-align: center; }
+  .g-nav { display: flex; justify-content: center; gap: var(--s-4); margin-top: var(--s-3); }
+  .g-btn { min-width: 2.75rem; min-height: 2.75rem; padding: 0 var(--s-4); border: 1px solid rgba(244, 239, 230, 0.3); border-radius: var(--r-pill); background: transparent; color: var(--c-cream); font: inherit; cursor: pointer; }
+  .g-btn:hover { border-color: var(--c-coral-lit); color: var(--c-coral-lit); }
+  .g-btn:focus-visible { outline: 3px solid var(--c-coral-lit); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .g-item { transition: none; }
+    .g-item:hover { transform: none; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((root) => {
+    const dlg = root.querySelector<HTMLDialogElement>('dialog')!;
+    const items = JSON.parse(root.querySelector('.g-data')!.textContent || '[]') as { src: string; w: number; h: number; alt: string }[];
+    const stage = root.querySelector<HTMLElement>('.g-stage')!;
+    const cap = root.querySelector<HTMLElement>('.g-cap')!;
+    const count = root.querySelector<HTMLElement>('.g-count')!;
+    let cur = 0;
+    const show = (i: number) => {
+      cur = (i + items.length) % items.length;
+      const it = items[cur];
+      const pic = document.createElement('picture');
+      const s = document.createElement('source');
+      s.type = 'image/webp';
+      s.srcset = `${it.src}.webp`;
+      const img = document.createElement('img');
+      img.src = `${it.src}.png`;
+      img.alt = it.alt;
+      img.width = it.w;
+      img.height = it.h;
+      if (it.h / it.w > 2) img.className = 'tall';
+      pic.append(s, img);
+      stage.replaceChildren(pic);
+      cap.textContent = it.alt;
+      count.textContent = `${cur + 1} / ${items.length}`;
+    };
+    root.querySelectorAll<HTMLButtonElement>('.g-item').forEach((b) =>
+      b.addEventListener('click', () => { show(Number(b.dataset.i)); dlg.showModal(); }),
+    );
+    root.querySelector('.g-close')!.addEventListener('click', () => dlg.close());
+    root.querySelector('.g-prev')!.addEventListener('click', () => show(cur - 1));
+    root.querySelector('.g-next')!.addEventListener('click', () => show(cur + 1));
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener('keydown', (e) => {
+      if (items.length < 2) return;
+      if (e.key === 'ArrowLeft') { e.preventDefault(); show(cur - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); show(cur + 1); }
+    });
+    dlg.addEventListener('close', () => stage.replaceChildren());
+  });
+</script>

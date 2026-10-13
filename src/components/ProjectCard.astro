@@ -1,10 +1,20 @@
 ---
 import Card from './ui/Card.astro';
 import Chip from './ui/Chip.astro';
+import visuals from '../data/visuals.json';
 interface Props { lang: 'en' | 'es'; slug: string; title: string; summary: string; stack: string[]; status: string; index?: string }
 const { lang, slug, title, summary, stack, status, index } = Astro.props;
+// Portada: primera imagen del caso en visuals.json (miniatura WebP con PNG de respaldo)
+const first = (visuals as Record<string, { images: { id: string; tw: number; th: number }[] }>)[slug]?.images[0];
+const thumb = first ? { src: `/work/${slug}/${first.id}`, w: first.tw, h: first.th } : undefined;
 ---
 <Card class="pcard reveal" href={`/${lang}/projects/${slug}/`} title={title} index={index}>
+  {thumb && (
+    <picture slot="media" class="pthumb" aria-hidden="true">
+      <source type="image/webp" srcset={`${thumb.src}-sm.webp`} />
+      <img src={`${thumb.src}-sm.png`} alt="" width={thumb.w} height={thumb.h} loading="lazy" decoding="async" />
+    </picture>
+  )}
   <p>{summary}</p>
   <div class="chips">
     {stack.slice(0, 4).map((s) => <Chip>{s}</Chip>)}

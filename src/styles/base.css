@@ -341,3 +341,9 @@ html.js .skill-chip:hover .rel, html.js .skill-chip:focus-within .rel { position
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .reveal, .words .w > span, .ch > span { opacity: 1 !important; transform: none !important; }
 }
+
+/* Miniatura de portada en tarjetas de proyecto */
+.card .pthumb { display: block; margin: calc(-1 * var(--s-5)) calc(-1 * var(--s-5)) var(--s-2); border-radius: var(--r-m) var(--r-m) 0 0; overflow: hidden; border-bottom: 1px solid var(--line); line-height: 0; }
+.card .pthumb img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: top; transition: transform var(--dur-slow) var(--ease); }
+.card:hover .pthumb img { transform: scale(1.03); }
+@media (prefers-reduced-motion: reduce) { .card:hover .pthumb img { transform: none; } .card .pthumb img { transition: none; } }

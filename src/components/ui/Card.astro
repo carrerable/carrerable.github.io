@@ -3,6 +3,7 @@
 const { href, title, index, class: cls = '', as: Tag = 'article' } = Astro.props as { href?: string; title?: string; index?: string; class?: string; as?: 'article' | 'div' };
 ---
 <Tag class:list={['card', cls]}>
+  <slot name="media" />
   {index && <span class="idx" aria-hidden="true">{index}</span>}
   {title && <h3>{href ? <a class="stretch" href={href}>{title}</a> : title}</h3>}
   <slot />

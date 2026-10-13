@@ -1,0 +1,371 @@
+{
+ "vetnova": {
+  "images": [
+   {
+    "id": "vetnova-dashboard-light-1440",
+    "w": 1600,
+    "h": 1643,
+    "tw": 640,
+    "th": 480,
+    "en": "Dashboard with today's sales, agenda, alerts and revenue charts (light theme).",
+    "es": "Panel de inicio con ventas del día, agenda, alertas y gráficas de ingresos (tema claro)."
+   },
+   {
+    "id": "vetnova-dashboard-dark-1440",
+    "w": 1600,
+    "h": 1643,
+    "tw": 640,
+    "th": 480,
+    "en": "Same dashboard in dark theme.",
+    "es": "El mismo panel en tema oscuro."
+   },
+   {
+    "id": "vetnova-agenda-light-1440",
+    "w": 1600,
+    "h": 1312,
+    "tw": 640,
+    "th": 480,
+    "en": "Appointments calendar with status, service and vet columns.",
+    "es": "Calendario de citas con estado, servicio y veterinario."
+   },
+   {
+    "id": "vetnova-ordenes-ventas-light-1440",
+    "w": 1600,
+    "h": 1939,
+    "tw": 640,
+    "th": 480,
+    "en": "Orders and sales list: consultations, counter sales and quotes with status and totals.",
+    "es": "Lista de consultas y ventas de mostrador con estatus y totales."
+   },
+   {
+    "id": "vetnova-reporte-cobranza-light-1440",
+    "w": 1600,
+    "h": 1403,
+    "tw": 640,
+    "th": 480,
+    "en": "Collections report with aging buckets and receivables.",
+    "es": "Reporte de cobranza con antigüedad de saldos y cuentas por cobrar."
+   },
+   {
+    "id": "vetnova-portal-cliente-light-1440",
+    "w": 1600,
+    "h": 1000,
+    "tw": 640,
+    "th": 480,
+    "en": "Owner portal showing the next appointment and pets.",
+    "es": "Portal del cliente con próxima cita y mascotas."
+   },
+   {
+    "id": "vetnova-tareas-light-1440",
+    "w": 1600,
+    "h": 1000,
+    "tw": 640,
+    "th": 480,
+    "en": "Team task board with priority and due dates.",
+    "es": "Tablero de tareas del equipo con prioridad y vencimiento."
+   },
+   {
+    "id": "vetnova-dashboard-mobile-390",
+    "w": 780,
+    "h": 6712,
+    "tw": 640,
+    "th": 480,
+    "en": "Dashboard on a 390 px mobile viewport.",
+    "es": "Panel en un viewport móvil de 390 px."
+   }
+  ],
+  "diagram": {
+   "file": "vetnova",
+   "en": "VetNova architecture: client, API, tenant context, row-level security, PostgreSQL.",
+   "es": "Arquitectura de VetNova: cliente, API, contexto de tenant, seguridad por fila y PostgreSQL."
+  }
+ },
+ "reyber": {
+  "images": [
+   {
+    "id": "reyber-login-flujos-auth-1280",
+    "w": 1280,
+    "h": 1664,
+    "tw": 640,
+    "th": 480,
+    "en": "Authentication flows: login, 2FA, backup code, password recovery and invitation.",
+    "es": "Flujos de autenticación: acceso, 2FA, código de respaldo, recuperar contraseña e invitación."
+   },
+   {
+    "id": "reyber-formulario-autos-campos-dinamicos-1280",
+    "w": 1280,
+    "h": 832,
+    "tw": 640,
+    "th": 480,
+    "en": "Dynamic-attribute form for the Auto line of business.",
+    "es": "Formulario de atributos dinámicos del ramo Autos."
+   },
+   {
+    "id": "reyber-campo-dinamico-tipos-1280",
+    "w": 1280,
+    "h": 832,
+    "tw": 640,
+    "th": 480,
+    "en": "Catalog of dynamic field types in edit and read-only states.",
+    "es": "Catálogo de tipos de campo dinámico en modo edición y lectura."
+   }
+  ],
+  "diagram": {
+   "file": "reyber",
+   "en": "REYBER dynamic attributes: JSONB, trigger-kept index column, projection table.",
+   "es": "Atributos dinámicos de REYBER: JSONB, columna indexada por trigger y tabla de proyección."
+  }
+ },
+ "el23": {
+  "images": [
+   {
+    "id": "el23-portada-1440",
+    "w": 1440,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Home page of the live silver catalog.",
+    "es": "Portada del catálogo de plata en línea."
+   },
+   {
+    "id": "el23-catalogo-1440",
+    "w": 1440,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Catalog listing with categories and paginated results.",
+    "es": "Listado del catálogo con categorías y resultados paginados."
+   },
+   {
+    "id": "el23-ficha-producto-1440",
+    "w": 1440,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Product page: price to be quoted, add to list, quote on WhatsApp.",
+    "es": "Ficha de pieza: precio a cotizar, agregar a mi lista y cotizar por WhatsApp."
+   },
+   {
+    "id": "el23-portada-movil-390",
+    "w": 739,
+    "h": 1600,
+    "tw": 640,
+    "th": 480,
+    "en": "Home page on a 390 px mobile viewport.",
+    "es": "Portada en un viewport móvil de 390 px."
+   }
+  ],
+  "diagram": {
+   "file": "el23",
+   "en": "El 23: catalog, piece page, browser order list, WhatsApp, quote, pickup.",
+   "es": "El 23: catálogo, ficha, lista en el navegador, WhatsApp, cotización y recolección."
+  }
+ },
+ "lyric-videos": {
+  "images": [
+   {
+    "id": "lyric-video-horizontal-1",
+    "w": 1600,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Lyric video frame: the current word is highlighted while neighbouring lines fade.",
+    "es": "Fotograma del lyric video: la palabra actual resaltada y las líneas vecinas atenuadas."
+   },
+   {
+    "id": "lyric-video-horizontal-2",
+    "w": 1600,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Lyric video frame: the current word is highlighted while neighbouring lines fade.",
+    "es": "Fotograma del lyric video: la palabra actual resaltada y las líneas vecinas atenuadas."
+   },
+   {
+    "id": "lyric-video-horizontal-3",
+    "w": 1600,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Lyric video frame: the current word is highlighted while neighbouring lines fade.",
+    "es": "Fotograma del lyric video: la palabra actual resaltada y las líneas vecinas atenuadas."
+   },
+   {
+    "id": "lyric-short-vertical",
+    "w": 900,
+    "h": 1600,
+    "tw": 640,
+    "th": 480,
+    "en": "Vertical Short of the chorus with the current line on screen.",
+    "es": "Short vertical del coro con la línea actual en pantalla."
+   }
+  ],
+  "diagram": {
+   "file": "lyric-videos",
+   "en": "Lyric pipeline: mp3, rough pass, forced alignment, render, chorus, Short, upload.",
+   "es": "Pipeline de lyric videos: mp3, pasada rápida, alineación forzada, render, coro, Short y subida."
+  }
+ },
+ "kdp-engine": {
+  "images": [
+   {
+    "id": "kdp-portada-vol1",
+    "w": 1200,
+    "h": 1500,
+    "tw": 640,
+    "th": 480,
+    "en": "Cover art of volume 1: a sunlit cafe with coffee and croissants.",
+    "es": "Arte de portada del volumen 1: una cafetería con sol, café y cruasanes."
+   },
+   {
+    "id": "kdp-pagina-03-taza",
+    "w": 1236,
+    "h": 1600,
+    "tw": 640,
+    "th": 480,
+    "en": "Sample interior page: a steaming cup among coffee beans.",
+    "es": "Página de muestra: taza con vapor entre granos de café."
+   },
+   {
+    "id": "kdp-pagina-17-otono",
+    "w": 1236,
+    "h": 1600,
+    "tw": 640,
+    "th": 480,
+    "en": "Sample interior page: autumn window with pumpkins.",
+    "es": "Página de muestra: ventana de otoño con calabazas."
+   },
+   {
+    "id": "kdp-pagina-24-ventana",
+    "w": 1236,
+    "h": 1600,
+    "tw": 640,
+    "th": 480,
+    "en": "Sample interior page: an open window over a street.",
+    "es": "Página de muestra: ventana abierta sobre una calle."
+   }
+  ],
+  "diagram": {
+   "file": "kdp-engine",
+   "en": "KDP engine: config, prompts, images, line art, PDF layout, human review, upload.",
+   "es": "Motor KDP: config, prompts, imágenes, línea limpia, PDF, revisión humana y subida."
+  }
+ },
+ "ai-video-production": {
+  "images": [
+   {
+    "id": "ai-video-claude-ollama-short",
+    "w": 900,
+    "h": 1600,
+    "tw": 640,
+    "th": 480,
+    "en": "AI video frame: a plain-language prompt next to the code that renders the animation.",
+    "es": "Fotograma: un prompt en lenguaje natural junto al código que genera la animación."
+   },
+   {
+    "id": "ai-video-studio-demo-1440",
+    "w": 1440,
+    "h": 1529,
+    "tw": 640,
+    "th": 480,
+    "en": "AI video studio demo: scene editor, music ducking envelope and image-token calculator.",
+    "es": "Demo del estudio de video con IA: editor de escenas, ducking de música y calculadora de tokens."
+   }
+  ],
+  "diagram": {
+   "file": "ai-video-production",
+   "en": "AI video: script, voice-over, scene files, render, audio mix, contact-sheet review.",
+   "es": "Video con IA: guion, voz, escenas, render, mezcla de audio y revisión con hoja de contactos."
+  }
+ },
+ "qa-release-gate": {
+  "images": [
+   {
+    "id": "qa-release-gate-demo-1440",
+    "w": 1440,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "QA release gate demo: summary of an E2E matrix with a REWORK verdict.",
+    "es": "Demo del release gate de QA: resumen de una matriz E2E con veredicto REWORK."
+   }
+  ],
+  "diagram": {
+   "file": "qa-release-gate",
+   "en": "QA release gate: matrix, QA run, verdict, production check, rework.",
+   "es": "Release gate de QA: matriz, corrida en QA, veredicto, revisión en producción y retrabajo."
+  }
+ },
+ "data-migration-pipeline": {
+  "images": [
+   {
+    "id": "data-migration-pipeline-demo-1440",
+    "w": 1440,
+    "h": 2506,
+    "tw": 640,
+    "th": 480,
+    "en": "Data migration demo: mapping rules, row errors, dry run and reconciliation report.",
+    "es": "Demo de migración: reglas, errores por fila, dry run e informe de conciliación."
+   }
+  ],
+  "diagram": {
+   "file": "data-migration-pipeline",
+   "en": "Migration pipeline: Excel, homogenized JSON, dry run, QA, production, reconciliation.",
+   "es": "Pipeline de migración: Excel, JSON homologado, dry run, QA, producción y conciliación."
+  }
+ },
+ "pagination-root-cause": {
+  "images": [
+   {
+    "id": "pagination-root-cause-demo-1440",
+    "w": 1440,
+    "h": 1102,
+    "tw": 640,
+    "th": 480,
+    "en": "Pagination demo: run with and without ORDER BY, null filter, the real incident.",
+    "es": "Demo de paginación: ejecutar con y sin ORDER BY, filtro de nulos e incidente real."
+   }
+  ],
+  "diagram": {
+   "file": "pagination-root-cause",
+   "en": "Root cause: ordered pagination and null handling fixed a 3.5x undercount.",
+   "es": "Causa raíz: paginación ordenada y manejo de nulos corrigieron un conteo 3.5 veces menor."
+  }
+ },
+ "jarvis": {
+  "images": [
+   {
+    "id": "jarvis-safety-router-demo-1440",
+    "w": 1440,
+    "h": 925,
+    "tw": 640,
+    "th": 480,
+    "en": "JARVIS demo: request box and tools classified safe, dangerous or prohibited.",
+    "es": "Demo de JARVIS: caja de petición y herramientas clasificadas según riesgo."
+   }
+  ],
+  "diagram": {
+   "file": "jarvis",
+   "en": "JARVIS: voice, wake word, STT, code router, safe tool / confirm / LLM / blocked, TTS.",
+   "es": "JARVIS: voz, palabra de activación, STT, router en código, herramienta segura / confirmar / LLM / bloqueado, TTS."
+  }
+ },
+ "gpu-image-pipeline": {
+  "images": [
+   {
+    "id": "gpu-image-pipeline-demo-1440",
+    "w": 1440,
+    "h": 1590,
+    "tw": 640,
+    "th": 480,
+    "en": "GPU pipeline demo: cost calculator, workflow viewer, pod lifecycle and billing.",
+    "es": "Demo del pipeline GPU: calculadora de costo, visor de workflow, ciclo del pod y facturación."
+   }
+  ],
+  "diagram": {
+   "file": "gpu-image-pipeline",
+   "en": "GPU pipeline: spend cap, create pod, models, ComfyUI, batch, delete pod, read bill.",
+   "es": "Pipeline GPU: tope de gasto, crear pod, modelos, ComfyUI, lote, borrar pod y leer la factura."
+  }
+ }
+}

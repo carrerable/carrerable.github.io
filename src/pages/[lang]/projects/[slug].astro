@@ -7,6 +7,10 @@ import Chip from '../../../components/ui/Chip.astro';
 import MetricCard from '../../../components/ui/MetricCard.astro';
 import Words from '../../../components/ui/Words.astro';
 import Frame from '../../../components/ui/Frame.astro';
+import Gallery from '../../../components/ui/Gallery.astro';
+import Diagram from '../../../components/ui/Diagram.astro';
+import SectionHeader from '../../../components/ui/SectionHeader.astro';
+import visuals from '../../../data/visuals.json';
 import { ui, NAME } from '../../../i18n/ui';
 // Repos de demo ya publicados en GitHub Pages; se agregan al publicar (paso 68). Sin él, no se embebe un iframe vacío.
 import demosPublicadas from '../../../data/demos-publicadas.json';
@@ -20,6 +24,7 @@ const d = entry.data;
 const lang = d.lang;
 const t = ui[lang];
 const { Content } = await render(entry);
+const vis = (visuals as Record<string, any>)[d.slug] as { images: any[]; diagram?: { file: string; en: string; es: string } } | undefined;
 const repo = d.repoUrl ? d.repoUrl.split('/').pop()! : d.slug;
 ---
 <Base lang={lang} title={`${d.title} — ${NAME}`} description={d.summary} path={`/${lang}/projects/${d.slug}/`}>
@@ -45,11 +50,25 @@ const repo = d.repoUrl ? d.repoUrl.split('/').pop()! : d.slug;
     )}
   </Section>
 
-  <Section tone="alt">
+  {vis?.diagram && (
+    <Section tone="alt" id="how-it-works">
+      <SectionHeader eyebrow="Architecture" title={t['how.works']} />
+      <Diagram name={vis.diagram.file} caption={{ en: vis.diagram.en, es: vis.diagram.es }} lang={lang} />
+    </Section>
+  )}
+
+  <Section tone="base">
     <div class="prose">
       <Content />
     </div>
   </Section>
+
+  {vis && vis.images.length > 0 && (
+    <Section tone="alt" id="screenshots">
+      <SectionHeader eyebrow="Evidence" title={t['gallery.title']} />
+      <Gallery slug={d.slug} images={vis.images} lang={lang} />
+    </Section>
+  )}
 
   {d.demoUrl && (demosPublicadas as string[]).includes(repo) && (
     <Section tone="base" bg="dots">
