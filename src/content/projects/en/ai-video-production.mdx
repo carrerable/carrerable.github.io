@@ -27,6 +27,13 @@ import Chart from '../../../components/charts/Chart.astro';
 
 I make short vertical videos (1080 by 1920, 30 frames per second) with narration, word-by-word subtitles, titles, zooms and music. The goal is to produce them without editing by hand: the edit is a set of files that code turns into a video, so I can describe a change in plain language and re-render the same result deterministically. Working with an AI agent adds a second constraint: looking at video is expensive, because images are what cost tokens.
 
+<video controls muted playsinline loop preload="metadata" poster="/media/ai-video/prueba-01.jpg" style="width:100%;border-radius:var(--r-2)">
+  <source src="/media/ai-video/prueba-01.webm" type="video/webm" />
+  <source src="/media/ai-video/prueba-01.mp4" type="video/mp4" />
+</video>
+
+First demo: a 10-second motion piece written entirely as code (text, shapes, easing) and rendered frame by frame — no timeline, no After Effects.
+
 ## My role
 
 - **Decided:** the workflow, the approval gates, the visual style of each video, the sound rules, and when a video is good enough to publish.

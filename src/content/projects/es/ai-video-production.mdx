@@ -27,6 +27,13 @@ import Chart from '../../../components/charts/Chart.astro';
 
 Hago videos verticales cortos (1080 por 1920, 30 cuadros por segundo) con narración, subtítulos palabra por palabra, títulos, zooms y música. La meta es producirlos sin editar a mano: la edición es un conjunto de archivos que el código convierte en video, así que puedo describir un cambio en lenguaje natural y volver a renderizar el mismo resultado de forma determinista. Trabajar con un agente de IA agrega una segunda restricción: mirar video es caro, porque las imágenes son lo que cuesta tokens.
 
+<video controls muted playsinline loop preload="metadata" poster="/media/ai-video/prueba-01.jpg" style="width:100%;border-radius:var(--r-2)">
+  <source src="/media/ai-video/prueba-01.webm" type="video/webm" />
+  <source src="/media/ai-video/prueba-01.mp4" type="video/mp4" />
+</video>
+
+Primera demo: una pieza de motion de 10 segundos escrita por completo como código (texto, formas, easing) y renderizada fotograma a fotograma; sin línea de tiempo ni After Effects.
+
 ## Mi rol
 
 - **Decidí:** el flujo de trabajo, las compuertas de aprobación, el estilo visual de cada video, las reglas de sonido y cuándo un video está listo para publicarse.

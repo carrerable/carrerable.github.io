@@ -83,31 +83,76 @@
  "reyber": {
   "images": [
    {
-    "id": "reyber-login-flujos-auth-1280",
-    "w": 1280,
-    "h": 1664,
+    "id": "reyber-cartera-polizas-1440",
+    "w": 1440,
+    "h": 900,
     "tw": 640,
     "th": 480,
-    "en": "Authentication flows: login, 2FA, backup code, password recovery and invitation.",
-    "es": "Flujos de autenticación: acceso, 2FA, código de respaldo, recuperar contraseña e invitación."
+    "en": "Policy portfolio: line, insurer, agent, term, premium and status in a single table.",
+    "es": "Cartera de pólizas: ramo, aseguradora, agente, vigencia, prima y estado en una sola tabla."
    },
    {
-    "id": "reyber-formulario-autos-campos-dinamicos-1280",
-    "w": 1280,
-    "h": 832,
+    "id": "reyber-poliza-detalle-1440",
+    "w": 1440,
+    "h": 900,
     "tw": 640,
     "th": 480,
-    "en": "Dynamic-attribute form for the Auto line of business.",
-    "es": "Formulario de atributos dinámicos del ramo Autos."
+    "en": "Policy detail: header with status and premium, tabs, and the issuance, term and premium breakdown.",
+    "es": "Detalle de póliza: cabecera con estado y prima, pestañas y desglose de emisión, vigencia y primas."
    },
    {
-    "id": "reyber-campo-dinamico-tipos-1280",
-    "w": 1280,
-    "h": 832,
+    "id": "reyber-ramo-autos-formulario-dinamico-1440",
+    "w": 1440,
+    "h": 1250,
     "tw": 640,
     "th": 480,
-    "en": "Catalog of dynamic field types in edit and read-only states.",
-    "es": "Catálogo de tipos de campo dinámico en modo edición y lectura."
+    "en": "Dynamic fields of the Auto line: types, required flags and searchable fields, defined without code.",
+    "es": "Campos dinámicos del ramo Autos: tipos, obligatorios y buscables, definidos sin código."
+   },
+   {
+    "id": "reyber-poliza-recibos-1440",
+    "w": 1440,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Receipts of one policy: a 12-payment plan with paid and pending installments.",
+    "es": "Recibos de una póliza: plan de 12 pagos con cuotas pagadas y pendientes."
+   },
+   {
+    "id": "reyber-cobranza-recibos-1440",
+    "w": 1440,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Collections: receipts about to lapse, overdue and upcoming, by insurer and agent.",
+    "es": "Cobranza: recibos por cesar, vencidos y próximos, por aseguradora y agente."
+   },
+   {
+    "id": "reyber-poliza-comunicaciones-1440",
+    "w": 1440,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Policy communications: event notices with channel and delivery status.",
+    "es": "Comunicaciones de la póliza: avisos por evento con canal y estado de entrega."
+   },
+   {
+    "id": "reyber-movil-cartera-390",
+    "w": 739,
+    "h": 1600,
+    "tw": 640,
+    "th": 480,
+    "en": "The policy portfolio on a 390 px phone.",
+    "es": "La cartera de pólizas en un celular de 390 px."
+   },
+   {
+    "id": "reyber-tema-oscuro-cobranza-1440",
+    "w": 1180,
+    "h": 900,
+    "tw": 640,
+    "th": 480,
+    "en": "Collections in the dark theme.",
+    "es": "Cobranza en tema oscuro."
    }
   ],
   "diagram": {
