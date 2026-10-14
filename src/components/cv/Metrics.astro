@@ -4,9 +4,12 @@ import MetricCard from '../ui/MetricCard.astro';
 interface Props { metrics: any[]; lang: 'en' | 'es' }
 const { metrics, lang } = Astro.props;
 const fmtValue = (m: any) => `${m.prefix}${m.value.toLocaleString('en-US', { minimumFractionDigits: m.decimals, maximumFractionDigits: m.decimals })}${m.suffix}`;
+// Cada cifra dice de dónde sale (context) y enlaza al caso que la explica (case).
+const caseHref = (c?: string) => (!c ? undefined : c === 'how-i-work' ? `/${lang}/how-i-work/` : `/${lang}/projects/${c}/`);
+const cta = lang === 'es' ? 'Ver el caso' : 'See the case';
 ---
 <div class="metrics">
   {metrics.map((m, i) => (
-    <MetricCard value={fmtValue(m)} label={m.label[lang]} source={m.source[lang]} compact accent={m.id === 'orders'} ring={m.id === 'orders' ? 1 : undefined} delay={i % 4} />
+    <MetricCard value={fmtValue(m)} label={m.label[lang]} source={m.source[lang]} context={m.context?.[lang]} href={caseHref(m.case)} cta={cta} compact accent={m.id === 'orders'} delay={i % 4} />
   ))}
 </div>

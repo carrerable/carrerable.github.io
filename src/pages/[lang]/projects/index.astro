@@ -35,7 +35,7 @@ const projects = all.filter((e) => e.data.kind === 'project').sort((a, b) => a.d
     </div>
   </Section>
   <Section tone="alt" id="stack">
-    <SectionHeader index="03" eyebrow="Evidence" title={t['stack.title']} em={lang === 'en' ? 'evidence' : 'evidencia'} />
+    <SectionHeader index="03" eyebrow={lang === 'es' ? 'Evidencia' : 'Evidence'} title={t['stack.title']} em={lang === 'en' ? 'evidence' : 'evidencia'} />
     <Chart id="stack-matrix" lang={lang} />
   </Section>
 </Base>

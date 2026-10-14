@@ -65,8 +65,8 @@ const jsonLd = {
           <p class="where mono fade"><a href={EFSET_URL} target="_blank" rel="noopener">{t['hero.english']}</a></p>
         </div>
         <div class="metrics" style="grid-template-columns: 1fr" aria-label={t['section.numbers']}>
-          <MetricCard value={first.value} label={first.label} source={first.source} ring={first.ring} accent />
-          <MetricCard value={second.value} label={second.label} source={second.source} delay={1} />
+          <MetricCard {...first} />
+          <MetricCard {...second} delay={1} />
         </div>
       </div>
     </Frame>
@@ -80,9 +80,9 @@ const jsonLd = {
   </Section>
 
   <Section tone="coral" bg="dots" id="numbers">
-    <SectionHeader index="02" eyebrow="Metrics" title={t['section.numbers']} em={t['numbers.em']} lead={t['numbers.lead']} />
+    <SectionHeader index="02" eyebrow={lang === 'es' ? 'Métricas' : 'Metrics'} title={t['section.numbers']} em={t['numbers.em']} lead={t['numbers.lead']} />
     <div class="metrics">
-      {band.map((m, i) => <MetricCard value={m.value} label={m.label} source={m.source} bars={'bars' in m ? [...m.bars] : undefined} delay={i} />)}
+      {band.map((m, i) => <MetricCard value={m.value} label={m.label} source={m.source} context={m.context} href={m.href} cta={m.cta} bars={'bars' in m ? [...m.bars] : undefined} delay={i} />)}
     </div>
   </Section>
 

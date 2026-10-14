@@ -78,13 +78,18 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "sprint tickets approved in QA",
-        "es": "tickets de sprint aprobados en QA"
+        "en": "development tickets I tested and approved before release",
+        "es": "tickets de desarrollo que probé y aprobé antes de salir"
       },
       "source": {
         "en": "Own QA records · 2026-10",
         "es": "Registros propios de QA · 2026-10"
-      }
+      },
+      "context": {
+        "en": "Current role · auto repair shop SaaS · QA gate",
+        "es": "Puesto actual · SaaS para talleres · control de calidad"
+      },
+      "case": "qa-release-gate"
     },
     {
       "id": "qa-returned",
@@ -93,13 +98,18 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "tickets returned to rework",
-        "es": "tickets regresados a reproceso"
+        "en": "tickets sent back to the developer for fixes",
+        "es": "tickets regresados al desarrollador para corrección"
       },
       "source": {
         "en": "Own QA records · 2026-10",
         "es": "Registros propios de QA · 2026-10"
-      }
+      },
+      "context": {
+        "en": "Current role · auto repair shop SaaS · QA gate",
+        "es": "Puesto actual · SaaS para talleres · control de calidad"
+      },
+      "case": "qa-release-gate"
     },
     {
       "id": "qa-prod",
@@ -108,13 +118,18 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "validations in production",
-        "es": "validaciones en producción"
+        "en": "changes rechecked again once in production",
+        "es": "cambios revalidados ya en producción"
       },
       "source": {
         "en": "Own QA records · 2026-10",
         "es": "Registros propios de QA · 2026-10"
-      }
+      },
+      "context": {
+        "en": "Current role · auto repair shop SaaS · QA gate",
+        "es": "Puesto actual · SaaS para talleres · control de calidad"
+      },
+      "case": "qa-release-gate"
     },
     {
       "id": "orders",
@@ -123,13 +138,18 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "historical orders migrated, 3 branches, 0 errors",
-        "es": "órdenes históricas migradas, 3 sucursales, 0 errores"
+        "en": "repair orders moved from 3 branches’ Excel files into the platform, 0 errors",
+        "es": "órdenes de servicio pasadas de los Excel de 3 sucursales a la plataforma, 0 errores"
       },
       "source": {
         "en": "Own migration records · 2026-09",
         "es": "Registros propios de la migración · 2026-09"
-      }
+      },
+      "context": {
+        "en": "Current role · auto repair shop SaaS · data migration",
+        "es": "Puesto actual · SaaS para talleres · migración de datos"
+      },
+      "case": "data-migration-pipeline"
     },
     {
       "id": "parts",
@@ -144,7 +164,12 @@
       "source": {
         "en": "Own data-load records · 2026-07",
         "es": "Registros propios de la carga de datos · 2026-07"
-      }
+      },
+      "context": {
+        "en": "Current role · auto repair shop SaaS · fleet-maintenance client",
+        "es": "Puesto actual · SaaS para talleres · cliente de flotillas"
+      },
+      "case": "data-migration-pipeline"
     },
     {
       "id": "accounts",
@@ -153,13 +178,18 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "fleet-client accounts loaded",
-        "es": "cuentas de cliente de flotillas cargadas"
+        "en": "branch accounts of a fleet client loaded with their catalog",
+        "es": "cuentas (sucursales) de un cliente de flotillas cargadas con su catálogo"
       },
       "source": {
         "en": "Own data-load records · 2026-07",
         "es": "Registros propios de la carga de datos · 2026-07"
-      }
+      },
+      "context": {
+        "en": "Current role · auto repair shop SaaS · fleet-maintenance client",
+        "es": "Puesto actual · SaaS para talleres · cliente de flotillas"
+      },
+      "case": "data-migration-pipeline"
     },
     {
       "id": "labor",
@@ -168,13 +198,18 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "labor concepts corrected and validated",
-        "es": "conceptos de mano de obra corregidos y validados"
+        "en": "labor line items with their costs corrected and validated",
+        "es": "conceptos de mano de obra con su costo corregido y validado"
       },
       "source": {
         "en": "Own data-correction records · 2026-06",
         "es": "Registros propios de la corrección de datos · 2026-06"
-      }
+      },
+      "context": {
+        "en": "Current role · auto repair shop SaaS · bulk cost fix",
+        "es": "Puesto actual · SaaS para talleres · corrección masiva de costos"
+      },
+      "case": "pagination-root-cause"
     },
     {
       "id": "packages",
@@ -183,13 +218,18 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "packages corrected and validated (the dry-run counted ~3,400)",
-        "es": "paquetes corregidos y validados (el dry-run contaba ~3,400)"
+        "en": "service packages corrected (the first dry-run only counted ~3,400)",
+        "es": "paquetes de servicio corregidos (el primer dry-run solo contaba ~3,400)"
       },
       "source": {
         "en": "Own data-correction records · 2026-06",
         "es": "Registros propios de la corrección de datos · 2026-06"
-      }
+      },
+      "context": {
+        "en": "Current role · auto repair shop SaaS · bulk cost fix",
+        "es": "Puesto actual · SaaS para talleres · corrección masiva de costos"
+      },
+      "case": "pagination-root-cause"
     },
     {
       "id": "collections",
@@ -198,12 +238,16 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "overdue accounts regularized, of 22 contacted",
-        "es": "cuentas atrasadas regularizadas, de 22 contactadas"
+        "en": "client accounts behind on payment brought current, of 22 contacted",
+        "es": "cuentas de clientes atrasadas en su pago que se pusieron al corriente, de 22 contactadas"
       },
       "source": {
         "en": "Own collections-campaign records · 2026-09",
         "es": "Registros propios de la campaña de cobranza · 2026-09"
+      },
+      "context": {
+        "en": "Current role · auto repair shop SaaS · WhatsApp collections campaign",
+        "es": "Puesto actual · SaaS para talleres · campaña de cobranza por WhatsApp"
       }
     },
     {
@@ -219,7 +263,12 @@
       "source": {
         "en": "Repository commit history · 2026-10",
         "es": "Historial de commits del repositorio · 2026-10"
-      }
+      },
+      "context": {
+        "en": "Current role · main repository",
+        "es": "Puesto actual · repositorio principal"
+      },
+      "case": "how-i-work"
     },
     {
       "id": "ipn-team",
@@ -234,6 +283,10 @@
       "source": {
         "en": "Own records (CV) · 2026-10-13",
         "es": "Registros propios (CV) · 2026-10-13"
+      },
+      "context": {
+        "en": "IPN · 2022–2024",
+        "es": "IPN · 2022–2024"
       }
     },
     {
@@ -243,13 +296,18 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "database models in VetNova (125 tenant-scoped)",
-        "es": "modelos de base de datos en VetNova (125 con tenant)"
+        "en": "database tables; 125 isolated per clinic (multi-tenant)",
+        "es": "tablas de base de datos; 125 aisladas por clínica (multi-tenant)"
       },
       "source": {
         "en": "VetNova repository count · 2026-10-13",
         "es": "Recuento del repositorio de VetNova · 2026-10-13"
-      }
+      },
+      "context": {
+        "en": "VetNova · veterinary clinic SaaS (own product)",
+        "es": "VetNova · SaaS para clínicas veterinarias (propio)"
+      },
+      "case": "vetnova"
     },
     {
       "id": "vn-smokes",
@@ -258,13 +316,18 @@
       "suffix": "",
       "decimals": 0,
       "label": {
-        "en": "end-to-end smoke scripts in VetNova",
-        "es": "scripts de humo end-to-end en VetNova"
+        "en": "automated end-to-end tests against the real API",
+        "es": "pruebas automáticas de punta a punta contra la API real"
       },
       "source": {
         "en": "VetNova repository count · 2026-10-13",
         "es": "Recuento del repositorio de VetNova · 2026-10-13"
-      }
+      },
+      "context": {
+        "en": "VetNova · veterinary clinic SaaS (own product)",
+        "es": "VetNova · SaaS para clínicas veterinarias (propio)"
+      },
+      "case": "vetnova"
     },
     {
       "id": "songs",
@@ -279,7 +342,12 @@
       "source": {
         "en": "Project status file · 2026-10-13",
         "es": "Archivo de estado del proyecto · 2026-10-13"
-      }
+      },
+      "context": {
+        "en": "Lyric videos · automated pipeline (own project)",
+        "es": "Lyric videos · pipeline automatizado (propio)"
+      },
+      "case": "lyric-videos"
     }
   ],
   "skills": [

@@ -4,7 +4,7 @@
 // `cases` (varios casos por entrada) y `aiProjects` (la línea "Proyectos de IA" del CV).
 import { z } from 'astro/zod';
 const L = z.object({ en: z.string().min(1), es: z.string().min(1) });
-export const Metric = z.object({ id: z.string(), value: z.number(), prefix: z.string().default(''), suffix: z.string().default(''), decimals: z.number().int().default(0), label: L, source: L });
+export const Metric = z.object({ id: z.string(), value: z.number(), prefix: z.string().default(''), suffix: z.string().default(''), decimals: z.number().int().default(0), label: L, source: L, context: L.optional(), case: z.string().optional() });
 export const Bullet = z.object({ id: z.string(), text: L, skills: z.array(z.string()).default([]), metrics: z.array(z.string()).default([]) });
 export const Entry = z.object({
   id: z.string(), kind: z.enum(['job', 'project', 'earlier']), lane: z.enum(['main', 'parallel']),

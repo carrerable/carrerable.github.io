@@ -44,12 +44,12 @@ const awards = cv.awards.filter((a: any) => a.cv);
   </Section>
 
   <Section tone="coral" bg="dots" id="metrics">
-    <SectionHeader index="01" eyebrow="Metrics" title={t['cv.metrics']} em={lang === 'es' ? 'fuente' : 'sources'} />
+    <SectionHeader index="01" eyebrow={lang === 'es' ? 'Métricas' : 'Metrics'} title={t['cv.metrics']} em={lang === 'es' ? 'fuente' : 'sources'} />
     <Metrics metrics={cv.metrics} lang={lang} />
   </Section>
 
   <Section tone="alt" id="timeline">
-    <SectionHeader index="02" eyebrow="Timeline" title={t['cv.timeline']} />
+    <SectionHeader index="02" eyebrow={lang === 'es' ? 'Trayectoria' : 'Timeline'} title={t['cv.timeline']} />
     <div class="two-col" style="margin-bottom: var(--s-7)">
       <Chart id="career-gantt" lang={lang} />
       <Chart id="collections-funnel" lang={lang} />
@@ -62,21 +62,21 @@ const awards = cv.awards.filter((a: any) => a.cv);
   </Section>
 
   <Section tone="base" bg="dots" id="skills">
-    <SectionHeader index="03" eyebrow="Skills" title={t['cv.skills']} lead={t['cv.skills.hint']} />
+    <SectionHeader index="03" eyebrow={lang === 'es' ? 'Habilidades' : 'Skills'} title={t['cv.skills']} lead={t['cv.skills.hint']} />
     <Skills groups={cv.groups} skills={cv.skills} lang={lang} />
   </Section>
 
   <Section tone="alt" id="more">
     <div class="grid two">
       <div>
-        <SectionHeader index="04" eyebrow="Education" title={t['cv.education']} />
+        <SectionHeader index="04" eyebrow={lang === 'es' ? 'Formación' : 'Education'} title={t['cv.education']} />
         <div class="prose">
           {cv.education.map((e: any) => <p>{e.text[lang]}</p>)}
           <p><strong>{t['cv.languages']}:</strong> {cv.languages[lang]} · <a href={EFSET_URL} target="_blank" rel="noopener">EF SET</a></p>
         </div>
       </div>
       <div>
-        <SectionHeader index="05" eyebrow="Awards" title={t['cv.awards']} />
+        <SectionHeader index="05" eyebrow={lang === 'es' ? 'Reconocimientos' : 'Awards'} title={t['cv.awards']} />
         <ul class="prose">
           {awards.map((a: any) => <li>{a.text[lang]}</li>)}
         </ul>

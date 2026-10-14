@@ -52,7 +52,7 @@ const repo = d.repoUrl ? d.repoUrl.split('/').pop()! : d.slug;
 
   {vis?.diagram && (
     <Section tone="alt" id="how-it-works">
-      <SectionHeader eyebrow="Architecture" title={t['how.works']} />
+      <SectionHeader eyebrow={lang === 'es' ? 'Arquitectura' : 'Architecture'} title={t['how.works']} />
       <Diagram name={vis.diagram.file} caption={{ en: vis.diagram.en, es: vis.diagram.es }} lang={lang} />
     </Section>
   )}
@@ -65,7 +65,7 @@ const repo = d.repoUrl ? d.repoUrl.split('/').pop()! : d.slug;
 
   {vis && vis.images.length > 0 && (
     <Section tone="alt" id="screenshots">
-      <SectionHeader eyebrow="Evidence" title={t['gallery.title']} />
+      <SectionHeader eyebrow={lang === 'es' ? 'Evidencia' : 'Evidence'} title={t['gallery.title']} />
       <Gallery slug={d.slug} images={vis.images} lang={lang} />
     </Section>
   )}
