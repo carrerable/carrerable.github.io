@@ -9,5 +9,7 @@
   "lyric-sync-demo",
   "kdp-engine-demo",
   "el23-catalog-demo",
-  "gpu-image-pipeline-demo"
+  "gpu-image-pipeline-demo",
+  "agent-panel-demo",
+  "dora-metrics-demo"
 ]
