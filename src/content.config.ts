@@ -1,5 +1,6 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { NoteSchema } from './data/notes-schema.mjs';
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/projects', generateId: ({ entry }) => entry.replace(/\.mdx$/, '') }),
   schema: z.object({
@@ -21,4 +22,9 @@ const projects = defineCollection({
     repoUrl: z.string().url().optional(),
   }),
 });
-export const collections = { projects };
+// Notas de ingeniería (playbook, plantillas, estrategia de pruebas, runbook, ADR, postmortem y artículos). Esquema en data/notes-schema.mjs.
+const notes = defineCollection({
+  loader: glob({ pattern: '**/*.mdx', base: './src/content/notes', generateId: ({ entry }) => entry.replace(/\.mdx$/, '') }),
+  schema: NoteSchema,
+});
+export const collections = { projects, notes };

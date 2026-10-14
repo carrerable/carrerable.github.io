@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import Section from '../../../components/ui/Section.astro';
+import SectionHeader from '../../../components/ui/SectionHeader.astro';
+import Card from '../../../components/ui/Card.astro';
+import Chip from '../../../components/ui/Chip.astro';
+import { NOTE_TYPES } from '../../../data/notes-schema.mjs';
+import { noteTypeLabel } from '../../../i18n/notes';
+import { ui, NAME, type Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'es' } }];
+}
+const lang = Astro.params.lang as Lang;
+const t = ui[lang];
+const all = (await getCollection('notes')).filter((e) => e.data.lang === lang);
+const groups = NOTE_TYPES
+  .map((type: string) => ({ type, items: all.filter((e) => e.data.type === type).sort((a, b) => a.data.order - b.data.order) }))
+  .filter((g) => g.items.length > 0);
+---
+<Base lang={lang} title={`${t['notes.title']} — ${NAME}`} description={t['notes.lead']} path={`/${lang}/notes/`}>
+  <Section tone="base" bg="grid" class="tight">
+    <SectionHeader level="h1" eyebrow={t['nav.notes']} title={t['notes.title']} lead={t['notes.lead']} />
+  </Section>
+  {groups.length === 0 && (
+    <Section tone="alt"><p>{t['notes.empty']}</p></Section>
+  )}
+  {groups.map((g, i) => (
+    <Section tone={i % 2 === 0 ? 'alt' : 'base'} id={g.type}>
+      <SectionHeader index={String(i + 1).padStart(2, '0')} eyebrow={noteTypeLabel(lang, g.type)} title={noteTypeLabel(lang, g.type)} />
+      <div class="grid">
+        {g.items.map((e, j) => (
+          <Card class="pcard reveal" href={`/${lang}/notes/${e.data.slug}/`} title={e.data.title} index={String(j + 1).padStart(2, '0')}>
+            <p>{e.data.summary}</p>
+            <div class="chips">{e.data.tags.map((s) => <Chip>{s}</Chip>)}</div>
+            <p class="status mono">{e.data.date}</p>
+          </Card>
+        ))}
+      </div>
+    </Section>
+  ))}
+</Base>

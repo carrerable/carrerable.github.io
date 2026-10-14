@@ -84,6 +84,7 @@ const jsonLd = {
     <div class="metrics">
       {band.map((m, i) => <MetricCard value={m.value} label={m.label} source={m.source} gain={m.gain} context={m.context} href={m.href} cta={m.cta} bars={'bars' in m ? [...m.bars] : undefined} delay={i} />)}
     </div>
+    <p style="margin-top: var(--s-6)"><Button href={`/${lang}/numbers/`} variant="ghost">{t['numbers.all']}</Button></p>
   </Section>
 
   {work.length > 0 && (

@@ -6,8 +6,15 @@
   "scripts": {
     "dev": "astro dev",
     "check:cases": "node scripts/check-case-studies.mjs",
-    "build": "astro check && node scripts/check-case-studies.mjs && node scripts/check-cv.mjs && astro build",
-    "preview": "astro preview"
+    "check:notes": "node scripts/check-notes.mjs",
+    "check:mdx": "node scripts/check-mdx.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:numbers": "node scripts/check-numbers-refs.mjs",
+    "build": "astro check && node scripts/check-case-studies.mjs && node scripts/check-notes.mjs && node scripts/check-cv.mjs && astro build",
+    "preview": "astro preview",
+    "test:smoke": "playwright test -c playwright.smoke.config.ts",
+    "test:a11y": "playwright test -c playwright.a11y.config.ts",
+    "lhci": "lhci autorun"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",
@@ -20,7 +27,12 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
-    "typescript": "^5.6.0"
+    "@axe-core/playwright": "^4.13.0",
+    "@lhci/cli": "^0.15.1",
+    "@mdx-js/mdx": "^3.1.1",
+    "@playwright/test": "^1.64.1",
+    "typescript": "^5.6.0",
+    "yaml": "^2.9.1"
   },
   "engines": {
     "node": ">=20.3.0"

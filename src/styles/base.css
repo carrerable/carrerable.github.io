@@ -195,7 +195,7 @@ em.hl, .hl { font-style: normal; color: var(--acc); }
 .metric .label { color: var(--card-fg); font-size: var(--t-sm); line-height: 1.35; margin: 0; }
 .metric .src { color: var(--card-mut); font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.04em; margin: auto 0 0; padding-top: var(--s-3); }
 .metric .ctx { margin: 0; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--card-mut); }
-.metric.accent .ctx { color: var(--c-ink); opacity: 0.8; }
+.metric.accent .ctx { color: var(--c-ink); }
 .metric .ring-label { margin: 0; align-self: center; max-width: 14rem; font-size: var(--t-sm); line-height: 1.35; color: var(--card-fg); }
 .metric.accent .ring-label { color: var(--c-ink); }
 .metric .go { align-self: flex-start; font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--card-acc); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px; }

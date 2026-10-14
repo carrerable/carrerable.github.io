@@ -1,0 +1,56 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import Section from '../../../components/ui/Section.astro';
+import Chip from '../../../components/ui/Chip.astro';
+import Words from '../../../components/ui/Words.astro';
+import Frame from '../../../components/ui/Frame.astro';
+import SideRail from '../../../components/ui/SideRail.astro';
+import { ui, NAME } from '../../../i18n/ui';
+import { noteTypeShort } from '../../../i18n/notes';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('notes');
+  return entries.map((e) => ({ params: { lang: e.data.lang, slug: e.data.slug }, props: { entry: e } }));
+}
+const { entry } = Astro.props;
+const d = entry.data;
+const lang = d.lang;
+const t = ui[lang];
+const { Content, headings } = await render(entry);
+---
+<Base lang={lang} title={`${d.title} — ${NAME}`} description={d.summary} path={`/${lang}/notes/${d.slug}/`}>
+  <Section tone="base" bg="grid" class="project-head">
+    <a class="back mono" href={`/${lang}/notes/`}>← {t['notes.back']}</a>
+    <Frame tl={noteTypeShort(lang, d.type)} tr={d.date} bl={d.project ? d.project.toUpperCase() : (lang === 'es' ? 'NOTAS' : 'NOTES')} br={lang.toUpperCase()}>
+      <Words tag="h1" text={d.title} class="ph1" />
+      <p class="lead serif" style="font-size: var(--t-xl); line-height: 1.25; max-width: 48ch; color: var(--mut); margin-top: var(--s-4)">{d.summary}</p>
+      {d.tags.length > 0 && <div class="chips">{d.tags.map((s) => <Chip>{s}</Chip>)}</div>}
+      {d.project && <p class="credits mono"><a href={`/${lang}/projects/${d.project}/`}>{t['notes.related']} →</a></p>}
+    </Frame>
+  </Section>
+  <Section tone="base">
+    <div class="with-rail">
+      <div class="prose">
+        <Content />
+      </div>
+      <SideRail lang={lang} headings={headings} />
+    </div>
+  </Section>
+  <Section tone="coral" tight>
+    <a class="mono" style="color: var(--c-ink)" href={`/${lang}/notes/`}>← {t['notes.back']}</a>
+  </Section>
+</Base>
+<style is:global>
+  .prose pre.astro-code { background-color: #0d1117 !important; }
+  .prose pre.astro-code span[style*="#6A737D"] { color: #9aa4af !important; }
+</style>
+<script>
+  document.querySelectorAll<HTMLInputElement>('.prose .task-list-item > input[type="checkbox"]').forEach((box) => {
+    const text = (box.parentElement?.textContent ?? '').trim().replace(/\s+/g, ' ');
+    box.setAttribute('aria-label', text.length > 140 ? text.slice(0, 137) + '...' : text);
+  });
+  document.querySelectorAll<HTMLElement>('.prose table').forEach((t) => {
+    if (t.scrollWidth > t.clientWidth) t.setAttribute('tabindex', '0');
+  });
+</script>

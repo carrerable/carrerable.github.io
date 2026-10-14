@@ -1,0 +1,45 @@
+---
+import Base from '../../layouts/Base.astro';
+import Section from '../../components/ui/Section.astro';
+import SectionHeader from '../../components/ui/SectionHeader.astro';
+import raw from '../../data/numbers.json';
+import { validarNumbers } from '../../data/numbers-schema.mjs';
+import { ui, NAME, type Lang } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'es' } }];
+}
+const lang = Astro.params.lang as Lang;
+const t = ui[lang];
+const groups = validarNumbers(raw); // si los datos son inválidos, el build falla
+const val = (v: string | { en: string; es: string }) => (typeof v === 'string' ? v : v[lang]);
+const H = lang === 'es'
+  ? { figure: 'Cifra', what: 'Qué mide', source: 'Fuente', date: 'Fecha', go: 'Ver el caso' }
+  : { figure: 'Figure', what: 'What it measures', source: 'Source', date: 'Date', go: 'See the case' };
+---
+<Base lang={lang} title={`${t['numbers.title']} — ${NAME}`} description={t['numbers.pageLead']} path={`/${lang}/numbers/`}>
+  <Section tone="base" bg="grid" class="tight">
+    <SectionHeader level="h1" eyebrow={t['nav.numbers']} title={t['numbers.title']} lead={t['numbers.pageLead']} />
+  </Section>
+  {groups.map((g: any, i: number) => (
+    <Section tone={i % 2 === 0 ? 'alt' : 'base'} id={g.id}>
+      <SectionHeader index={String(i + 1).padStart(2, '0')} title={g.title[lang]} />
+      <div class="tablewrap">
+        <table class="dt">
+          <thead><tr><th scope="col">{H.figure}</th><th scope="col">{H.what}</th><th scope="col">{H.source}</th><th scope="col">{H.date}</th></tr></thead>
+          <tbody>
+            {g.items.map((it: any) => (
+              <tr>
+                <td class="mono"><b>{val(it.value)}</b></td>
+                <td>{it.href ? <a href={`/${lang}${it.href}`}>{it.label[lang]}</a> : it.label[lang]}</td>
+                <td>{it.source[lang]}</td>
+                <td class="mono">{it.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {g.href && <p style="margin-top: var(--s-5)"><a class="mono" href={`/${lang}${g.href}`}>{H.go} →</a></p>}
+    </Section>
+  ))}
+</Base>
