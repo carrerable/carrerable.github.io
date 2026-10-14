@@ -1,0 +1,77 @@
+---
+import Base from '../../layouts/Base.astro';
+import Section from '../../components/ui/Section.astro';
+import SectionHeader from '../../components/ui/SectionHeader.astro';
+import demos from '../../data/demos-publicadas.json';
+import lhci from '../../../lighthouserc.json';
+import { NAME, type Lang } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'en' } }, { params: { lang: 'es' } }];
+}
+const lang = Astro.params.lang as Lang;
+const REPO = 'https://github.com/carrerable/carrerable.github.io';
+const BADGE = (wf: string, label: string) => `https://img.shields.io/github/actions/workflow/status/carrerable/carrerable.github.io/${wf}?branch=main&label=${encodeURIComponent(label)}`;
+const asserts = lhci.ci.assert.assertions as unknown as Record<string, [string, { minScore: number }]>;
+const min = (k: string) => Math.round(asserts[`categories:${k}`][1].minScore * 100);
+const L = lang === 'es'
+  ? {
+      eyebrow: 'Calidad', title: 'Estado del sitio',
+      lead: 'Una tarea programada abre este sitio y cada demo publicada en un navegador real una vez al día, y cada cambio pasa por presupuestos de accesibilidad y Lighthouse.',
+      smokeH: 'Prueba de humo diaria', badgeSmokeLabel: 'prueba diaria', badgeSmokeAlt: 'Estado de la prueba de humo diaria en GitHub Actions',
+      smokeP: 'Todos los días a las 13:17 UTC pide cada página del sitemap y espera un HTTP 200, abre las páginas principales en Chromium y falla ante cualquier error de script no atrapado, y abre cada demo publicada para comprobar que se dibuja.',
+      demosH: 'Demos que se revisan cada día',
+      qualityH: 'Presupuestos de calidad en cada cambio', badgeQualityLabel: 'presupuestos de calidad', badgeQualityAlt: 'Estado de los presupuestos de calidad en GitHub Actions',
+      qualityP: 'En cada push se construye el sitio, se revisa con axe cada página del sitemap en tema claro y oscuro (sin problemas graves ni críticos) y Lighthouse debe alcanzar estas calificaciones mínimas (3 corridas por página):',
+      category: 'Categoría de Lighthouse', minimum: 'Calificación mínima', perf: 'Rendimiento', a11y: 'Accesibilidad', bp: 'Buenas prácticas', seo: 'SEO',
+      doraH: 'Métricas de entrega',
+      doraP: 'Frecuencia de despliegue, tiempo de entrega de cambios, tasa de fallas por cambio y tiempo de recuperación, calculados con el historial de GitHub Actions de mis repositorios de demos públicos.',
+      doraLink: 'Abrir el tablero DORA',
+    }
+  : {
+      eyebrow: 'Quality', title: 'Site status',
+      lead: 'A scheduled job opens this site and every published demo in a real browser once a day, and every change runs accessibility and Lighthouse budgets.',
+      smokeH: 'Daily smoke test', badgeSmokeLabel: 'daily smoke test', badgeSmokeAlt: 'Status of the daily smoke test on GitHub Actions',
+      smokeP: 'Every day at 13:17 UTC it requests every page in the sitemap and expects an HTTP 200, opens the main pages in Chromium and fails on any uncaught script error, and opens each published demo to check that it renders.',
+      demosH: 'Demos checked every day',
+      qualityH: 'Quality budgets on every change', badgeQualityLabel: 'quality budgets', badgeQualityAlt: 'Status of the quality budgets on GitHub Actions',
+      qualityP: 'On every push the site is built, every page in the sitemap is checked with axe in light and dark themes (no serious or critical issues allowed), and Lighthouse must reach these minimum scores (3 runs per page):',
+      category: 'Lighthouse category', minimum: 'Minimum score', perf: 'Performance', a11y: 'Accessibility', bp: 'Best practices', seo: 'SEO',
+      doraH: 'Delivery metrics',
+      doraP: 'Deployment frequency, lead time for changes, change failure rate and time to restore, computed from the GitHub Actions history of my public demo repositories.',
+      doraLink: 'Open the DORA dashboard',
+    };
+---
+<Base lang={lang} title={`${L.title} — ${NAME}`} description={L.lead} path={`/${lang}/status/`}>
+  <Section tone="base" bg="grid" class="tight">
+    <SectionHeader level="h1" eyebrow={L.eyebrow} title={L.title} lead={L.lead} />
+  </Section>
+  <Section tone="alt" id="smoke">
+    <SectionHeader index="01" title={L.smokeH} />
+    <p><a href={`${REPO}/actions/workflows/smoke.yml`} target="_blank" rel="noopener"><img src={BADGE('smoke.yml', L.badgeSmokeLabel)} alt={L.badgeSmokeAlt} height="20" style="height:20px;width:auto" loading="lazy" decoding="async" /></a></p>
+    <p style="max-width: 62ch">{L.smokeP}</p>
+    <h3>{L.demosH}</h3>
+    <ul>{(demos as string[]).map((r) => <li><a href={`https://carrerable.github.io/${r}/`} target="_blank" rel="noopener">{r}</a></li>)}</ul>
+  </Section>
+  <Section tone="base" id="quality">
+    <SectionHeader index="02" title={L.qualityH} />
+    <p><a href={`${REPO}/actions/workflows/quality.yml`} target="_blank" rel="noopener"><img src={BADGE('quality.yml', L.badgeQualityLabel)} alt={L.badgeQualityAlt} height="20" style="height:20px;width:auto" loading="lazy" decoding="async" /></a></p>
+    <p style="max-width: 62ch">{L.qualityP}</p>
+    <div class="tablewrap">
+      <table class="dt">
+        <thead><tr><th scope="col">{L.category}</th><th scope="col">{L.minimum}</th></tr></thead>
+        <tbody>
+          <tr><td>{L.perf}</td><td class="mono">{min('performance')}</td></tr>
+          <tr><td>{L.a11y}</td><td class="mono">{min('accessibility')}</td></tr>
+          <tr><td>{L.bp}</td><td class="mono">{min('best-practices')}</td></tr>
+          <tr><td>{L.seo}</td><td class="mono">{min('seo')}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </Section>
+  <Section tone="alt" id="delivery">
+    <SectionHeader index="03" title={L.doraH} />
+    <p style="max-width: 62ch">{L.doraP}</p>
+    <p><a href="https://carrerable.github.io/dora-metrics-demo/" target="_blank" rel="noopener">{L.doraLink} →</a></p>
+  </Section>
+</Base>

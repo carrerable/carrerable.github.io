@@ -1,0 +1,27 @@
+{
+  "ci": {
+    "collect": {
+      "staticDistDir": "./dist",
+      "url": [
+        "http://localhost/en/",
+        "http://localhost/es/",
+        "http://localhost/en/projects/vetnova/",
+        "http://localhost/en/projects/ai-agent-team/",
+        "http://localhost/en/notes/",
+        "http://localhost/en/notes/engineering-playbook/",
+        "http://localhost/en/numbers/"
+      ],
+      "numberOfRuns": 3,
+      "settings": { "chromeFlags": "--no-sandbox" }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["error", { "minScore": 0.9 }],
+        "categories:accessibility": ["error", { "minScore": 0.95 }],
+        "categories:best-practices": ["error", { "minScore": 0.95 }],
+        "categories:seo": ["error", { "minScore": 0.95 }]
+      }
+    },
+    "upload": { "target": "filesystem", "outputDir": ".lighthouseci-report" }
+  }
+}
