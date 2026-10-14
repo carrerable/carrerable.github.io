@@ -5,24 +5,29 @@ lang: es
 kind: project
 order: 11
 summary: Plataforma multi-tenant de core asegurador para aseguradoras y despachos de agentes. Un prototipo falsable con 10 millones de pólizas decidió el modelo de datos antes de construir ninguna función.
+pitch: "Una sola plataforma para que agencias de seguros manejen cualquier ramo (autos, vida, mascotas…) sin programar un sistema nuevo por producto."
 role: Líder de Arquitectura (proyecto paralelo)
 period: "sep 2026 – presente"
 status: building
 stack: [TypeScript, NestJS, Next.js, PostgreSQL, Prisma, Docker]
 aiTools: [Claude Code]
 metrics:
-  - label: Pólizas sintéticas en el benchmark
+  - label: "Pólizas de prueba en el benchmark: escala de la cartera de una aseguradora grande"
     value: "10,000,000"
-    source: Informe del prototipo R1, 2026-09-22
-  - label: Tamaño de índices, tabla de proyección vs híbrido
-    value: 3,030 MB vs 492 MB (6x menos)
-    source: Informe del prototipo R1, 2026-09-22
-  - label: Filtro por dos atributos
-    value: 118 ms vs 1.2 ms
-    source: Informe del prototipo R1, 2026-09-22
-  - label: Migraciones de base de datos
-    value: "38"
-    source: Contadas en disco, 2026-10-13
+    source: "Informe del prototipo R1, 2026-09-22"
+    gain: "La velocidad de búsqueda se comprobó con millones de pólizas antes de construir ninguna función"
+  - label: "Tamaño del índice de búsqueda en disco: diseño alternativo vs diseño elegido"
+    value: "3,030 MB vs 492 MB (6x menos)"
+    source: "Informe del prototipo R1, 2026-09-22"
+    gain: "Seis veces menos almacenamiento para mantener rápidas las búsquedas, así que el costo de hosting crece más lento con la cartera"
+  - label: "Tiempo para filtrar pólizas por dos atributos: diseño alternativo vs diseño elegido"
+    value: "118 ms vs 1.2 ms"
+    source: "Informe del prototipo R1, 2026-09-22"
+    gain: "Resultados instantáneos en la pantalla de búsqueda aunque haya millones de pólizas"
+  - label: "Tiempo para hacer buscable un atributo nuevo: cartera en línea vs cartera bloqueada"
+    value: "233 s vs 113 s"
+    source: "Informe del prototipo R1, 2026-09-22"
+    gain: "Agregar un campo nuevo a un ramo no deja el sistema fuera de servicio; los agentes siguen trabajando"
 demoUrl: https://carrerable.github.io/reyber-dynamic-attributes-demo/
 repoUrl: https://github.com/carrerable/reyber-dynamic-attributes-demo
 ---
@@ -67,6 +72,16 @@ El aislamiento se prueba dos veces: una suite a nivel de base de datos y un smok
 - El modelo de datos de los atributos dinámicos está decidido con evidencia, con las cifras de arriba, antes de escribir la primera función.
 - 38 migraciones, 70 tablas con tenant y seguridad a nivel de fila forzada en todas.
 - La ronda uno del prototipo cerró el 22 de septiembre de 2026. El informe conserva sus propios errores: el hallazgo de leakproof, una búsqueda por prefijo que estaba rota en los dos candidatos y un resultado que parecía una victoria y no lo era.
+
+## Qué resuelve y dónde más sirve
+
+Las agencias de seguros venden muchos ramos, y cada ramo describe su riesgo distinto: un auto tiene placas, una mascota tiene raza. Construir un sistema por ramo es lento y caro. REYBER mantiene un solo motor donde los atributos de cada ramo se configuran, no se programan, y un prototipo medido mostró que la búsqueda sigue rápida con 10 millones de pólizas.
+
+El mismo patrón aplica en otros lugares:
+
+- **Catálogos de e-commerce:** productos con atributos distintos por categoría (talla en calzado, capacidad en electrodomésticos) que se buscan sin cambiar la base de datos cada vez.
+- **CRMs con campos personalizados:** cada cliente define sus propios campos y aun así filtra y reporta sobre ellos con rapidez.
+- **Expedientes médicos por especialidad:** cada especialidad registra datos distintos en un solo sistema, con búsqueda rápida entre todos los pacientes.
 
 ## Qué haría distinto
 

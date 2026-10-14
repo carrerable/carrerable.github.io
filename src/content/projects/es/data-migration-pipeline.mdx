@@ -5,24 +5,29 @@ lang: es
 kind: work
 order: 2
 summary: Cómo llevar el historial y los catálogos de clientes multisucursal desde sus sistemas anteriores con un pipeline de dos pasos, dry-run, QA y producción, y una conciliación contra la fuente en cada etapa.
+pitch: "Pasa los años de órdenes, refacciones y proveedores de un cliente desde hojas de cálculo y sistemas viejos a una plataforma nueva, ensayado y revisado, sin pérdidas ni correcciones a mano después."
 role: Responsable de implementaciones y migración de datos (puesto actual)
 period: "may – sep 2026"
 status: delivered
 stack: [TypeScript, Excel, MySQL, Prisma (esquema en solo lectura), Claude Code]
 aiTools: [Claude Code]
 metrics:
-  - label: Órdenes históricas migradas (3 sucursales)
+  - label: "Órdenes históricas de 3 sucursales llevadas a producción y comparadas contra los archivos originales"
     value: "8,339, 0 errores"
-    source: Conciliación en producción, sep 2026
-  - label: Refacciones cargadas (24 cuentas)
+    source: "Conciliación en producción, sep 2026"
+    gain: "El cliente arranca con su historial completo y nadie corrige registros a mano después."
+  - label: "Refacciones cargadas en 24 cuentas de un cliente"
     value: "5,908"
-    source: Carga en producción, jul 2026
-  - label: Compras regeneradas en grupos homologados
+    source: "Carga en producción, jul 2026"
+    gain: "Un cliente de mantenimiento de flotillas puede operar inventario y costos desde el primer día."
+  - label: "Compras reconstruidas en grupos homogéneos después de que la primera carga tuvo errores"
     value: "1,485"
-    source: QA y producción, jul 2026
-  - label: Dry-run de unidades móviles
+    source: "QA y producción, jul 2026"
+    gain: "Una carga defectuosa se rehízo y se verificó en lugar de parcharse, así que los costos son confiables."
+  - label: "Filas de un archivo de unidades móviles mapeadas en un ensayo que no toca producción"
     value: "58 de 59 filas mapeadas, 0 errores"
-    source: Dry-run, jul 2026
+    source: "Dry-run, jul 2026"
+    gain: "Los problemas aparecen en el ensayo, antes de tocar los datos en vivo del cliente."
 demoUrl: https://carrerable.github.io/migration-reconciliation-demo/
 repoUrl: https://github.com/carrerable/migration-reconciliation-demo
 ---
@@ -74,6 +79,16 @@ QA corrió el ciclo completo antes de producción: borrar, cargar, verificar, bo
 - 5,908 refacciones cargadas en 24 cuentas.
 - 1,393 compras con 7,975 líneas de la primera carga, regeneradas como 1,485 grupos homologados.
 - Un dry-run de unidades móviles mapeó 58 de 59 filas con 0 errores.
+
+## Qué resuelve y dónde más sirve
+
+Un cliente nuevo no puede usar un sistema que arranca vacío: necesita años de órdenes, refacciones y proveedores de sus herramientas anteriores. Moverlos a mano es lento y los errores aparecen meses después. Este pipeline mueve los datos de forma ensayada y revisada, para que el cliente empiece con su historial completo y las cifras coincidan con la fuente.
+
+Dónde más aplica el mismo patrón:
+
+- Onboarding de clientes en cualquier SaaS B2B que deba importar el historial de un cliente desde hojas de cálculo o un producto anterior.
+- Consolidación de sistemas tras una fusión o adquisición, cuando los registros de dos empresas deben volverse uno sin perder historial.
+- Cambio de ERP o CRM, cuando años de registros deben pasar al sistema nuevo y demostrarse completos.
 
 ## Qué haría distinto
 

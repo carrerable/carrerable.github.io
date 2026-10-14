@@ -5,21 +5,29 @@ lang: en
 kind: project
 order: 17
 summary: "An online catalog for a physical silver jewelry store. No prices, no payment: customers build a list and send it by WhatsApp to get a quote. Documented and legally analyzed before the first line of code."
+pitch: "An online catalog for a physical store: customers build a list and send it by WhatsApp for a quote, with no payment system, and staff update products without a developer."
 role: Web architect & AI-directed developer (independent project)
 period: "Sep – Oct 2026"
 status: production
 stack: [WordPress, WooCommerce, PHP, WP-CLI, Docker]
 aiTools: [Claude Code]
 metrics:
-  - label: Items in the live catalog
+  - label: "Products published in the live online catalog"
     value: "60"
-    source: el23.com.mx, checked 2026-10-13
-  - label: Live since
+    source: "el23.com.mx, checked 2026-10-13"
+    gain: "The store's staff can keep growing the catalog without a developer"
+  - label: "Date the store's website went live"
     value: "2026-09-23"
-    source: Project status file, 2026-09-23
-  - label: Largest Contentful Paint, listing page, vs 2.5 s target (accepted)
-    value: 2.63 s
-    source: Performance test on the staging site, 2026-09-23
+    source: "Project status file, 2026-09-23"
+    gain: "A real business site in production, documented and legally analyzed before the first line of code"
+  - label: "Time for the main content to appear on the product listing page (target 2.5 s, accepted miss)"
+    value: "2.63 s"
+    source: "Performance test on the staging site, 2026-09-23"
+    gain: "Page speed was measured, and the miss was documented and accepted on purpose, not hidden"
+  - label: "Successful responses in a load test of 60 simultaneous requests"
+    value: "60 of 60"
+    source: "Load test on the staging site, 2026-09-23"
+    gain: "The site handled simultaneous visitors without errors in the test"
 demoUrl: https://carrerable.github.io/el23-catalog-demo/
 repoUrl: https://github.com/carrerable/el23-catalog-demo
 ---
@@ -61,6 +69,16 @@ The production site is built from repeatable scripts: one for the site settings 
 - A home page video, an engraving gallery and a workshop page for repairs and custom work, in production since 26 September.
 - The order list works without storing anything on the server.
 - Pending: Search Console verification and photos of the workshop's work, which depend on the owner.
+
+## What it solves and where else it applies
+
+Many shops cannot publish fixed prices because their products change in cost or are made to order. El 23 gives a physical store an online catalog that is found on search engines, lets customers build a list and send it by WhatsApp, and leaves the quote to the owner. It needs no payment system, and the staff publish products from an admin panel.
+
+The same pattern applies in other places:
+
+- **Shops with price-on-request products:** furniture, custom work, industrial parts or any item whose price depends on a quote.
+- **B2B catalogs:** suppliers whose customers pick items and ask for a quote instead of paying online.
+- **Businesses in regulated sectors:** projects where the legal review (brand names, consumer protection, privacy) must come before launch.
 
 ## What I'd do differently
 

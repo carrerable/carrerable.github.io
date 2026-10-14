@@ -9,6 +9,7 @@ import Words from '../../../components/ui/Words.astro';
 import Frame from '../../../components/ui/Frame.astro';
 import Gallery from '../../../components/ui/Gallery.astro';
 import Diagram from '../../../components/ui/Diagram.astro';
+import SideRail from '../../../components/ui/SideRail.astro';
 import SectionHeader from '../../../components/ui/SectionHeader.astro';
 import visuals from '../../../data/visuals.json';
 import { ui, NAME } from '../../../i18n/ui';
@@ -23,9 +24,12 @@ const { entry } = Astro.props;
 const d = entry.data;
 const lang = d.lang;
 const t = ui[lang];
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
 const vis = (visuals as Record<string, any>)[d.slug] as { images: any[]; diagram?: { file: string; en: string; es: string } } | undefined;
 const repo = d.repoUrl ? d.repoUrl.split('/').pop()! : d.slug;
+const demoLista = !!d.demoUrl && (demosPublicadas as string[]).includes(repo);
+const im0 = vis?.images?.[0];
+const railImage = im0 ? { src: `/work/${d.slug}/${im0.id}-sm.png`, webp: `/work/${d.slug}/${im0.id}-sm.webp`, alt: im0[lang], w: im0.tw, h: im0.th, href: '#screenshots' } : undefined;
 ---
 <Base lang={lang} title={`${d.title} — ${NAME}`} description={d.summary} path={`/${lang}/projects/${d.slug}/`}>
   <Section tone="base" bg="grid" class="project-head">
@@ -45,7 +49,7 @@ const repo = d.repoUrl ? d.repoUrl.split('/').pop()! : d.slug;
     </Frame>
     {d.metrics.length > 0 && (
       <div class="metrics" style="margin-top: var(--s-6)">
-        {d.metrics.map((m, i) => <MetricCard value={m.value} label={m.label} source={m.source} accent={i === 0} delay={i} compact />)}
+        {d.metrics.map((m, i) => <MetricCard value={m.value} label={m.label} source={m.source} gain={m.gain} accent={i === 0} delay={i} compact />)}
       </div>
     )}
   </Section>
@@ -58,8 +62,11 @@ const repo = d.repoUrl ? d.repoUrl.split('/').pop()! : d.slug;
   )}
 
   <Section tone="base">
-    <div class="prose">
-      <Content />
+    <div class="with-rail">
+      <div class="prose">
+        <Content />
+      </div>
+      <SideRail lang={lang} headings={headings} pitch={d.pitch} image={railImage} demoUrl={demoLista ? d.demoUrl : undefined} repoUrl={d.repoUrl} />
     </div>
   </Section>
 
@@ -70,7 +77,7 @@ const repo = d.repoUrl ? d.repoUrl.split('/').pop()! : d.slug;
     </Section>
   )}
 
-  {d.demoUrl && (demosPublicadas as string[]).includes(repo) && (
+  {demoLista && d.demoUrl && (
     <Section tone="base" bg="dots">
       <DemoEmbed src={d.demoUrl} repo={repo} lang={lang} title={d.title} kind={d.kind} />
     </Section>

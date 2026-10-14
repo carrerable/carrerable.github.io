@@ -6,7 +6,8 @@ import type { Lang } from '../../i18n/ui';
 interface Props { name: string; caption: { en: string; es: string }; lang: Lang }
 const { name, caption, lang } = Astro.props;
 const files = import.meta.glob('../../diagrams/*.svg', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
-const raw = files[`../../diagrams/${name}.svg`];
+// En español se usa <slug>.es.svg si existe; si no, el SVG en inglés.
+const raw = (lang === 'es' ? files[`../../diagrams/${name}.es.svg`] : undefined) ?? files[`../../diagrams/${name}.svg`];
 if (!raw) throw new Error(`Diagram: no existe src/diagrams/${name}.svg`);
 const cap = caption[lang];
 const pre = `dg-${name}-`;
@@ -24,11 +25,48 @@ let svg = raw
   .replace(/id="ah"/g, `id="${pre}ah"`)
   .replace(/url\(#ah\)/g, `url(#${pre}ah)`)
   .replace('<svg ', '<svg class="dg-svg" ');
+
+// Marcas para la animación (todo se ve estático sin JS o con prefers-reduced-motion; ver base.css):
+// cada caja y sus textos comparten --i (orden 01, 02…); cada flecha lleva --i y una copia .dg-f para el flujo continuo.
+let bi = -1;
+let ai = -1;
+svg = svg
+  .split(/\r?\n/)
+  .map((line) => {
+    if (line.startsWith('<rect class="box')) { bi++; return line.replace('<rect class="', `<rect style="--i:${bi}" class="dg-b `); }
+    if (/^<text class="(num|lab|sub)/.test(line)) return line.replace('<text class="', `<text style="--i:${bi}" class="dg-b `);
+    if (line.startsWith('<path class="arr"')) {
+      ai++;
+      const d = line.match(/ d="([^"]+)"/)?.[1] ?? '';
+      return line.replace('<path class="arr"', `<path style="--i:${ai}" pathLength="100" class="dg-a arr"`) + `\n<path style="--i:${ai}" pathLength="100" class="dg-f" d="${d}" aria-hidden="true"/>`;
+    }
+    if (line.startsWith('<text class="elab"')) return line.replace('<text class="', `<text style="--i:${ai}" class="dg-l `);
+    if (line.startsWith('<text class="note"') || line.startsWith('<text class="cap"')) return line.replace('<text class="', '<text class="dg-n ');
+    return line;
+  })
+  .join('\n');
 ---
 <figure class="dg">
   <div class="dg-scroll" set:html={svg} />
   <figcaption class="mono">{cap}</figcaption>
 </figure>
+
+<script>
+  // Dispara la animación una sola vez cuando el diagrama entra en pantalla.
+  const figs = document.querySelectorAll<HTMLElement>('.dg');
+  if (!('IntersectionObserver' in window)) {
+    figs.forEach((f) => f.classList.add('dg-in'));
+  } else {
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        (e.target as HTMLElement).classList.add('dg-in');
+        io.unobserve(e.target);
+      }
+    }, { threshold: 0.25 });
+    figs.forEach((f) => io.observe(f));
+  }
+</script>
 
 <style is:global>
   .dg { --dg-fg: var(--fg); --dg-mut: var(--mut); --dg-accent: var(--c-coral); --dg-on-accent: var(--c-ink); margin: 0; }

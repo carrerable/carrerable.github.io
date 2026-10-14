@@ -1,0 +1,96 @@
+---
+// Panel lateral fijo (sticky) para páginas con una columna de texto larga: "qué resuelve", índice de secciones
+// con resaltado y barra de progreso de lectura, una imagen y botones. En <1100px solo muestra el pitch, arriba.
+// Los estilos están en base.css (bloque "Panel lateral y diagramas animados"). Va dentro de un contenedor .with-rail.
+import type { Lang } from '../../i18n/ui';
+interface Props {
+  lang: Lang;
+  headings?: { depth: number; slug: string; text: string }[];
+  pitch?: string;
+  image?: { src: string; webp?: string; alt: string; w: number; h: number; href: string };
+  demoUrl?: string;
+  repoUrl?: string;
+}
+const { lang, headings = [], pitch, image, demoUrl, repoUrl } = Astro.props as Props;
+const L = lang === 'es'
+  ? { solves: 'Qué resuelve', toc: 'En esta página', progress: 'Progreso de lectura', demo: 'Ver demo', code: 'Código', nav: 'Índice de secciones' }
+  : { solves: 'What it solves', toc: 'On this page', progress: 'Reading progress', demo: 'View demo', code: 'Code', nav: 'Section index' };
+const items = headings.filter((h) => h.depth === 2);
+const showToc = items.length >= 2;
+---
+<aside class="rail" aria-label={L.nav}>
+  {pitch && (
+    <div class="rail-block rail-pitch">
+      <p class="rail-h mono">{L.solves}</p>
+      <p class="rail-text">{pitch}</p>
+    </div>
+  )}
+  {showToc && (
+    <nav class="rail-block rail-toc" aria-label={L.toc}>
+      <p class="rail-h mono">{L.toc}</p>
+      <div class="rail-bar" role="progressbar" aria-label={L.progress} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+      <ol>
+        {items.map((h, i) => (
+          <li><a href={`#${h.slug}`} data-slug={h.slug}><span class="mono">{String(i + 1).padStart(2, '0')}</span>{h.text}</a></li>
+        ))}
+      </ol>
+    </nav>
+  )}
+  {image && (
+    <a class="rail-block rail-img" href={image.href}>
+      <picture>
+        {image.webp && <source type="image/webp" srcset={image.webp} />}
+        <img src={image.src} alt={image.alt} width={image.w} height={image.h} loading="lazy" decoding="async" />
+      </picture>
+    </a>
+  )}
+  {(demoUrl || repoUrl) && (
+    <div class="rail-block rail-btns">
+      {demoUrl && <a class="btn btn-primary" href={demoUrl} target="_blank" rel="noopener">{L.demo}<span class="arrow" aria-hidden="true">→</span></a>}
+      {repoUrl && <a class="btn btn-ghost" href={repoUrl} target="_blank" rel="noopener">{L.code}<span class="arrow" aria-hidden="true">→</span></a>}
+    </div>
+  )}
+</aside>
+
+<script>
+  // Resalta en el índice la sección visible y llena la barra de progreso de lectura del texto (.prose).
+  document.querySelectorAll<HTMLElement>('.with-rail').forEach((wrap) => {
+    const prose = wrap.querySelector<HTMLElement>('.prose');
+    const toc = wrap.querySelector<HTMLElement>('.rail-toc');
+    if (!prose || !toc) return;
+    const links = new Map<string, HTMLAnchorElement>();
+    toc.querySelectorAll<HTMLAnchorElement>('a[data-slug]').forEach((a) => links.set(a.dataset.slug!, a));
+    const heads = [...links.keys()].map((id) => document.getElementById(id)).filter((h): h is HTMLElement => !!h);
+    const setActive = (id: string) => {
+      links.forEach((a, k) => {
+        if (k === id) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      });
+    };
+    // Activa la última sección cuyo título ya pasó la franja superior de la ventana.
+    const update = () => {
+      let cur = '';
+      for (const h of heads) if (h.getBoundingClientRect().top <= window.innerHeight * 0.3) cur = h.id;
+      setActive(cur);
+    };
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(update, { rootMargin: '0px 0px -60% 0px' });
+      heads.forEach((h) => io.observe(h));
+    }
+    const bar = toc.querySelector<HTMLElement>('.rail-bar');
+    const fill = bar?.firstElementChild as HTMLElement | undefined;
+    let ticking = false;
+    const progress = () => {
+      ticking = false;
+      const r = prose.getBoundingClientRect();
+      const total = r.height - window.innerHeight * 0.6;
+      const p = total > 0 ? Math.min(1, Math.max(0, (window.innerHeight * 0.3 - r.top) / total)) : 0;
+      if (fill) fill.style.transform = `scaleX(${p})`;
+      bar?.setAttribute('aria-valuenow', String(Math.round(p * 100)));
+      update();
+    };
+    window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(progress); } }, { passive: true });
+    window.addEventListener('resize', progress);
+    progress();
+  });
+</script>

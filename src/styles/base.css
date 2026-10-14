@@ -358,3 +358,53 @@ html.js .skill-chip:hover .rel, html.js .skill-chip:focus-within .rel { position
 .card .pthumb img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: top; transition: transform var(--dur-slow) var(--ease); }
 .card:hover .pthumb img { transform: scale(1.03); }
 @media (prefers-reduced-motion: reduce) { .card:hover .pthumb img { transform: none; } .card .pthumb img { transition: none; } }
+
+/* === Panel lateral y diagramas animados === */
+/* Panel lateral (SideRail): <1100px solo el pitch, arriba del texto; desde 1100px, 2 columnas con el panel fijo. */
+.with-rail { display: flex; flex-direction: column; gap: var(--s-5); }
+.rail { order: -1; }
+.rail-block { margin: 0; }
+.rail-block:not(.rail-pitch) { display: none; }
+.rail-h { color: var(--acc, var(--c-coral)); margin: 0 0 var(--s-2); }
+.rail-pitch { border-left: 3px solid var(--c-coral); padding: var(--s-2) 0 var(--s-2) var(--s-4); }
+.rail-text { margin: 0; font-family: var(--f-serif); font-size: var(--t-lg, 1.25rem); line-height: 1.3; }
+.rail-bar { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; margin-bottom: var(--s-3); }
+.rail-bar > span { display: block; height: 100%; background: var(--c-coral); transform: scaleX(0); transform-origin: left; }
+.rail-toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rail-toc a { display: grid; grid-template-columns: 1.8rem 1fr; gap: var(--s-2); padding: 0.4rem 0.6rem; border-left: 2px solid var(--line); font-size: var(--t-sm); line-height: 1.3; text-decoration: none; color: var(--mut); transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
+.rail-toc a .mono { font-size: 11px; color: var(--mut); }
+.rail-toc a:hover { color: var(--fg); }
+.rail-toc a[aria-current] { color: var(--fg); border-left-color: var(--c-coral); background: color-mix(in srgb, var(--c-coral) 10%, transparent); font-weight: 600; }
+.rail-img { line-height: 0; border: 1px solid var(--line); border-radius: var(--r-m); overflow: hidden; background: var(--card); }
+.rail-img img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; object-position: top; transition: transform var(--dur-slow) var(--ease); }
+.rail-img:hover img { transform: scale(1.03); }
+.rail-btns { gap: var(--s-2); flex-wrap: wrap; }
+.rail-btns .btn { padding: 0.55rem 0.9rem; font-size: var(--t-xs); }
+@media (min-width: 1100px) {
+  .with-rail { display: grid; grid-template-columns: minmax(0, var(--measure)) 20rem; justify-content: space-between; gap: var(--s-8); align-items: start; }
+  .rail { order: 0; position: sticky; top: 5.5rem; display: grid; gap: var(--s-5); max-height: calc(100vh - 6.5rem); overflow-y: auto; scrollbar-width: thin; padding-right: 2px; }
+  .rail-block:not(.rail-pitch) { display: block; }
+  .rail-btns { display: flex; }
+  .rail-pitch { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--c-coral); border-radius: var(--r-m); padding: var(--s-4); }
+  .rail-text { font-size: var(--t-md, 1.1rem); }
+}
+@media (prefers-reduced-motion: reduce) { .rail-img img, .rail-toc a { transition: none; } .rail-img:hover img { transform: none; } }
+
+/* Diagramas de arquitectura: cajas en secuencia (01, 02…), flechas que se dibujan y luego un flujo continuo.
+   Sin JS o con prefers-reduced-motion todo queda estático y visible. */
+.dg-f { fill: none; stroke: var(--dg-accent); stroke-width: 2.4; stroke-dasharray: 5 11; opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  html.js .dg:not(.dg-in) .dg-b, html.js .dg:not(.dg-in) .dg-l, html.js .dg:not(.dg-in) .dg-n { opacity: 0; }
+  html.js .dg:not(.dg-in) .dg-a { stroke-dashoffset: 100; marker-end: none; }
+  html.js .dg .dg-b, html.js .dg .dg-l, html.js .dg .dg-n { transform-box: fill-box; }
+  html.js .dg.dg-in .dg-b { animation: dg-pop 520ms var(--ease) backwards; animation-delay: calc(var(--i) * 150ms); }
+  html.js .dg.dg-in .dg-a { stroke-dasharray: 100; animation: dg-draw 650ms ease-out backwards; animation-delay: calc(var(--i) * 150ms + 250ms); }
+  html.js .dg.dg-in .dg-l { animation: dg-fade 400ms ease-out backwards; animation-delay: calc(var(--i) * 150ms + 650ms); }
+  html.js .dg.dg-in .dg-n { animation: dg-fade 600ms ease-out backwards; animation-delay: 900ms; }
+  html.js .dg.dg-in .dg-f { animation: dg-fade-to 500ms ease-out forwards, dg-flow 1.5s linear infinite; animation-delay: calc(var(--i) * 150ms + 950ms), 0s; }
+}
+@keyframes dg-pop { from { opacity: 0; transform: translateY(8px); } }
+@keyframes dg-fade { from { opacity: 0; } }
+@keyframes dg-fade-to { to { opacity: 0.85; } }
+@keyframes dg-draw { 0% { stroke-dashoffset: 100; marker-end: none; } 85% { stroke-dashoffset: 0; marker-end: none; } }
+@keyframes dg-flow { to { stroke-dashoffset: -16; } }

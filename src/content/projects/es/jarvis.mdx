@@ -5,24 +5,29 @@ lang: es
 kind: project
 order: 12
 summary: Un asistente local de voz y texto que corre en la CPU de una laptop sin APIs de pago. La seguridad la impone el código, no el modelo, y una ruta rápida contesta lo común sin llamar al LLM.
+pitch: "Un asistente de voz y texto que corre en una laptop sin servicios de pago, y que no puede hacer nada peligroso sin una confirmación impuesta por el código."
 role: Diseñador y desarrollador dirigiendo IA (proyecto personal)
 period: "oct 2026"
 status: paused
 stack: [Python, Ollama, faster-whisper, Kokoro, openWakeWord]
 aiTools: [Claude Code, Ollama, faster-whisper, Kokoro, openWakeWord, Silero VAD]
 metrics:
-  - label: Intenciones resueltas sin LLM
+  - label: "Peticiones comunes resueltas con código simple, sin llamar a un modelo de IA"
     value: "13"
-    source: Archivo de estado del proyecto, 2026-10-13
-  - label: Pruebas del router
-    value: 47/47
-    source: Archivo de estado del proyecto, 2026-10-13
-  - label: Latencia, ruta rápida
-    value: 2.7 s
-    source: Prueba de latencia, 2026-10-13
-  - label: Latencia, LLM con streaming
-    value: 8.6 s
-    source: Prueba de latencia, 2026-10-13
+    source: "Archivo de estado del proyecto, 2026-10-13"
+    gain: "Las peticiones rutinarias reciben respuestas rápidas, gratis y predecibles"
+  - label: "Pruebas automáticas aprobadas en el router de peticiones"
+    value: "47/47"
+    source: "Archivo de estado del proyecto, 2026-10-13"
+    gain: "Las reglas que deciden a dónde va cada petición, incluidas las de seguridad, se verifican en cada cambio"
+  - label: "Tiempo de respuesta en peticiones rutinarias (ruta rápida)"
+    value: "2.7 s"
+    source: "Prueba de latencia, 2026-10-13"
+    gain: "Las órdenes cotidianas se contestan en menos de 3 segundos con el procesador de una laptop"
+  - label: "Tiempo de respuesta cuando debe contestar el modelo de IA (meta 6.0 s, no cumplida)"
+    value: "8.6 s"
+    source: "Prueba de latencia, 2026-10-13"
+    gain: "Una medición honesta que muestra dónde toca optimizar después"
 demoUrl: https://carrerable.github.io/jarvis-safety-router-demo/
 repoUrl: https://github.com/carrerable/jarvis-safety-router-demo
 ---
@@ -66,6 +71,16 @@ También registro lo que no pasa. La ruta rápida fija (2.7 s) cumple su meta de
 - Ruta rápida: 2.7 s. LLM con streaming: 8.6 s, sin llegar a la meta.
 - Prueba del cerebro 8/8, con todos los casos de seguridad aprobados.
 - Cuatro grupos de herramientas (general, estado de proyectos, música, proyectos), cada una marcada como segura o peligrosa, con el catálogo de comandos limitado a una lista cerrada de acciones.
+
+## Qué resuelve y dónde más sirve
+
+Los asistentes de IA son lentos, cuestan dinero por petición y se les puede convencer de hacer cosas dañinas. JARVIS contesta lo rutinario con código simple, llama al modelo de lenguaje solo cuando hace falta y exige confirmación en las acciones riesgosas desde el código, no desde un prompt que el modelo podría ignorar. Corre en local, así que nada sale de la máquina.
+
+El mismo patrón aplica en otros lugares:
+
+- **Atención a clientes o mesas de ayuda:** responder lo común con reglas y mandar solo lo difícil al modelo de IA, lo que baja costo y tiempo de espera.
+- **Asistentes que manejan datos sensibles:** equipos legales, de salud o finanzas que no pueden enviar información a servicios externos.
+- **Agentes de IA que operan sistemas internos:** automatización de TI u operaciones donde las acciones peligrosas necesitan una compuerta de aprobación que el modelo no pueda saltarse.
 
 ## Qué haría distinto
 

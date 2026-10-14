@@ -5,18 +5,25 @@ lang: en
 kind: project
 order: 13
 summary: A workflow where short vertical videos are edited as code, scripts and plans are approved before any footage is touched, and analyzing a video costs about 35% fewer tokens thanks to cropped contact sheets.
+pitch: "Short branded videos are produced from files and code instead of manual editing, with approvals before any footage is touched, so a change is a quick re-render and AI review costs about 35% less."
 role: Producer & AI-directed developer (personal project)
 period: "2026"
 status: production
 stack: [Python, ffmpeg, Remotion, Node.js]
 aiTools: [Claude Code, ElevenLabs, demucs, faster-whisper]
 metrics:
-  - label: Audio level on export
-    value: -14 LUFS
-    source: Project rules, 2026-10-13
-  - label: Tokens saved by cropping contact sheets to the useful area
+  - label: "Volume level every video is exported at (-14 LUFS, a common loudness target for online video)"
+    value: "-14 LUFS"
+    source: "Project rules, 2026-10-13"
+    gain: "Every video plays at a steady, comfortable volume without manual fixing."
+  - label: "Cost of letting an AI agent review a video, reduced by cropping its preview images"
     value: "about 35% (2,400 to 1,540)"
-    source: Measured on a reference video, 2026-10-08
+    source: "Measured on a reference video, 2026-10-08"
+    gain: "AI review of video gets cheaper without losing what matters."
+  - label: "Approved visual styles ready to start a new video from"
+    value: "18"
+    source: "Project catalog, 2026"
+    gain: "New videos do not all look the same, and they start faster."
 demoUrl: https://carrerable.github.io/ai-video-studio-demo/
 repoUrl: https://github.com/carrerable/ai-video-studio-demo
 ---
@@ -67,6 +74,16 @@ The sound rules come from mistakes. Peaks stay at −12 dB and never reach 0, af
 - A catalog of 18 approved visual styles to start from, each with a recipe and sample images, so videos do not all look the same.
 - Narration generated one line at a time with character-level timestamps, which drives the word-by-word subtitles; lines that already exist are never regenerated.
 - Final audio at −14 LUFS and a roughly 35% cheaper way to let an AI agent review video.
+
+## What it solves and where else it applies
+
+Editing video by hand is slow, hard to repeat and hard to review. Here the edit is a set of files: change the script or a title, run one command and get the same video re-rendered. Script and plan are approved before footage is touched, and checks on sound and AI cost are built into the process.
+
+Where else the same pattern applies:
+
+- Marketing teams that produce many short videos, such as product demos, tutorials or social ads, in a consistent brand style.
+- Training and onboarding videos that change often: edit the text, re-render, publish.
+- Any team that uses AI agents on images or video and needs to cut the cost of each analysis.
 
 ## What I'd do differently
 

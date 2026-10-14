@@ -5,24 +5,29 @@ lang: es
 kind: work
 order: 3
 summary: Un dry-run contó unos 3,400 paquetes de servicio cuando existían 11,934. Rastrear la diferencia hasta una paginación sin orden y unos nulos descartados hizo segura una corrección masiva de costos.
+pitch: "Un conteo de ensayo con tres veces de diferencia destapó un bug de lectura antes de una corrección masiva, y miles de costos incorrectos se arreglaron sin omitir ni repetir ninguno."
 role: Responsable de la corrección y su verificación (puesto actual)
 period: "may – jun 2026"
 status: delivered
 stack: [TypeScript, MySQL, Claude Code]
 aiTools: [Claude Code]
 metrics:
-  - label: Paquetes contados por el dry-run sin orden vs reales
+  - label: "Paquetes que contó el ensayo vs el total real (veía menos de un tercio)"
     value: "unos 3,400 vs 11,934"
-    source: Dry-run vs conteo en producción, jun 2026
-  - label: Registros con valor nulo que el primer filtro excluía
+    source: "Dry-run vs conteo en producción, jun 2026"
+    gain: "La diferencia se detectó antes de cambiar datos, así que la corrección masiva nunca corrió sobre un conteo equivocado."
+  - label: "Registros que un filtro dejaba fuera sin avisar porque su valor estaba vacío"
     value: "unos 8,506"
-    source: Verificación en producción, jun 2026
-  - label: Conceptos de mano de obra corregidos
+    source: "Verificación en producción, jun 2026"
+    gain: "La corrección alcanzó todos los registros afectados, no solo la mayoría."
+  - label: "Registros de costo de mano de obra corregidos en una sola actualización masiva controlada"
     value: "unos 21,539"
-    source: Validación en producción, 4 jun 2026
-  - label: Paquetes de servicio corregidos
+    source: "Validación en producción, 4 jun 2026"
+    gain: "Los talleres con costos incorrectos los recibieron arreglados sin que nadie editara miles de registros a mano."
+  - label: "Paquetes de servicio corregidos, igual al total real"
     value: "unos 11,934"
-    source: Validación en producción, 4 jun 2026
+    source: "Validación en producción, 4 jun 2026"
+    gain: "El conteo final coincide con la cifra real, así que no se omitió nada."
 demoUrl: https://carrerable.github.io/pagination-bug-demo/
 repoUrl: https://github.com/carrerable/pagination-bug-demo
 ---
@@ -62,6 +67,16 @@ El marcador de una sola ejecución y la restricción por cuenta salen del mismo 
 - El conteo del dry-run pasó de unos 3,400 a los 11,934 paquetes reales una vez que la paginación tuvo orden.
 - Se incluyeron unos 8,506 registros con valor nulo que el primer filtro excluía.
 - Unos 21,539 conceptos de mano de obra y unos 11,934 paquetes de servicio corregidos (unos 17,799 conceptos embebidos), validados en producción el 4 de junio de 2026.
+
+## Qué resuelve y dónde más sirve
+
+Antes de cambiar miles de registros de golpe, el conteo de lo que va a cambiar tiene que ser correcto. Un bug de lectura hizo que el ensayo viera menos de un tercio de los datos reales. Buscar la causa, en vez de ajustar el filtro hasta que la cifra pareciera razonable, evitó que una escritura masiva dejara mal la mayoría de los registros.
+
+Dónde más aplica el mismo patrón:
+
+- Cualquier actualización masiva de datos de clientes, precios o facturación, donde no se debe escribir nada hasta explicar el conteo esperado.
+- Reportes y exportaciones que leen por páginas, en finanzas, catálogos de e-commerce o expedientes de salud, donde los totales pueden encogerse sin ningún mensaje de error.
+- Revisiones de calidad de datos antes de migrar un ERP o una base de datos.
 
 ## Qué haría distinto
 

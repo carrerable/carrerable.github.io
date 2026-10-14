@@ -5,18 +5,25 @@ lang: es
 kind: project
 order: 13
 summary: Un flujo donde los videos verticales cortos se editan como código, el guion y el plan se aprueban antes de tocar material y analizar un video cuesta cerca de 35% menos tokens gracias a hojas de contactos recortadas.
+pitch: "Videos cortos de marca hechos con archivos y código, no a mano, con aprobaciones antes de tocar material: un cambio es un re-render rápido y revisarlos con IA cuesta 35% menos."
 role: Productor y desarrollador dirigiendo IA (proyecto personal)
 period: "2026"
 status: production
 stack: [Python, ffmpeg, Remotion, Node.js]
 aiTools: [Claude Code, ElevenLabs, demucs, faster-whisper]
 metrics:
-  - label: Nivel de audio al exportar
-    value: -14 LUFS
-    source: Reglas del proyecto, 2026-10-13
-  - label: Tokens ahorrados al recortar las hojas de contactos a la zona útil
+  - label: "Nivel de volumen al que se exporta cada video (-14 LUFS, un estándar común de loudness para video en línea)"
+    value: "-14 LUFS"
+    source: "Reglas del proyecto, 2026-10-13"
+    gain: "Cada video suena a un volumen parejo y cómodo sin corregirlo a mano."
+  - label: "Costo de que un agente de IA revise un video, reducido al recortar sus imágenes de vista previa"
     value: "cerca de 35% (2,400 a 1,540)"
-    source: Medido en un video de referencia, 2026-10-08
+    source: "Medido en un video de referencia, 2026-10-08"
+    gain: "Revisar video con IA sale más barato sin perder lo importante."
+  - label: "Estilos visuales aprobados para partir al crear un video nuevo"
+    value: "18"
+    source: "Catálogo del proyecto, 2026"
+    gain: "Los videos nuevos no se ven todos iguales y arrancan más rápido."
 demoUrl: https://carrerable.github.io/ai-video-studio-demo/
 repoUrl: https://github.com/carrerable/ai-video-studio-demo
 ---
@@ -67,6 +74,16 @@ Las reglas de sonido salen de errores. Los picos se quedan en −12 dB y nunca l
 - Un catálogo de 18 estilos visuales aprobados para partir de ellos, cada uno con receta e imágenes de ejemplo, para que los videos no se vean todos iguales.
 - Narración generada línea por línea con marcas de tiempo por carácter, que alimentan los subtítulos palabra por palabra; las líneas que ya existen nunca se regeneran.
 - Audio final a −14 LUFS y una forma cerca de 35% más barata de que un agente de IA revise video.
+
+## Qué resuelve y dónde más sirve
+
+Editar video a mano es lento, difícil de repetir y difícil de revisar. Aquí la edición es un conjunto de archivos: se cambia el guion o un título, se corre un comando y sale el mismo video renderizado de nuevo. El guion y el plan se aprueban antes de tocar material, y las revisiones de sonido y de costo de IA están dentro del proceso.
+
+Dónde más aplica el mismo patrón:
+
+- Equipos de marketing que producen muchos videos cortos, como demos de producto, tutoriales o anuncios sociales, con un estilo de marca consistente.
+- Videos de capacitación y onboarding que cambian seguido: se edita el texto, se renderiza y se publica.
+- Cualquier equipo que use agentes de IA con imágenes o video y necesite reducir el costo de cada análisis.
 
 ## Qué haría distinto
 

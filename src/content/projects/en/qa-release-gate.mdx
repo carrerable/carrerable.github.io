@@ -5,24 +5,29 @@ lang: en
 kind: work
 order: 1
 summary: How I gate every release of a B2B SaaS for auto-repair shops twice, in QA and in production, with E2E matrices of 13 to 45 cases and a rule that QA reports and never fixes.
+pitch: "Every release of a product used daily by repair shops is tested twice, before and after launch, with written evidence, so bad releases are caught before customers notice."
 role: QA & release owner (current role)
 period: "2026"
 status: production
 stack: [React, AngularJS (legacy), Node.js, TypeScript, tRPC, MySQL, Jira, Playwright]
 aiTools: [Claude Code, Playwright]
 metrics:
-  - label: Tickets approved in QA
+  - label: "Changes approved after testing in a pre-production environment (some needed several rounds)"
     value: "76 (103 approval events)"
-    source: Jira snapshot, Oct 2026
-  - label: Rejections sent to rework
+    source: "Jira snapshot, Oct 2026"
+    gain: "Fewer faulty releases reach shops that use the system every day."
+  - label: "Changes sent back to development because they did not pass"
     value: "18"
-    source: Jira snapshot, Oct 2026
-  - label: Validations in production
+    source: "Jira snapshot, Oct 2026"
+    gain: "Defects are caught before customers see them, not after."
+  - label: "Changes checked again in the live system after release"
     value: "30"
-    source: Jira snapshot, Oct 2026
-  - label: QA case folders documented
+    source: "Jira snapshot, Oct 2026"
+    gain: "Confirms the release works with real data and volumes, not only in testing."
+  - label: "Documented test-case folders, so a release can be re-tested the same way"
     value: "27"
-    source: QA archive, Oct 2026
+    source: "QA archive, Oct 2026"
+    gain: "What to test does not live in one person's head."
 demoUrl: https://carrerable.github.io/qa-release-matrix-demo/
 repoUrl: https://github.com/carrerable/qa-release-matrix-demo
 ---
@@ -69,6 +74,16 @@ Matrices run from 13 to 45 cases per ticket (45 for the reports portal, 40 for t
 - 27 documented QA case folders.
 - In the week of 6 to 12 October 2026, the log shows more than 30 QA verdicts (approvals, reworks and production passes).
 - Reopen rate and days in QA are calculated by the board but I have not extracted them yet, so I do not quote them.
+
+## What it solves and where else it applies
+
+A product shipping new features every week cannot rely on developers checking their own work, and a bad release is visible to customers within the hour. This gate gives each change a clear verdict, written evidence and a second check in production, without slowing the weekly cadence.
+
+Where else the same pattern applies:
+
+- Any team with weekly releases and no dedicated QA department.
+- Products where a mistake has a direct cost, such as billing, invoicing, payroll or fintech.
+- Teams moving a legacy application to a new technology that need to prove nothing broke along the way.
 
 ## What I'd do differently
 

@@ -5,24 +5,29 @@ lang: en
 kind: project
 order: 14
 summary: Keeping one AI character's face consistent, measured with a similarity score on cost-capped GPU pods, then applied to six marketing pieces for a veterinary clinic brand.
+pitch: "Keeps one AI brand character recognizable across many images, with a measurable score and a spending cap on rented GPUs, so a clinic brand gets consistent marketing content for cents."
 role: Pipeline builder (personal project)
 period: "2026"
 status: production
 stack: [ComfyUI, RunPod, Python, SDXL, ControlNet, IP-Adapter FaceID, kohya sd-scripts, InsightFace]
 aiTools: [ComfyUI, SDXL, ControlNet, IP-Adapter FaceID, LoRA, Wan 2.2, InsightFace, FaceDetailer]
 metrics:
-  - label: Mean face similarity of the six VetNova marketing pieces against the reference (InsightFace cosine, same batch)
+  - label: "How closely the character's face matches across the six marketing pieces, measured (higher is more alike)"
     value: "0.679"
-    source: Own measurement on the six final images, 2026-10-13
-  - label: Lowest similarity among the six pieces
+    source: "Own measurement on the six final images, 2026-10-13"
+    gain: "The brand ambassador stays recognizable from piece to piece, so campaigns look coherent."
+  - label: "Weakest of the six pieces; below about 0.45 to 0.50 it would read as a different person"
     value: "0.645"
-    source: Own measurement on the six final images, 2026-10-13
-  - label: Marketing batch on one RTX 4090 Secure pod at US$0.89 per hour, about 37 minutes, estimated from rate and time (pod deleted, 0 pods left)
-    value: ~US$0.55
-    source: Rate from the provider catalog and pod timestamps, 2026-10-13
-  - label: To train a LoRA of 1,880 steps on a rented GPU (research project)
-    value: ~41 min
-    source: Own run log, 2026-10-13
+    source: "Own measurement on the six final images, 2026-10-13"
+    gain: "Even the weakest piece keeps the character's identity, so the set works as a series."
+  - label: "Estimated cost of the six marketing pieces on a rented GPU (about 37 minutes, deleted afterwards)"
+    value: "~US$0.55"
+    source: "Rate from the provider catalog and pod timestamps, 2026-10-13"
+    gain: "A batch of brand content costs less than a dollar, under a spending cap set beforehand."
+  - label: "Speed of a rented GPU against generating on a laptop (27 portraits in 1.6 minutes)"
+    value: "~70 times faster"
+    source: "Own measurement, research project, 2026-10-13"
+    gain: "Batches finish in minutes instead of hours, at about US$0.22 per hour of GPU."
 demoUrl: https://carrerable.github.io/gpu-image-pipeline-demo/
 repoUrl: https://github.com/carrerable/gpu-image-pipeline-demo
 ---
@@ -96,6 +101,16 @@ On the image side, the face-similarity score turns a recipe choice into a compar
 - A pipeline that keeps one AI character recognisable across many images, with a number to prove it, and a documented rejection for each recipe that did not hold.
 - Six VetNova marketing pieces with mean face similarity 0.679 and minimum 0.645, produced in about 37 minutes for an estimated US$0.55.
 - A clean end state: zero active pods, no volumes, no endpoints.
+
+## What it solves and where else it applies
+
+A brand that uses an AI character needs the same face in every post, banner and story, and needs to know what each batch costs. This pipeline measures the face match with a number, selects images by that number and by human review, and runs on rented GPUs that shut down by themselves under a spending cap.
+
+Where else the same pattern applies:
+
+- Consistent brand characters or mascots for clinics, real estate agencies and e-commerce stores.
+- Product and catalog images in one coherent look across many pieces and formats.
+- Any team that rents cloud GPUs and needs hard spending caps and guaranteed shutdown.
 
 ## What I'd do differently
 

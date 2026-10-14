@@ -1,8 +1,9 @@
 ---
 import Base from '../../layouts/Base.astro';
+import SideRail from '../../components/ui/SideRail.astro';
 import Section from '../../components/ui/Section.astro';
-import En from '../../content-pages/how-i-work.en.mdx';
-import Es from '../../content-pages/how-i-work.es.mdx';
+import En, { getHeadings as hEn } from '../../content-pages/how-i-work.en.mdx';
+import Es, { getHeadings as hEs } from '../../content-pages/how-i-work.es.mdx';
 import { ui, NAME, type Lang } from '../../i18n/ui';
 
 export function getStaticPaths() {
@@ -11,11 +12,15 @@ export function getStaticPaths() {
 const lang = Astro.params.lang as Lang;
 const t = ui[lang];
 const Content = lang === 'en' ? En : Es;
+const headings = lang === 'en' ? hEn() : hEs();
 ---
 <Base lang={lang} title={`${t['nav.how']} — ${NAME}`} description={t['how.teaser']} path={`/${lang}/how-i-work/`}>
   <Section tone="base" bg="grid">
-    <div class="prose">
-      <Content />
+    <div class="with-rail">
+      <div class="prose">
+        <Content />
+      </div>
+      <SideRail lang={lang} headings={headings} />
     </div>
   </Section>
 </Base>

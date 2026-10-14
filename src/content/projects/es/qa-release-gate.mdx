@@ -5,24 +5,29 @@ lang: es
 kind: work
 order: 1
 summary: "Cómo someto cada release de un SaaS B2B para talleres automotrices a una compuerta doble, en QA y en producción, con matrices E2E de 13 a 45 casos y una regla: QA reporta, nunca corrige."
+pitch: "Cada release de un producto que talleres usan a diario se prueba dos veces, antes y después de salir, con evidencia escrita, para detectar releases malos antes de que el cliente lo note."
 role: Responsable de QA y releases (puesto actual)
 period: "2026"
 status: production
 stack: [React, AngularJS (legado), Node.js, TypeScript, tRPC, MySQL, Jira, Playwright]
 aiTools: [Claude Code, Playwright]
 metrics:
-  - label: Tickets aprobados en QA
+  - label: "Cambios aprobados tras probarse en un ambiente previo a producción (algunos necesitaron varias rondas)"
     value: "76 (103 eventos de aprobación)"
-    source: Snapshot de Jira, oct 2026
-  - label: Rechazos enviados a reproceso
+    source: "Snapshot de Jira, oct 2026"
+    gain: "Llegan menos releases defectuosos a talleres que usan el sistema todos los días."
+  - label: "Cambios devueltos a desarrollo porque no pasaron la prueba"
     value: "18"
-    source: Snapshot de Jira, oct 2026
-  - label: Validaciones en producción
+    source: "Snapshot de Jira, oct 2026"
+    gain: "Los defectos se detectan antes de que los vea el cliente, no después."
+  - label: "Cambios revisados otra vez en el sistema en vivo después de salir"
     value: "30"
-    source: Snapshot de Jira, oct 2026
-  - label: Carpetas de casos de QA documentadas
+    source: "Snapshot de Jira, oct 2026"
+    gain: "Confirma que el release funciona con datos y volúmenes reales, no solo en pruebas."
+  - label: "Carpetas de casos de prueba documentadas, para volver a probar un release de la misma forma"
     value: "27"
-    source: Archivo de QA, oct 2026
+    source: "Archivo de QA, oct 2026"
+    gain: "Qué probar no vive solo en la cabeza de una persona."
 demoUrl: https://carrerable.github.io/qa-release-matrix-demo/
 repoUrl: https://github.com/carrerable/qa-release-matrix-demo
 ---
@@ -69,6 +74,16 @@ Las matrices van de 13 a 45 casos por ticket (45 para el portal de reportes, 40 
 - 27 carpetas de casos de QA documentadas.
 - En la semana del 6 al 12 de octubre de 2026 la bitácora registra más de 30 veredictos de QA (aprobaciones, reprocesos y pases a producción).
 - La tasa de reapertura y los días en QA los calcula el tablero, pero todavía no los extraje, así que no los cito.
+
+## Qué resuelve y dónde más sirve
+
+Un producto que libera funciones cada semana no puede depender de que los desarrolladores revisen su propio trabajo, y un release malo se nota en una hora. Esta compuerta da a cada cambio un veredicto claro, evidencia escrita y una segunda revisión en producción, sin frenar el ritmo semanal.
+
+Dónde más aplica el mismo patrón:
+
+- Cualquier equipo con releases semanales y sin un área de QA dedicada.
+- Productos donde un error tiene costo directo, como facturación, nómina o fintech.
+- Equipos que migran una aplicación heredada a una tecnología nueva y necesitan demostrar que nada se rompió en el camino.
 
 ## Qué haría distinto
 

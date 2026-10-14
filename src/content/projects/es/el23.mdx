@@ -5,21 +5,29 @@ lang: es
 kind: project
 order: 17
 summary: "Un catálogo en línea para una joyería de plata con tienda física. Sin precios ni pago: el cliente arma una lista y la manda por WhatsApp para cotizar. Documentado y analizado legalmente antes de programar."
+pitch: "Un catálogo en línea para una tienda física: el cliente arma una lista y la manda por WhatsApp para cotizar, sin sistema de pagos, y el personal actualiza productos sin programador."
 role: Arquitecto web y desarrollador dirigiendo IA (proyecto independiente)
 period: "sep – oct 2026"
 status: production
 stack: [WordPress, WooCommerce, PHP, WP-CLI, Docker]
 aiTools: [Claude Code]
 metrics:
-  - label: Artículos en el catálogo en vivo
+  - label: "Productos publicados en el catálogo en línea en vivo"
     value: "60"
-    source: el23.com.mx, revisado el 2026-10-13
-  - label: En línea desde
+    source: "el23.com.mx, revisado el 2026-10-13"
+    gain: "El personal de la tienda puede seguir ampliando el catálogo sin programador"
+  - label: "Fecha en que el sitio de la tienda salió en línea"
     value: "2026-09-23"
-    source: Archivo de estado del proyecto, 2026-09-23
-  - label: Largest Contentful Paint, página de listado, contra la meta de 2.5 s (aceptado)
-    value: 2.63 s
-    source: Prueba de rendimiento en el sitio de pruebas, 2026-09-23
+    source: "Archivo de estado del proyecto, 2026-09-23"
+    gain: "Un sitio de negocio real en producción, documentado y analizado legalmente antes de programar"
+  - label: "Tiempo en que aparece el contenido principal en la página de listado (meta 2.5 s, incumplimiento aceptado)"
+    value: "2.63 s"
+    source: "Prueba de rendimiento en el sitio de pruebas, 2026-09-23"
+    gain: "La velocidad de la página se midió, y el incumplimiento se documentó y aceptó a propósito, sin esconderlo"
+  - label: "Respuestas exitosas en una prueba de carga de 60 peticiones simultáneas"
+    value: "60 de 60"
+    source: "Prueba de carga en el sitio de pruebas, 2026-09-23"
+    gain: "En la prueba, el sitio atendió visitantes simultáneos sin errores"
 demoUrl: https://carrerable.github.io/el23-catalog-demo/
 repoUrl: https://github.com/carrerable/el23-catalog-demo
 ---
@@ -61,6 +69,16 @@ El sitio de producción se arma con scripts repetibles: uno para los ajustes del
 - Un video en la portada, una galería de grabados y una página del taller de composturas y hechuras, en producción desde el 26 de septiembre.
 - La lista de pedido funciona sin guardar nada en el servidor.
 - Pendiente: la verificación en Search Console y las fotos de trabajos del taller, que dependen de la tienda.
+
+## Qué resuelve y dónde más sirve
+
+Muchas tiendas no pueden publicar precios fijos porque el costo de sus productos cambia o se hacen sobre pedido. El 23 le da a una tienda física un catálogo en línea que aparece en buscadores, deja que el cliente arme una lista y la mande por WhatsApp, y deja la cotización en manos del dueño. No necesita sistema de pagos, y el personal publica productos desde un panel de administración.
+
+El mismo patrón aplica en otros lugares:
+
+- **Tiendas con productos a cotizar:** muebles, trabajos a medida, refacciones industriales o cualquier artículo cuyo precio dependa de una cotización.
+- **Catálogos B2B:** proveedores cuyos clientes eligen artículos y piden cotización en lugar de pagar en línea.
+- **Negocios en sectores regulados:** proyectos donde la revisión legal (marcas, protección al consumidor, privacidad) debe ir antes del lanzamiento.
 
 ## Qué haría distinto
 

@@ -5,24 +5,29 @@ lang: en
 kind: project
 order: 11
 summary: Multi-tenant core insurance platform for insurers and insurance agencies. A falsifiable prototype on 10 million policies decided the data model before any feature was built.
+pitch: "One platform for insurance agencies to manage any line (autos, life, pets and more) without building a new system per product."
 role: Architecture Lead (side project)
 period: "Sep 2026 – present"
 status: building
 stack: [TypeScript, NestJS, Next.js, PostgreSQL, Prisma, Docker]
 aiTools: [Claude Code]
 metrics:
-  - label: Synthetic policies in the benchmark
+  - label: "Test policies in the benchmark: the scale of a large insurer's portfolio"
     value: "10,000,000"
-    source: Prototype R1 report, 2026-09-22
-  - label: Index size, projection table vs hybrid
-    value: 3,030 MB vs 492 MB (6x less)
-    source: Prototype R1 report, 2026-09-22
-  - label: Two-attribute filter
-    value: 118 ms vs 1.2 ms
-    source: Prototype R1 report, 2026-09-22
-  - label: Database migrations
-    value: "38"
-    source: Counted on disk, 2026-10-13
+    source: "Prototype R1 report, 2026-09-22"
+    gain: "Search speed was proven at millions of policies before any feature was built"
+  - label: "Search-index size on disk: alternative design vs chosen design"
+    value: "3,030 MB vs 492 MB (6x less)"
+    source: "Prototype R1 report, 2026-09-22"
+    gain: "Six times less storage to keep searches fast, so hosting cost grows slower with the portfolio"
+  - label: "Time to filter policies by two attributes: alternative design vs chosen design"
+    value: "118 ms vs 1.2 ms"
+    source: "Prototype R1 report, 2026-09-22"
+    gain: "Instant results on the search screen even with millions of policies"
+  - label: "Time to make a new attribute searchable: portfolio kept live vs portfolio locked"
+    value: "233 s vs 113 s"
+    source: "Prototype R1 report, 2026-09-22"
+    gain: "Adding a new field to a line does not take the system offline; agents keep working"
 demoUrl: https://carrerable.github.io/reyber-dynamic-attributes-demo/
 repoUrl: https://github.com/carrerable/reyber-dynamic-attributes-demo
 ---
@@ -67,6 +72,16 @@ Isolation is tested twice: a database-level suite and an HTTP-level smoke that p
 - The data model for dynamic attributes is decided on evidence, with the numbers above, before the first feature was written.
 - 38 migrations, 70 tables with a tenant, row-level security enforced on all of them.
 - Round one of the prototype closed on 22 September 2026. The report keeps its own mistakes in it: the leakproof finding, a prefix search that was broken in both candidates, and a result that looked like a win and was not.
+
+## What it solves and where else it applies
+
+Insurance agencies sell many lines, and each line describes its risk differently: a car has a plate, a pet has a breed. Building one system per line is slow and expensive. REYBER keeps one engine where each line's attributes are configured, not programmed, and a measured prototype showed that searching stays fast at 10 million policies.
+
+The same pattern applies in other places:
+
+- **E-commerce catalogs:** products with different attributes per category (size for shoes, capacity for appliances) searchable without changing the database each time.
+- **CRMs with custom fields:** each customer defines their own fields and still filters and reports on them quickly.
+- **Medical records by specialty:** each specialty records different data in one system, with fast search across all patients.
 
 ## What I'd do differently
 

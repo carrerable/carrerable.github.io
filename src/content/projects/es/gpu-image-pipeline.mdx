@@ -5,24 +5,29 @@ lang: es
 kind: project
 order: 14
 summary: Mantener consistente el rostro de un personaje de IA, medido con una puntuación de similitud en pods de GPU con tope de gasto, y aplicado a seis piezas de marketing de una marca veterinaria.
+pitch: "Mantiene reconocible a un personaje de marca de IA en muchas imágenes, con puntuación medible y tope de gasto en GPU rentadas: contenido consistente para una marca de clínicas por centavos."
 role: Constructor del pipeline (proyecto personal)
 period: "2026"
 status: production
 stack: [ComfyUI, RunPod, Python, SDXL, ControlNet, IP-Adapter FaceID, kohya sd-scripts, InsightFace]
 aiTools: [ComfyUI, SDXL, ControlNet, IP-Adapter FaceID, LoRA, Wan 2.2, InsightFace, FaceDetailer]
 metrics:
-  - label: Similitud facial media de las seis piezas de marketing de VetNova contra la referencia (coseno de InsightFace, misma tanda)
+  - label: "Qué tanto coincide el rostro del personaje en las seis piezas de marketing, medido (más alto es más parecido)"
     value: "0.679"
-    source: Medición propia sobre las seis imágenes finales, 2026-10-13
-  - label: Similitud mínima entre las seis piezas
+    source: "Medición propia sobre las seis imágenes finales, 2026-10-13"
+    gain: "La embajadora de marca se reconoce de pieza en pieza, así que las campañas se ven coherentes."
+  - label: "La más débil de las seis piezas; por debajo de 0.45 a 0.50 se vería como otra persona"
     value: "0.645"
-    source: Medición propia sobre las seis imágenes finales, 2026-10-13
-  - label: Tanda de marketing en un pod RTX 4090 Secure a US$0.89 por hora, unos 37 minutos, estimada por tarifa y tiempo (pod borrado, 0 pods)
-    value: ~US$0.55
-    source: Tarifa del catálogo del proveedor y marcas de tiempo del pod, 2026-10-13
-  - label: Para entrenar un LoRA de 1,880 pasos en una GPU rentada (proyecto de investigación)
-    value: ~41 min
-    source: Bitácora propia de la corrida, 2026-10-13
+    source: "Medición propia sobre las seis imágenes finales, 2026-10-13"
+    gain: "Hasta la pieza más débil conserva la identidad del personaje, así que el conjunto funciona como serie."
+  - label: "Costo estimado de las seis piezas de marketing en una GPU rentada (unos 37 minutos, borrada al terminar)"
+    value: "~US$0.55"
+    source: "Tarifa del catálogo del proveedor y marcas de tiempo del pod, 2026-10-13"
+    gain: "Una tanda de contenido de marca cuesta menos de un dólar, bajo un tope de gasto fijado antes."
+  - label: "Velocidad de una GPU rentada frente a generar en la laptop (27 retratos en 1.6 minutos)"
+    value: "~70 veces más rápido"
+    source: "Medición propia, proyecto de investigación, 2026-10-13"
+    gain: "Las tandas terminan en minutos en lugar de horas, a unos US$0.22 por hora de GPU."
 demoUrl: https://carrerable.github.io/gpu-image-pipeline-demo/
 repoUrl: https://github.com/carrerable/gpu-image-pipeline-demo
 ---
@@ -97,6 +102,16 @@ Del lado de la imagen, la puntuación de similitud facial convierte la elección
 - Un pipeline que mantiene reconocible a un personaje de IA a lo largo de muchas imágenes, con un número que lo demuestra y un rechazo documentado para cada receta que no aguantó.
 - Seis piezas de marketing de VetNova con similitud facial media de 0.679 y mínima de 0.645, producidas en unos 37 minutos por un costo estimado de US$0.55.
 - Un estado final limpio: cero pods activos, sin volúmenes, sin endpoints.
+
+## Qué resuelve y dónde más sirve
+
+Una marca que usa un personaje de IA necesita el mismo rostro en cada post, banner e historia, y necesita saber cuánto cuesta cada tanda. Este pipeline mide el parecido facial con un número, elige imágenes por ese número y por revisión humana, y corre en GPU rentadas que se apagan solas bajo un tope de gasto.
+
+Dónde más aplica el mismo patrón:
+
+- Personajes o mascotas de marca consistentes para clínicas, inmobiliarias y tiendas en línea.
+- Imágenes de producto y de catálogo con un mismo estilo a lo largo de muchas piezas y formatos.
+- Cualquier equipo que rente GPU en la nube y necesite topes de gasto firmes y apagado garantizado.
 
 ## Qué haría distinto
 

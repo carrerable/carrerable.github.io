@@ -5,21 +5,25 @@ lang: es
 kind: project
 order: 15
 summary: Un pipeline local que convierte una canción generada con IA en un lyric video sincronizado más un Short vertical y sube ambos, en 15 a 25 minutos por canción y sin servicios de pago.
+pitch: "Un comando convierte una canción en un lyric video sincronizado y un Short vertical y sube ambos, en 15 a 25 minutos y sin servicios de pago."
 role: Creador y desarrollador dirigiendo IA (proyecto personal)
 period: "2026"
 status: production
 stack: [Remotion, React, TypeScript, PowerShell, Python]
 aiTools: [Claude Code, whisper.cpp, WhisperX, Remotion, Suno]
 metrics:
-  - label: Canciones en el catálogo
+  - label: "Canciones procesadas por el pipeline"
     value: "57"
-    source: Archivo de estado del proyecto, 2026-10-13
-  - label: Alineación de la letra, dos corridas de muestra
-    value: 268/286 (94%) y 243/302 (80%)
-    source: Corridas del pipeline, ago-sep 2026
-  - label: Tiempo por canción
-    value: 15 a 25 min
-    source: Reportes del pipeline, 2026-10-13
+    source: "Archivo de estado del proyecto, 2026-10-13"
+    gain: "Un solo comando procesa un lote completo, sin editor de video ni pasos manuales"
+  - label: "Palabras de la letra ubicadas en el momento en que se cantan, dos corridas de muestra"
+    value: "268/286 (94%) y 243/302 (80%)"
+    source: "Corridas del pipeline, ago-sep 2026"
+    gain: "La palabra resaltada sigue al canto sin que nadie fije los tiempos a mano"
+  - label: "Tiempo por canción, del archivo de audio al video y el Short subidos"
+    value: "15 a 25 min"
+    source: "Reportes del pipeline, 2026-10-13"
+    gain: "Un video terminado en menos de media hora, sin costo de operación"
 demoUrl: https://carrerable.github.io/lyric-sync-demo/
 repoUrl: https://github.com/carrerable/lyric-sync-demo
 ---
@@ -63,6 +67,16 @@ El pipeline tiene protecciones que nacieron de fallos. Dos canciones distintas c
 - De 15 a 25 minutos por canción, de extremo a extremo, y el script reporta el tiempo real de cada corrida.
 - Dos salidas por canción, un video largo y un Short, subidas sin pasos manuales.
 - Sin costo de operación del pipeline en sí: Remotion, whisper.cpp y WhisperX son gratis y locales.
+
+## Qué resuelve y dónde más sirve
+
+Hacer un lyric video a mano exige marcar el tiempo de cada palabra en un editor. Este pipeline toma la canción y su letra, alinea cada palabra con el audio, renderiza un video horizontal y un Short vertical, y sube ambos. Si una corrida falla a la mitad, se puede reintentar sin rehacer el trabajo.
+
+El mismo patrón aplica en otros lugares:
+
+- **Subtítulos y captions:** alinear un guion conocido con el audio en videos de capacitación, webinars o demos de producto.
+- **Reutilización de contenido:** convertir una grabación larga en varios formatos (horizontal, vertical, cortes) con un solo comando.
+- **Equipos de medios con publicación recurrente:** pipelines por lotes con reintentos seguros, para que un fallo no signifique empezar de cero.
 
 ## Qué haría distinto
 

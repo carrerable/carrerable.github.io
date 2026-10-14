@@ -5,21 +5,25 @@ lang: en
 kind: project
 order: 15
 summary: A local pipeline that turns an AI-generated song into a synchronized lyric video plus a vertical Short and uploads both, in 15 to 25 minutes per song, with no paid services.
+pitch: "One command turns a song into a synchronized lyric video and a vertical Short and uploads both, in 15 to 25 minutes and with no paid services."
 role: Creator & AI-directed developer (personal project)
 period: "2026"
 status: production
 stack: [Remotion, React, TypeScript, PowerShell, Python]
 aiTools: [Claude Code, whisper.cpp, WhisperX, Remotion, Suno]
 metrics:
-  - label: Songs in the catalog
+  - label: "Songs processed by the pipeline"
     value: "57"
-    source: Project status file, 2026-10-13
-  - label: Lyric alignment, two sample runs
-    value: 268/286 (94%) and 243/302 (80%)
-    source: Pipeline runs, Aug-Sep 2026
-  - label: Time per song
-    value: 15 to 25 min
-    source: Pipeline reports, 2026-10-13
+    source: "Project status file, 2026-10-13"
+    gain: "One command handles a whole batch, with no video editor and no manual steps"
+  - label: "Lyric words matched to the moment they are sung, two sample runs"
+    value: "268/286 (94%) and 243/302 (80%)"
+    source: "Pipeline runs, Aug-Sep 2026"
+    gain: "The highlighted word follows the singing without anyone setting the timing by hand"
+  - label: "Time per song, from audio file to uploaded video and Short"
+    value: "15 to 25 min"
+    source: "Pipeline reports, 2026-10-13"
+    gain: "A finished video in under half an hour, with no running cost"
 demoUrl: https://carrerable.github.io/lyric-sync-demo/
 repoUrl: https://github.com/carrerable/lyric-sync-demo
 ---
@@ -63,6 +67,16 @@ The pipeline has guards that came from failures. Two different songs with the sa
 - 15 to 25 minutes per song, end to end, and the script reports the real time of each run.
 - Two outputs per song, a long video and a Short, uploaded without manual steps.
 - No running cost for the pipeline itself: Remotion, whisper.cpp and WhisperX are free and local.
+
+## What it solves and where else it applies
+
+Making a lyric video by hand means timing every word in a video editor. This pipeline takes the song and its lyrics, aligns each word to the audio, renders a horizontal video and a vertical Short, and uploads both. If a run fails halfway, it can be retried without redoing the work.
+
+The same pattern applies in other places:
+
+- **Captions and subtitles:** aligning a known script to audio for training videos, webinars or product demos.
+- **Repurposing content:** turning one long recording into several formats (horizontal, vertical, clips) from a single command.
+- **Media teams with recurring publishing:** batch pipelines with safe retries, so a failure does not mean starting over.
 
 ## What I'd do differently
 

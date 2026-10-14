@@ -5,21 +5,25 @@ lang: es
 kind: project
 order: 16
 summary: Un pipeline de cuatro scripts que convierte un archivo de configuración en un libro de colorear listo para imprenta, con interior y portada, prompts de Claude, imágenes de FLUX y maquetación en PDFKit.
+pitch: "Una herramienta que convierte un archivo de configuración en un libro listo para imprenta, con interior y portada, de modo que cada título nuevo es una configuración y no código nuevo."
 role: Diseñador y desarrollador dirigiendo IA (proyecto personal)
 period: "2026"
 status: paused
 stack: [TypeScript, Node.js, Sharp, PDFKit]
 aiTools: [Claude Code, Anthropic API, FLUX (fal.ai), Sharp, PDFKit]
 metrics:
-  - label: Volúmenes generados (publicados)
-    value: 19 (1)
-    source: Archivo de estado del proyecto, 2026-10-13
-  - label: Páginas por volumen / resolución de impresión
-    value: 30 / 300 DPI
-    source: Notas de arquitectura del motor, 2026-10-13
-  - label: Fallos de anatomía en escenas de animales enroscados, revisión manual
-    value: hasta 30%
-    source: Revisión de un volumen, 2026
+  - label: "Libros de colorear generados por el motor (publicados)"
+    value: "19 (1)"
+    source: "Archivo de estado del proyecto, 2026-10-13"
+    gain: "Un libro nuevo es un archivo de configuración, no un proyecto de desarrollo"
+  - label: "Páginas por libro / resolución de impresión"
+    value: "30 / 300 DPI"
+    source: "Notas de arquitectura del motor, 2026-10-13"
+    gain: "Interior y portada salen como archivos listos para imprenta, sin maquetar a mano"
+  - label: "Proporción de páginas con errores de anatomía en escenas de animales enroscados, revisión manual"
+    value: "hasta 30%"
+    source: "Revisión de un volumen, 2026"
+    gain: "Se midió el punto débil de la IA y se corrigió una vez en el motor compartido para todos los libros futuros"
 demoUrl: https://carrerable.github.io/kdp-engine-demo/
 repoUrl: https://github.com/carrerable/kdp-engine-demo
 ---
@@ -62,6 +66,16 @@ Otro problema recurrente era que el generador de prompts a veces devolvía 32 es
 - Un motor reutilizable de cuatro scripts, con cada volumen definido por un solo archivo de configuración.
 - Diecinueve volúmenes generados, cada uno de 30 páginas a 300 DPI con portada, y uno publicado.
 - Reglas de calidad escritas de vuelta en el motor compartido en lugar de parchadas en un solo libro.
+
+## Qué resuelve y dónde más sirve
+
+Publicar un libro en una plataforma de impresión bajo demanda exige trabajo repetitivo y exacto: decenas de páginas limpias, un archivo de interior y una portada con lomo y zona de código de barras. El motor genera todo eso desde un archivo de configuración por libro, y una persona revisa las páginas antes de publicar algo.
+
+El mismo patrón aplica en otros lugares:
+
+- **Otros productos de impresión bajo demanda:** agendas, diarios, libros de actividades o calendarios producidos en serie.
+- **Documentos personalizados en volumen:** constancias, reportes o folletos generados desde una plantilla más un archivo de datos.
+- **Cualquier flujo de contenido con IA y revisión humana:** creatividades de marketing o imágenes de catálogo donde una persona aprueba antes de publicar.
 
 ## Qué haría distinto
 

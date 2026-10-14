@@ -5,24 +5,29 @@ lang: en
 kind: work
 order: 2
 summary: Moving the history and catalogs of multi-branch customers out of their old systems with a two-step pipeline, dry-run to QA to production, and a reconciliation against the source at every stage.
+pitch: "Moves a customer's years of orders, parts and suppliers out of old spreadsheets and systems into a new platform, rehearsed and checked, so nothing is lost or fixed by hand later."
 role: Implementation & data migration owner (current role)
 period: "May – Sep 2026"
 status: delivered
 stack: [TypeScript, Excel, MySQL, Prisma (read-only schema), Claude Code]
 aiTools: [Claude Code]
 metrics:
-  - label: Historical orders migrated (3 branches)
+  - label: "Past orders from 3 branches moved into production and checked against the original files"
     value: "8,339, 0 errors"
-    source: Production reconciliation, Sep 2026
-  - label: Spare parts loaded (24 accounts)
+    source: "Production reconciliation, Sep 2026"
+    gain: "The customer starts with its full history and nobody corrects records by hand afterwards."
+  - label: "Spare parts loaded into 24 customer accounts"
     value: "5,908"
-    source: Production load, Jul 2026
-  - label: Purchases regenerated into homogenized groups
+    source: "Production load, Jul 2026"
+    gain: "A fleet-maintenance customer can run inventory and costs from day one."
+  - label: "Purchases rebuilt in consistent groups after the first load had errors"
     value: "1,485"
-    source: QA and production, Jul 2026
-  - label: Mobile-unit dry run
+    source: "QA and production, Jul 2026"
+    gain: "A flawed load was redone and verified instead of patched, so the costs can be trusted."
+  - label: "Rows of a mobile-unit file mapped in a rehearsal run that does not touch production"
     value: "58 of 59 rows mapped, 0 errors"
-    source: Dry run, Jul 2026
+    source: "Dry run, Jul 2026"
+    gain: "Problems show up in the rehearsal, before the customer's live data is touched."
 demoUrl: https://carrerable.github.io/migration-reconciliation-demo/
 repoUrl: https://github.com/carrerable/migration-reconciliation-demo
 ---
@@ -74,6 +79,16 @@ QA ran the full cycle: delete, load, verify, delete, before production.
 - 5,908 spare parts loaded across 24 accounts.
 - 1,393 purchases with 7,975 lines from the first load, regenerated as 1,485 homogenized groups.
 - A mobile-unit dry run mapped 58 of 59 rows with 0 errors.
+
+## What it solves and where else it applies
+
+A new customer cannot use a system that starts empty: it needs years of orders, parts and suppliers from its old tools. Moving them by hand is slow, and the errors surface months later. This pipeline moves the data in a rehearsed and checked way, so the customer starts with complete history and the numbers match the source.
+
+Where else the same pattern applies:
+
+- Customer onboarding in any B2B SaaS that must import a client's history from spreadsheets or a previous product.
+- Consolidating systems after a merger or acquisition, where two companies' records must become one without losing history.
+- Switching ERP or CRM, where years of records must move to the new system and be shown to be complete.
 
 ## What I'd do differently
 

@@ -1,0 +1,56 @@
+<svg lang="es" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 372" role="img" aria-labelledby="t d" width="100%" preserveAspectRatio="xMidYMid meet">
+<title id="t">Flujo de la compuerta de liberación QA</title><desc id="d">Un ticket pasa dos compuertas: matriz E2E en QA y luego una verificación en producción. QA reporta el fallo, la evidencia y los pasos, nunca la corrección; los fallos regresan a desarrollo.</desc>
+<style>
+    :root{--dg-fg:#14120f;--dg-mut:#5d574c;--dg-accent:#e8572a;--dg-on-accent:#0e0e10}
+    @media (prefers-color-scheme:dark){:root{--dg-fg:#f4efe6;--dg-mut:#b8b0a0}}
+    .box{fill:none;stroke:var(--dg-fg);stroke-width:1.6}
+    .key{fill:var(--dg-accent);stroke:var(--dg-accent)}
+    .lab{font:700 18px 'Archivo','Helvetica Neue',Arial,sans-serif;fill:var(--dg-fg)}
+    .sub{font:400 13px 'IBM Plex Mono',ui-monospace,Consolas,monospace;fill:var(--dg-mut)}
+    .num{font:500 13px 'IBM Plex Mono',ui-monospace,Consolas,monospace;fill:var(--dg-mut)}
+    .cap{font:500 13px 'IBM Plex Mono',ui-monospace,Consolas,monospace;fill:var(--dg-mut);letter-spacing:.08em}
+    .note{font:500 15px 'IBM Plex Mono',ui-monospace,Consolas,monospace;fill:var(--dg-fg)}
+    .arr{fill:none;stroke:var(--dg-fg);stroke-width:1.6}
+    .elab{font:500 13px 'IBM Plex Mono',ui-monospace,Consolas,monospace;fill:var(--dg-fg)}
+    .on{fill:var(--dg-on-accent)}
+</style>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--dg-fg)"/></marker></defs>
+<text class="cap" x="25" y="30">ARQUITECTURA / QA-RELEASE-GATE</text>
+<path class="arr" d="M215 110 L263 110" marker-end="url(#ah)"/>
+<path class="arr" d="M455 110 L503 110" marker-end="url(#ah)"/>
+<path class="arr" d="M695 110 L743 110" marker-end="url(#ah)"/>
+<path class="arr" d="M840 158 L840 185 L600 185 L600 210" marker-end="url(#ah)"/>
+<text class="elab" x="608" y="203">pasa</text>
+<path class="arr" d="M840 158 L840 210" marker-end="url(#ah)"/>
+<text class="elab" x="848" y="189">falla</text>
+<path class="arr" d="M505 260 L457 260" marker-end="url(#ah)"/>
+<rect class="box" x="25" y="62" width="190" height="96" rx="10"/>
+<text class="num" x="39" y="86">01</text>
+<text class="lab" x="39" y="116">Ticket</text>
+<text class="sub" x="39" y="140">del tablero</text>
+<rect class="box" x="265" y="62" width="190" height="96" rx="10"/>
+<text class="num" x="279" y="86">02</text>
+<text class="lab" x="279" y="116">Matriz E2E</text>
+<text class="sub" x="279" y="140">resumen + casos</text>
+<rect class="box" x="505" y="62" width="190" height="96" rx="10"/>
+<text class="num" x="519" y="86">03</text>
+<text class="lab" x="519" y="116">Corrida QA</text>
+<text class="sub" x="519" y="140">datos de staging</text>
+<rect class="box key" x="745" y="62" width="190" height="96" rx="10"/>
+<text class="num on" x="759" y="86">04</text>
+<text class="lab on" x="759" y="116">Veredicto</text>
+<text class="sub on" x="759" y="140">reporta, no corrige</text>
+<rect class="box" x="505" y="212" width="190" height="96" rx="10"/>
+<text class="num" x="519" y="236">05</text>
+<text class="lab" x="519" y="266">Verif. producción</text>
+<text class="sub" x="519" y="290">volúmenes reales</text>
+<rect class="box" x="265" y="212" width="190" height="96" rx="10"/>
+<text class="num" x="279" y="236">06</text>
+<text class="lab" x="279" y="266">Bitácora</text>
+<text class="sub" x="279" y="290">veredicto registrado</text>
+<rect class="box" x="745" y="212" width="190" height="96" rx="10"/>
+<text class="num" x="759" y="236">07</text>
+<text class="lab" x="759" y="266">Retrabajo</text>
+<text class="sub" x="759" y="290">regresa a desarrollo</text>
+<text class="note" x="25" y="354">Cada etapa se juzga y registra por separado: QA y producción usan criterios distintos.</text>
+</svg>

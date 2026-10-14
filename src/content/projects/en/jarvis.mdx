@@ -5,24 +5,29 @@ lang: en
 kind: project
 order: 12
 summary: A local voice and text assistant that runs on a laptop CPU with no paid APIs. Safety is enforced by code, not by the model, and a fast path answers common requests without calling the LLM.
+pitch: "A voice and text assistant that runs on a laptop with no paid services, and cannot do anything dangerous without a confirmation enforced by code."
 role: Designer & AI-directed developer (personal project)
 period: "Oct 2026"
 status: paused
 stack: [Python, Ollama, faster-whisper, Kokoro, openWakeWord]
 aiTools: [Claude Code, Ollama, faster-whisper, Kokoro, openWakeWord, Silero VAD]
 metrics:
-  - label: Intents answered without an LLM
+  - label: "Common requests answered by plain code, with no AI model call"
     value: "13"
-    source: Project status file, 2026-10-13
-  - label: Router test suite
-    value: 47/47
-    source: Project status file, 2026-10-13
-  - label: Latency, fast path
-    value: 2.7 s
-    source: Latency test, 2026-10-13
-  - label: Latency, LLM with streaming
-    value: 8.6 s
-    source: Latency test, 2026-10-13
+    source: "Project status file, 2026-10-13"
+    gain: "Routine requests get fast, free and predictable answers"
+  - label: "Automated tests passing on the request router"
+    value: "47/47"
+    source: "Project status file, 2026-10-13"
+    gain: "The rules that decide where each request goes, safety rules included, are checked on every change"
+  - label: "Response time for routine requests (fast path)"
+    value: "2.7 s"
+    source: "Latency test, 2026-10-13"
+    gain: "Everyday commands are answered in under 3 seconds on a laptop processor"
+  - label: "Response time when the AI model must answer (target 6.0 s, missed)"
+    value: "8.6 s"
+    source: "Latency test, 2026-10-13"
+    gain: "An honest measurement that shows where the next optimization is needed"
 demoUrl: https://carrerable.github.io/jarvis-safety-router-demo/
 repoUrl: https://github.com/carrerable/jarvis-safety-router-demo
 ---
@@ -66,6 +71,16 @@ I also record what does not pass. The fixed fast path (2.7 s) meets its 3.5 s ta
 - Fast path: 2.7 s. LLM with streaming: 8.6 s, missing the target.
 - Brain test 8/8, with every safety case passing.
 - Four tool groups (general, project status, music, projects), each tool tagged safe or dangerous, with the command catalog restricted to a closed list of actions.
+
+## What it solves and where else it applies
+
+AI assistants are slow, cost money per request and can be talked into doing harmful things. JARVIS answers routine requests with plain code, calls the language model only when needed, and enforces confirmation for risky actions in code, not in a prompt the model could ignore. It runs locally, so nothing leaves the machine.
+
+The same pattern applies in other places:
+
+- **Customer support or help desks:** answer common questions with rules and send only the hard ones to the AI model, which cuts cost and wait time.
+- **Assistants that handle sensitive data:** legal, health or finance teams that cannot send information to external services.
+- **AI agents that operate internal systems:** IT or operations automation where dangerous actions need an approval gate that the model cannot skip.
 
 ## What I'd do differently
 

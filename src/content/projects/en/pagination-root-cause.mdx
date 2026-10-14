@@ -5,24 +5,29 @@ lang: en
 kind: work
 order: 3
 summary: A dry run counted about 3,400 service packages when 11,934 existed. Tracing the mismatch to unordered pagination, and to nulls the first filter dropped, made a bulk cost correction safe.
+pitch: "A rehearsal count that was off by a factor of three exposed a hidden data-reading bug before a bulk correction ran, so thousands of wrong costs were fixed without missing or repeating any."
 role: Correction owner & verifier (current role)
 period: "May – Jun 2026"
 status: delivered
 stack: [TypeScript, MySQL, Claude Code]
 aiTools: [Claude Code]
 metrics:
-  - label: Packages counted by the unordered dry run vs real
+  - label: "Packages the rehearsal run counted vs the real total (it saw less than a third)"
     value: "about 3,400 vs 11,934"
-    source: Dry run vs production count, Jun 2026
-  - label: Null-valued records the first filter excluded
+    source: "Dry run vs production count, Jun 2026"
+    gain: "The mismatch was caught before any data changed, so the bulk fix never ran on a wrong count."
+  - label: "Records a filter silently left out because their value was empty"
     value: "about 8,506"
-    source: Production check, Jun 2026
-  - label: Labor concepts corrected
+    source: "Production check, Jun 2026"
+    gain: "The correction reached every affected record, not just most of them."
+  - label: "Labor-cost records corrected in one controlled bulk update"
     value: "about 21,539"
-    source: Production validation, 4 Jun 2026
-  - label: Service packages corrected
+    source: "Production validation, 4 Jun 2026"
+    gain: "Shops with wrong costs got them fixed without anyone editing thousands of records by hand."
+  - label: "Service packages corrected, matching the real total"
     value: "about 11,934"
-    source: Production validation, 4 Jun 2026
+    source: "Production validation, 4 Jun 2026"
+    gain: "The final count equals the real number, so nothing was skipped."
 demoUrl: https://carrerable.github.io/pagination-bug-demo/
 repoUrl: https://github.com/carrerable/pagination-bug-demo
 ---
@@ -62,6 +67,16 @@ The single-use marker and the account restriction came from the same thinking as
 - The dry-run count went from about 3,400 to the real 11,934 packages once pagination was ordered.
 - About 8,506 null-valued records that the first filter excluded were included.
 - About 21,539 labor concepts and about 11,934 service packages corrected (about 17,799 embedded concepts), validated in production on 4 June 2026.
+
+## What it solves and where else it applies
+
+Before changing thousands of records at once, the count of what will change has to be right. A reading bug made the rehearsal see less than a third of the real data. Finding why, instead of tuning the filter until the number looked plausible, kept a bulk write from leaving most records wrong.
+
+Where else the same pattern applies:
+
+- Any bulk update of customer, price or billing data, where nothing should be written until the expected count is explained.
+- Reports and exports that read data page by page, in finance, e-commerce catalogs or health records, where totals can shrink without any error message.
+- Data-quality checks before an ERP or database migration.
 
 ## What I'd do differently
 

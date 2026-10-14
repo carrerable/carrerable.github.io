@@ -5,24 +5,29 @@ lang: en
 kind: project
 order: 10
 summary: Multi-tenant SaaS for veterinary clinics, built with AI-directed architecture. Pre-revenue; production-ready; maintenance mode.
+pitch: "One system for a veterinary clinic's appointments, records, inventory, billing and owner notifications, with each clinic's data isolated from every other clinic's."
 role: Product & Software Architect (independent project)
 period: "Aug 2026 – present"
 status: production
 stack: [TypeScript, NestJS, Next.js, PostgreSQL, Prisma, Playwright]
 aiTools: [Claude Code, ElevenLabs, Playwright]
 metrics:
-  - label: Data models (Prisma)
+  - label: "Data tables modeled: the whole clinic operation, not just appointments"
     value: "137"
-    source: Counted on the schema, 2026-10-13
-  - label: Migrations
+    source: "Counted on the schema, 2026-10-13"
+    gain: "One product covers agenda, records, inventory, billing and more, so a clinic does not need several tools"
+  - label: "Versioned database changes (migrations)"
     value: "96"
-    source: Counted on disk, 2026-10-13
-  - label: End-to-end smoke tests
+    source: "Counted on disk, 2026-10-13"
+    gain: "Every change to the data structure is tracked and repeatable, so the product can keep evolving"
+  - label: "Automated end-to-end checks that run real product flows"
     value: "107"
-    source: Counted on disk, 2026-10-13
-  - label: REST route decorators
+    source: "Counted on disk, 2026-10-13"
+    gain: "Changes are tested against real workflows before they can reach a clinic"
+  - label: "API operations that other systems can call"
     value: "722"
-    source: Counted in the API source, 2026-10-13
+    source: "Counted in the API source, 2026-10-13"
+    gain: "Integrations (accounting, messaging, partners) have a ready surface to connect to"
 demoUrl: https://carrerable.github.io/vetnova-demo/
 repoUrl: https://github.com/carrerable/vetnova-demo
 ---
@@ -68,6 +73,16 @@ I also recount. The status file said 118 pages; the disk says 117, so 117 is wha
 - 125 tables carry a tenant identifier and are covered by RLS.
 - In production since 7 September 2026; frozen since 21 September; pre-revenue.
 - A cheap, fast lesson on paid acquisition: ten days of Google Ads produced no sign-ups and one finding worth keeping about how to read channel data.
+
+## What it solves and where else it applies
+
+A veterinary clinic runs appointments, clinical records, prescriptions, inventory, sales and tax invoices. VetNova puts all of that in one product, and the database itself keeps each clinic's data apart from every other clinic's, so one forgotten filter in the code cannot leak records.
+
+The same patterns apply in other places:
+
+- **Other appointment-and-records businesses:** dental, physiotherapy or human-health clinics need the same mix of agenda, records, inventory and billing.
+- **Any B2B software sold to many customers:** database-level isolation per customer fits CRMs, school systems or HR tools where one customer must never see another's data.
+- **Businesses that must issue tax invoices in Mexico:** the e-invoicing (CFDI 4.0) integration pattern applies to retail, services or any billing system.
 
 ## What I'd do differently
 
