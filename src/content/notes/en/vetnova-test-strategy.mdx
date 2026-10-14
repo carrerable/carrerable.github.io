@@ -1,0 +1,83 @@
+---
+title: "Test strategy: VetNova"
+slug: "vetnova-test-strategy"
+lang: "en"
+type: "test-strategy"
+order: 5
+summary: "What gets tested in a multi-tenant clinic SaaS run by one person directing an AI agent: the layers of the pyramid, what stays manual on purpose, a risk matrix and the known gaps."
+date: "2026-10-14"
+project: "vetnova"
+tags: ["VetNova", "QA", "testing", "risk"]
+---
+
+This is the test strategy I use for VetNova, a multi-tenant SaaS for veterinary clinics. I write the specifications and the rules, an AI agent writes the code, and I verify the result. That split shapes the strategy: the checks have to be cheap to run, impossible to fake and honest about what they do not cover.
+
+## Scope
+
+The strategy covers the whole product: the API, the web application, the database and the integrations (tax e-invoicing, payments, WhatsApp and email notifications, text-to-speech for tutorials). The product has five interface languages, and 125 tables carry a tenant identifier and sit under row-level security.
+
+Anonymized: no clinic, user or customer data appears here. Every check below runs against test data.
+
+Two rules frame everything else:
+
+- A check has to be able to fail. Before I trust a gate, I break the thing it guards and watch the gate go red.
+- Every number a check asserts is a concrete number. A route that answers 200 proves it answered, not that it answered correctly.
+
+## The test pyramid
+
+The layers go from the cheapest and fastest at the bottom to the most expensive at the top. Most of the weight is in the lower layers, where a failure is cheap to find and cheap to fix.
+
+| Layer | What | When it runs | What it catches |
+|---|---|---|---|
+| 1. Static | Type check and build; i18n key and coverage review in the 5 languages, which also checks that ICU variables match the Spanish source; a check that crosses every CSS class in use against the generated CSS; a static guardrail that classifies tables carrying a tenant identifier; an integration gate that crosses cross-cutting registries (languages, tutorials, navigation, features, permissions, and events announced with no emitter) | Before every change is accepted | Type errors, missing translations, mismatched variables, classes that do not exist, a table with no isolation decision, a feature registered in one place and forgotten in another |
+| 2. Library | A bank of assistant questions, written the way someone would ask them at the front desk | When the assistant changes | Questions that land on the wrong intent, and a search that answers when it should stay silent about things that are not in the app |
+| 3. API end to end | 107 smoke scripts that call real product flows; a runner that executes them one by one and returns a summary and an exit code; an RLS test script; a backup-restore test script | Before a release candidate, and after any change to the data layer | Broken flows, tenant leaks, backups that exist but cannot be restored |
+| 4. UI | Visual QA with Playwright at several widths in light and dark themes; Lighthouse with a budget on the public pages, always against the production build; a QA mode that serves the production build locally for the rounds | Before a release candidate | Layout breaks, contrast problems, slow public pages, differences between development and production |
+| 5. Manual rounds | Written QA rounds, each with a findings table; three rounds for the first release candidate | Before a release candidate | What no script was written to look for |
+
+Two details are deliberate. The Lighthouse run never points at the development server, because a score from it means nothing; the QA mode exists so every round runs against the build that will ship. And the static layer gets the most investment, because it runs without a database or a server: when someone adds a table, the guardrail forces a decision about isolation.
+
+## What is automated and what is not
+
+Some things stay manual on purpose. The reason is not laziness: a script that pretends to cover them would give false confidence.
+
+- **Tax correctness of the e-invoice (CFDI).** The provider's test mode accepts what the tax authority would reject, so a green run proves the integration answers, not that the invoice is valid.
+- **The payment circuit, end to end.** The live payment account has never processed a real charge. I have documented that instead of hiding it.
+- **Human usability testing.** A script cannot tell me that a screen is confusing.
+- **Real WhatsApp delivery.** A send is a single attempt with a short timeout, so the automated check can confirm the attempt, not the delivery.
+
+One rule covers the opposite risk, the false sense of coverage: **a route that no smoke calls is untested**, even when the suite is green. The multi-invoice endpoint answered 409 to everything until a smoke finally called it. Before a release candidate, compare the list of routes against the list of routes the smokes touch.
+
+## Risk matrix
+
+I rate each area on a scale of 1 to 3 for likelihood and for impact, and the score is likelihood times impact. These are my own ratings, made by one person. They are a way to decide where to spend the next hour of testing, not a measurement.
+
+| Area | Likelihood | Impact | Score | Coverage | Residual risk |
+|---|---|---|---|---|---|
+| Tenant isolation | 1 | 3 | 3 | RLS in the database, the static table guardrail, the RLS test script, the app connecting as a non-owner role | Low. The database fails closed, but a new kind of table needs a human decision |
+| CFDI billing | 2 | 3 | 6 | Smokes against the provider's test mode | High. The test mode does not prove tax correctness, and a human review is still required |
+| Payments | 2 | 3 | 6 | Smokes on the payment flows, without a real charge | High. The full circuit has never processed a real charge |
+| Schema and migrations | 3 | 2 | 6 | Hand-written SQL migrations, applied with deploy only, plus the backup-restore script | Medium. The schema file and the real database differ by 97 items in 33 tables, so migrate dev is never run |
+| WhatsApp notifications | 2 | 1 | 2 | Attempt-level smoke | Low. A send is a single attempt, and a failed send is accepted |
+| i18n and a stale API | 2 | 2 | 4 | Key and variable checks in 5 languages; the rule to confirm the API serves today's code | Medium. A smoke run against an old API gives a wrong verdict |
+
+## Three warnings that never expire
+
+These sit at the top of the project status file. Each one came from a real failure, and each one is a rule I follow before reading any result.
+
+1. **Check that the API is serving today's code before calling a smoke red.** A stale API makes a healthy suite look broken and a broken one look healthy.
+2. **A green smoke does not prove tax correctness.** The provider's test mode is more permissive than the tax authority.
+3. **A route that no smoke calls is not tested, even when the suite is green.** The multi-invoice endpoint is the example I keep in mind.
+
+I also recount. A status file said 118 pages; the disk said 117, so 117 is the number I publish. A test strategy that quotes counts it has not checked is a marketing document.
+
+## Known gaps
+
+I would rather list the gaps than be asked about them.
+
+- **No continuous integration.** The gates are local, which is exactly why the three warnings above exist. I would add CI the way I did in REYBER, where the isolation tests, the data dictionary check and the API smoke tests run on every push.
+- **The payment circuit** has never been exercised end to end with a real charge.
+- **CFDI correctness** is not verified against the tax authority, only against the provider's test mode.
+- **Human usability testing** has not been done. The manual rounds are run by the same person who directs the build, so they share its blind spots.
+
+For the product itself, see the [VetNova case study](/en/projects/vetnova/). For why the isolation lives in the database, see [ADR-002: tenant isolation](/en/notes/adr-002-tenant-isolation/).

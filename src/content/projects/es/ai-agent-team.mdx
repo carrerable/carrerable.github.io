@@ -1,0 +1,107 @@
+---
+title: Dirigir un equipo de agentes de IA
+slug: ai-agent-team
+lang: es
+kind: project
+order: 13
+summary: "Cómo reparto el trabajo de ingeniería entre agentes de IA según dificultad y costo: un planificador que no edita, un ejecutor que sigue planes al pie de la letra, un explorador de solo lectura y un panel local."
+pitch: "Más trabajo de ingeniería con agentes de IA sin perder el control: cada tarea tiene un plan escrito, un paso de verificación y un responsable visible."
+role: Diseñador y operador (herramientas propias)
+period: "2026"
+status: production
+stack: [Claude Code, Python, SQLite, HTML]
+aiTools: [Claude Code]
+metrics:
+  - label: "Roles de agente, cada uno fijado a un modelo según dificultad y costo (planear, ejecutar, explorar)"
+    value: "3"
+    source: "Definiciones de los agentes, 2026-10-14"
+    gain: "Los modelos caros solo donde hace falta criterio; el trabajo rutinario corre en modelos más baratos."
+  - label: "Secciones que debe tener todo plan antes de que un agente lo ejecute"
+    value: "9"
+    source: "Reglas de planeación, 2026-10-14"
+    gain: "Un modelo más sencillo puede ejecutar el plan sin adivinar, y cada paso dice cómo verificarse."
+  - label: "Eventos de sesión que el panel registra mediante hooks"
+    value: "5"
+    source: "Configuración de hooks, 2026-10-14"
+    gain: "Cualquiera puede ver qué agente trabaja, en qué y qué tan avanzado va."
+  - label: "Commits con coautoría de IA en mi repositorio de trabajo, de un total de 243"
+    value: "71"
+    source: "Historial del repositorio de trabajo, oct 2026"
+    gain: "Lo que produce la IA pasa por la misma revisión e historial que cualquier otro cambio."
+demoUrl: https://carrerable.github.io/agent-panel-demo/
+repoUrl: https://github.com/carrerable/agent-panel-demo
+---
+
+## Contexto
+
+Los agentes de IA para programar son rápidos, y ese es justo el problema. Si se les deja solos con una petición vaga, escriben mucho código muy rápido y luego descubro que era el código equivocado. Usar el modelo más potente para todo también es un desperdicio: la mayor parte del trabajo de ingeniería es mecánico, como editar un archivo, correr una prueba o buscar en un log.
+
+Por eso armé mi propio sistema de trabajo alrededor de Claude Code. El trabajo se reparte por dificultad y costo entre agentes especializados, cada tarea tiene un plan escrito antes de que alguien la ejecute, y un panel local pequeño muestra qué agente trabaja en qué. Es una herramienta personal que uso todos los días, y la demo muestra el panel solo con datos ficticios.
+
+## Mi rol
+
+- **Decidí:** los tres roles de agente y qué modelo usa cada uno, qué puede tocar cada rol, el formato que debe seguir todo plan, y qué registra el panel y qué deja fuera a propósito.
+- **Verifiqué:** que cada plan lo pueda ejecutar alguien que solo tiene el plan y el repositorio, que cada paso tenga una comprobación que yo pueda leer, y que el panel muestre el estado real de una sesión y no una suposición.
+- **Delegué a la IA:** la ejecución de planes aprobados, las búsquedas en código y logs, y la mayor parte del código del panel. Los agentes escriben; yo soy dueño del plan, de las reglas y de la decisión de aceptar el resultado.
+
+## Investigación
+
+La pregunta de partida fue dónde un modelo caro justifica su costo. Clasifiqué mi trabajo diario en tres tipos de tarea. El primero requiere criterio: planear un cambio, elegir una arquitectura, investigar un bug difícil. El segundo ejecuta una decisión ya tomada: edita estos archivos, corre esta verificación, reporta qué pasó. El tercero encuentra cosas: localizar una función, leer un log, resumir una carpeta.
+
+Cada tipo corresponde a un nivel distinto de modelo y esfuerzo: el criterio al modelo más potente, la ejecución a uno intermedio y la búsqueda al más barato. Es la misma división que uso en el trabajo, donde la sesión principal planea y decide y la ejecución pesada va a subagentes especializados: uno que ejecuta planes aprobados, uno que valida en navegador, uno para tareas mecánicas y uno para exploración.
+
+También revisé qué se rompe cuando un modelo sencillo ejecuta un plan escrito por uno más potente. Las fallas eran casi siempre ambigüedad: un paso con dos lecturas posibles, una ruta de archivo faltante, ninguna instrucción para una verificación fallida. Eso dio forma al formato de plan de abajo.
+
+## Decisiones
+
+| Decisión | Alternativas descartadas | Por qué |
+|---|---|---|
+| Tres roles con un modelo fijo cada uno: planificador en el modelo más potente, ejecutor en uno intermedio, explorador en el más barato | Un solo modelo para todo | El criterio es escaso y caro; la ejecución y la búsqueda son frecuentes y baratas. Fijar el modelo en la definición del agente evita que alguien tenga que acordarse de elegirlo. |
+| El planificador no tiene herramientas de edición | Un planificador que también edita archivos | Su único producto es un plan, así que no puede cambiar el código. Así el plan y la ejecución se revisan como dos cosas separadas. |
+| Planes de nueve secciones obligatorias, con una línea "Si falla" en cada paso | Planes libres | Un plan libre deja que un paso esconda una suposición. Con un formato fijo, un modelo más sencillo ejecuta sin interpretar, y un paso sin verificación se nota incompleto. |
+| El panel lee eventos de hook a SQLite y solo sirve en 127.0.0.1 | Un tablero alojado en la nube | Los datos de las sesiones no salen de la máquina. No hay nada que desplegar, ni cuenta, ni exposición a la red. |
+| El registrador nunca rompe la sesión: cualquier error va a un log y el proceso sale con código 0 | Fallar en voz alta | El panel es una comodidad. Una herramienta de monitoreo que puede tumbar el trabajo que vigila es peor que no tenerla. |
+| El avance es pasos completados entre pasos totales | Estimaciones de tiempo | Los pasos se cuentan, no se adivinan. Un porcentaje calculado con marcas reales no se aleja de la realidad como lo hace una estimación. |
+
+## Validación y QA
+
+El formato de plan tiene nueve secciones, en este orden: Objetivo, Resultado esperado, Contexto, Restricciones, Fuera de alcance, Pasos, Registro, Riesgos y reversión, y Dudas abiertas. Cada paso lleva cuatro campos: la acción con el archivo y el cambio exactos, de qué depende, la verificación con la salida esperada, y qué hacer si falla. Si hay una duda abierta que solo yo puedo resolver, el plan no se ejecuta hasta que la responda.
+
+Antes de entregar un plan, el planificador hace una comprobación final de su propio trabajo: ¿podría alguien que solo tiene el plan y el repositorio ejecutar cada paso? Si algún paso no pasa esa pregunta, el planificador corrige el plan antes de entregarlo.
+
+El ejecutor registra cada paso como tarea, lo marca en curso al empezarlo y completado solo cuando la verificación pasa. Si una verificación falla, aplica la instrucción "Si falla"; si no hay ninguna, o la corrección lo sacaría del plan, se detiene y reporta. Al final devuelve los pasos hechos, la salida real de cada verificación, los desvíos y los archivos tocados.
+
+Las reglas de cada proyecto mandan sobre las globales; por ejemplo, un proyecto puede exigir comprobar que la computadora esté libre antes de algo pesado. Las preguntas cortas y los cambios de una línea no se delegan: los hago directamente.
+
+El panel es un script registrador pequeño alimentado por hooks, un servidor local y una página HTML. El registrador lee del prompt de cada delegación las líneas de objetivo, dependencia y siguiente paso, toma el modelo de la definición del agente y guarda sesiones, agentes y pasos en SQLite. Un paso cuenta solo cuando se marca como completado, así que el porcentaje en pantalla es el que yo calcularía a mano.
+
+## Resultados
+
+- Tres roles de agente están en uso diario, cada uno fijado a un modelo según dificultad y costo.
+- Todo plan sigue las mismas nueve secciones, y cada paso dice cómo verificarse.
+- Cinco eventos de hook alimentan el panel: inicio de sesión, antes y después de una llamada a herramienta, y el inicio y el fin de un subagente.
+- El panel sirve en 127.0.0.1 en el puerto 8765 y se refresca cada 2 segundos. Marca a un agente como perdido después de 6 horas abierto y borra los terminados después de 24 horas, para que el tablero siga legible.
+- Hay 76 sesiones registradas, y 71 de mis 243 commits en el repositorio de trabajo tienen coautoría de un modelo de IA.
+- Un hook escribe cada sesión en una bitácora semanal, y otro reescribe una petición informal como prompt estructurado.
+
+No publico una cifra de dinero o tiempo ahorrado, porque no la he medido de una forma que yo defendería.
+
+## Qué resuelve y dónde más sirve
+
+Resuelve la pérdida de control que trae la producción rápida de la IA. Como cada tarea tiene un plan, una verificación y un responsable visible, siempre puedo contestar qué se está haciendo, qué agente lo hace y cómo sé que funcionó.
+
+El mismo patrón sirve en otros lugares:
+
+- **Equipos de ingeniería que adoptan asistentes de IA:** separar planear de ejecutar, para que aprobar un plan sea un acto distinto de escribir el código.
+- **Automatización de operaciones y soporte:** un planificador define los pasos y un ejecutor los corre, con una condición de paro en cada paso.
+- **Cualquier flujo que mezcle trabajo difícil y rutinario:** pagar el modelo fuerte solo donde hace falta criterio.
+
+## Qué haría distinto
+
+El almacén es por máquina. Un equipo necesitaría uno compartido, con identidad y permisos, y eso es un diseño distinto al de un archivo local.
+
+El avance cuenta pasos, no esfuerzo. Dos planes con el mismo número de pasos muestran el mismo porcentaje aunque uno sea mucho más grande.
+
+El panel no alerta. Tengo que mirarlo. Un aviso cuando un agente se pierde o un paso lleva mucho tiempo atorado lo convertiría de pantalla en red de seguridad.
+
+Y todavía no mido cuántos planes obligaron al ejecutor a detenerse. Ese número mostraría qué planes eran ambiguos, así que lo registraría primero.

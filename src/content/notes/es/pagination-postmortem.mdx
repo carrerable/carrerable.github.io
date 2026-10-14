@@ -1,0 +1,86 @@
+---
+title: "Postmortem: un ensayo que vio menos de un tercio de los datos"
+slug: "pagination-postmortem"
+lang: "es"
+type: "postmortem"
+order: 30
+summary: "Revisión sin culpables de una corrección masiva cuyo ensayo contó unos 3,400 paquetes cuando existían 11,934: causa raíz, factores que contribuyeron y los controles que salieron de ella."
+date: "2026-06-04"
+project: "pagination-root-cause"
+tags: ["postmortem", "SQL", "calidad de datos", "causa raíz"]
+---
+
+Esta revisión es sin culpables. Su meta es corregir el sistema que dejó existir el problema, no señalar a una persona. Cada frase describe lo que el proceso permitió, lo que detectó el problema y lo que cambia para que el mismo hueco no se vuelva a abrir. El incidente ocurrió en un SaaS B2B para talleres mecánicos (mi puesto actual), y nada aquí nombra a un cliente.
+
+## Resumen
+
+Un cambio en la fórmula de costo de mano de obra en mayo de 2026 dejó costos incorrectos en los talleres que usaban el campo de cantidad para ajustar el costo. Hacía falta una corrección masiva sobre miles de registros. Antes de escribir nada, el dry-run contó unos 3,400 paquetes de servicio, mientras que producción tenía 11,934. El ensayo había visto menos de un tercio de los datos reales.
+
+El hueco se rastreó hasta lecturas paginadas sin `ORDER BY` sobre una llave única. Justo después de la primera corrección apareció un segundo problema: unos 8,506 registros con valor nulo quedaban fuera del primer filtro, aunque el front-end los trata como válidos. Se corrigieron los dos, los conteos cuadraron y la corrección se validó en producción el 4 de junio de 2026.
+
+## Impacto
+
+Ningún dato se escribió mal por este bug. Se detectó en el dry-run, antes de que corriera cualquier escritura.
+
+Sin esa detección, la corrección habría corrido sobre una vista parcial de los datos y habría dejado sin corregir a la mayoría de los registros afectados, mientras la salida parecía una corrida normal y exitosa. El costo del problema fue el tiempo de investigación, no datos dañados.
+
+## Línea de tiempo
+
+Solo se listan los momentos que están documentados. No hay horas ni fechas intermedias.
+
+| Cuándo | Qué pasó |
+|---|---|
+| Mayo de 2026 | Cambia la fórmula de costo de mano de obra. Los talleres que usaban el campo de cantidad para ajustar el costo quedan con costos incorrectos y se planea una corrección masiva. |
+| Primer dry-run | El script reporta unos 3,400 paquetes de servicio. El total real es 11,934, unas 3.5 veces más. La corrección se detiene hasta poder explicar el conteo. |
+| Investigación | Las consultas escritas por la IA muestran que el script lee página tras página sin un orden estable, así que las páginas repiten o saltan filas y el total se encoge sin avisar. Ordenar las lecturas por una llave única es la primera corrección. |
+| Justo después de la primera corrección | Aparece un segundo hueco: unos 8,506 registros con valor nulo quedan fuera del primer filtro. El filtro cambia para tratar los nulos como lo hace el front-end. |
+| 4 de jun de 2026 | Se validan los conteos finales en producción: unos 21,539 conceptos de mano de obra, unos 11,934 paquetes de servicio y unos 17,799 conceptos embebidos. |
+
+## Causa raíz
+
+El script leía los datos por páginas sin un `ORDER BY` sobre una llave única. Una base de datos relacional no promete ningún orden de filas si la consulta no lo pide, así que cada petición de página puede devolver las filas en un orden distinto al de la anterior. Entonces una fila aparece en dos páginas o en ninguna, y el total se encoge sin ningún mensaje de error.
+
+```sql
+-- Ejemplo ilustrativo, no es la consulta de producción.
+-- Inseguro: sin orden, los límites de página no son estables.
+SELECT id, cost FROM service_packages WHERE active = 1 LIMIT 500 OFFSET 1000;
+
+-- Seguro: una llave única da a cada página un límite estable.
+SELECT id, cost FROM service_packages WHERE active = 1 ORDER BY id LIMIT 500 OFFSET 1000;
+```
+
+En una tabla chica la base de datos suele devolver las filas en un orden estable por casualidad, así que el bug es invisible en pruebas pequeñas y aparece solo a escala. Por eso era fácil de escribir y difícil de ver.
+
+## Factores que contribuyeron
+
+- **El dry-run confiaba en su propio conteo.** No tenía con qué compararse, así que un número equivocado parecía un resultado.
+- **La semántica de los nulos difería entre capas.** El primer filtro excluía los valores nulos, mientras que el front-end los trata como válidos. Las reglas de la corrección y la aplicación no coincidían en qué es un registro válido.
+- **Una escritura masiva no tiene un deshacer natural.** El cambio era de una sola ejecución por naturaleza, así que una segunda corrida duplicaría el efecto. Eso subía el costo de equivocarse con el conteo.
+- **La paginación se equivoca en silencio con facilidad.** La falla no es un error. Es un número más chico.
+- **La lista de revisión no tenía un punto sobre el orden.** Nada preguntaba si una lectura paginada tenía un orden estable.
+
+## Qué salió bien
+
+- El dry-run se revisó antes de cualquier escritura, y la revisión comparó el conteo con el total real.
+- Cuando los números no cuadraron, la respuesta fue pedir una investigación en lugar de ajustar el filtro hasta que la cifra pareciera razonable.
+- La IA escribió el script y las consultas de investigación. Yo noté que los números no cuadraban y pedí la causa raíz, así que la revisión humana y la velocidad de la máquina trabajaron juntas.
+- Las reglas de la corrección eran explícitas: solo registros anteriores al cambio de fórmula, activos y con costo.
+- El script se marcó como de una sola ejecución, con una opción para restringirlo a una cuenta.
+- Nada se escribió con el conteo equivocado.
+
+## Qué salió mal
+
+- El hueco se encontró mirando la salida, no porque una verificación fallara sola. Un revisor que no comparara los dos números lo habría pasado por alto.
+- Un segundo problema de filtrado, los nulos, apareció solo después de la primera corrección, así que la investigación tomó dos rondas en lugar de una.
+- El proceso dependía de que alguien se acordara de comparar el conteo del dry-run con el total real.
+
+## Acciones
+
+| Acción | Tipo | Estado |
+|---|---|---|
+| El dry-run compara su conteo con un conteo independiente sin paginar y se detiene si difieren. | detectar | Propuesta |
+| Una casilla sobre `ORDER BY` en cada lectura paginada, en la revisión de código. | prevenir | Agregada al [playbook de ingeniería](/es/notes/engineering-playbook/) |
+| Los filtros replican la semántica de nulos del front-end. | prevenir | Hecho en esta corrección |
+| Una marca de un solo uso y una restricción a una cuenta. | prevenir | Hecho en esta corrección |
+
+Lecturas relacionadas: el [caso](/es/projects/pagination-root-cause/), el artículo [Paginación sin ORDER BY](/es/notes/pagination-without-order-by/) y la [demo en vivo con datos sintéticos](https://carrerable.github.io/pagination-bug-demo/).

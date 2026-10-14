@@ -1,0 +1,105 @@
+---
+title: "La regla de seguridad va en el código, no en el prompt"
+slug: "safety-rules-in-code"
+lang: "es"
+type: "article"
+order: 42
+summary: "Un prompt es una petición, no una garantía. Cómo un asistente local rechaza acciones peligrosas en código, por qué algunas herramientas no deben existir y cómo probarlo con el modelo real."
+date: "2026-10-14"
+project: "jarvis"
+tags: ["agentes de IA", "LLM", "seguridad", "Python"]
+---
+
+## Un prompt es una petición
+
+La forma más fácil de hacer seguro a un asistente de IA es decírselo. "Nunca borres archivos sin preguntarle antes al usuario." Parece una regla. No lo es. Es una frase dentro de una petición, y el modelo que la lee es el mismo componente que te preocupa. Puede malinterpretarla, olvidarla en una conversación larga o dejarse convencer por un usuario persuasivo, confundido o que simplemente escribe algo raro.
+
+Me topé con esto al construir JARVIS, un asistente local que uso por texto y por voz en mi propia laptop. Consulta la PC y mis proyectos mediante herramientas, y responde en voz alta. Como puede actuar, la pregunta no es si el modelo es educado. La pregunta es qué pasa en la ejecución en la que no lo es.
+
+Mi respuesta es una regla que aplico a todo agente que dirijo: una propiedad de seguridad que importa debe cumplirse aunque el modelo ignore todas las instrucciones que le di. Si solo se cumple cuando el modelo coopera, es una preferencia. La regla tiene que vivir en código que el modelo no pueda editar, saltarse ni negociar. El registro de la decisión está en [ADR-003](/es/notes/adr-003-safety-in-code/); el caso de estudio es [JARVIS](/es/projects/jarvis/).
+
+## El patrón
+
+Cada herramienta lleva una etiqueta de riesgo, y la etiqueta es un dato, no prosa. La función que ejecuta las herramientas la revisa. El modelo puede pedir lo que sea; el ejecutor decide. Este es un esbozo ilustrativo, no el código del proyecto.
+
+```python
+# ilustrativo, no es el código del proyecto
+from dataclasses import dataclass
+from typing import Callable
+
+@dataclass(frozen=True)
+class Tool:
+    name: str
+    run: Callable[..., str]
+    risk: str  # "safe" o "dangerous"
+
+REGISTRY: dict[str, Tool] = {}
+
+def register(name, run, risk):
+    REGISTRY[name] = Tool(name, run, risk)
+
+def execute(name, args, confirmed=False):
+    tool = REGISTRY.get(name)
+    if tool is None:
+        return "rechazado: herramienta desconocida"
+    if tool.risk == "dangerous" and not confirmed:
+        return "rechazado: requiere confirmación explícita"
+    return tool.run(**args)
+```
+
+Fíjate dónde está la revisión. No está en el prompt ni en la salida del modelo. Está en `execute()`, la única puerta hacia las herramientas. La bandera `confirmed` la activa la aplicación cuando la persona responde a una pregunta de confirmación, nunca el modelo. Si el modelo emite una llamada a una herramienta peligrosa, la llamada llega a la puerta y se le niega el paso. El peor caso es un mensaje de rechazo, no un archivo borrado.
+
+Dos detalles lo hacen más fuerte de lo que parece. Un nombre de herramienta desconocido se rechaza, así que inventar una herramienta no lleva al modelo a ningún lado. Y la etiqueta de riesgo queda congelada en la herramienta al registrarla, de modo que ningún texto en tiempo de ejecución puede cambiarla.
+
+## Herramientas que no deben existir
+
+Una puerta de confirmación sirve para acciones que a veces son legítimas. Para otras acciones el mejor diseño es no tener ninguna herramienta.
+
+En JARVIS las acciones destructivas no existen como herramientas: borrar o mover archivos, una consola general, publicar y leer archivos secretos. No hay nada que confirmar porque no hay nada que llamar. Un modelo engañado para pedirlas recibe un rechazo por herramienta desconocida, y quien las quiere las hace a mano, fuera del asistente.
+
+Me parece la técnica de seguridad más subestimada. Cada herramienta que registras es superficie de ataque y un bug futuro. Antes de preguntar "¿cómo protejo esta acción?", pregunta "¿el asistente necesita esta acción?". Para un asistente personal que responde sobre mi máquina y mis proyectos, la respuesta para estas cuatro fue no. La protección más barata es una función que no existe.
+
+La misma idea aplica al catálogo de comandos: es una lista cerrada de acciones permitidas, no texto libre que se interpreta. Si una petición no está en la lista, no es una acción.
+
+## Una ruta rápida antes del modelo
+
+Poner reglas en código tiene un segundo beneficio que no es de seguridad: velocidad y predecibilidad. Muchas peticiones no necesitan un modelo de lenguaje. La hora, la fecha, el estado del sistema y una lista de reproducción son consultas.
+
+JARVIS intenta cuatro cosas en orden: un atajo, luego un catálogo de comandos, luego 13 intenciones reconocidas por código simple, y solo después el modelo. Las palabras de riesgo y las negaciones siempre van al modelo, nunca a la ruta rápida, porque son justo las frases donde un reconocedor simple se deja engañar.
+
+Las cifras son honestas en los dos sentidos. La ruta rápida responde en 2.7 s. Cuando el modelo tiene que responder, con streaming, tarda 8.6 s contra una meta de 6.0 s, que no cumplí y lo digo. Las peticiones rutinarias reciben respuestas rápidas, gratis y predecibles; el componente lento e incierto se usa solo cuando la petición lo necesita. Un efecto colateral es que buena parte del tráfico cotidiano nunca toca la parte del sistema que puede portarse mal.
+
+El router tiene sus propias pruebas, y pasan 47 de 47. Como el router decide a dónde va cada petición, reglas de seguridad incluidas, quiero esas reglas revisadas en cada cambio.
+
+## Probar con el modelo real
+
+Probar una regla de seguridad con un stub demuestra que tu stub se porta bien. El comportamiento que me importa es el que tiene el modelo real cuando lo presionan, así que eso es lo que pruebo.
+
+Mi prueba del cerebro corre el modelo real, con la PC en reposo de antemano para que la carga no distorsione el resultado. Pasa 8 de 8, y tres de los casos son de seguridad: pedirle al asistente que borre un archivo, que corra un script de generación y que lea un archivo secreto. Se corren en los dos idiomas, español e inglés, y ninguno falla en ninguno.
+
+Dos hábitos importan más que el conteo de pruebas aprobadas:
+
+- **Leer el comportamiento, no solo los resultados.** En mi comparación de modelos, uno más pequeño de 1.7 mil millones de parámetros afirmó haber hecho una acción que no hizo en 1 de 6 casos según una revisión automática, y en 3 de 6 según mi propia lectura. La revisión automática se perdió lo que una lectura humana sí detectó. Me quedé con el modelo más grande y sigo leyendo las transcripciones yo mismo.
+- **Registrar lo que no pasa.** La ruta rápida cumple su meta, la respuesta de la hora del día cumple la suya solo algunas veces, y la ruta del modelo no llega. Una tabla toda en verde suele ser una tabla que esconde algo.
+
+Tampoco he hecho una prueba humana completa con micrófono y teclado reales. Eso está dicho en el caso de estudio, no se deja para que alguien lo descubra.
+
+## Más allá de un asistente personal
+
+Nada de esto depende de que JARVIS sea pequeño o local. El patrón aplica donde un modelo pueda actuar:
+
+- **Mesas de ayuda y herramientas de soporte:** responder las preguntas comunes con reglas y mandar solo las difíciles al modelo, lo que reduce costo y tiempo de espera. Cualquier cosa que modifique el registro de un cliente pasa por un ejecutor que revisa el permiso en código.
+- **Agentes que operan sistemas internos:** automatización de TI u operaciones donde una acción peligrosa necesita una puerta de aprobación que el modelo no pueda saltarse. La aprobación es una bandera que activa la aplicación, no una frase en un prompt.
+- **Agentes de código:** la misma separación entre una petición y una garantía. En los proyectos que dirijo, las reglas del agente viven en un `CLAUDE.md` que debe obedecer, pero las reglas que no puedo permitirme perder tienen detrás hooks que registran cada sesión y bloquean que una tarea se declare terminada mientras falte un paso obligatorio. Un recordatorio es una petición; un hook es una garantía. Cuento cómo dirijo ese tipo de equipo en [Dirigir un equipo de agentes de IA](/es/projects/ai-agent-team/).
+
+Si quieres ver el router funcionando, el comportamiento de seguridad también se ve ahí: [demo del router de seguridad de JARVIS](https://carrerable.github.io/jarvis-safety-router-demo/).
+
+## Para llevar
+
+- Un prompt es una petición, no una garantía. Toda propiedad que deba cumplirse tiene que cumplirse aunque el modelo ignore todas las instrucciones.
+- Pon la revisión en la única puerta: un ejecutor que rechaza herramientas peligrosas sin una confirmación que activa la aplicación, no el modelo.
+- Etiqueta cada herramienta con un nivel de riesgo como dato y rechaza las herramientas desconocidas.
+- Prefiere herramientas que no existen. Si el asistente no necesita borrar archivos, no le des una función de borrado que tengas que proteger.
+- Responde lo rutinario con código simple antes del modelo. Es más rápido, más barato, más predecible y reduce la superficie que puede fallar.
+- Prueba la seguridad con el modelo real, en cada idioma que soportes, y lee tú mismo las transcripciones.
+- Publica las metas que no cumpliste. Una celda roja honesta vale más que una tabla toda en verde.

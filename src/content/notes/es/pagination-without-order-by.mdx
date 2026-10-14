@@ -1,0 +1,122 @@
+---
+title: "Paginación sin ORDER BY: el bug que se esconde en tablas chicas"
+slug: "pagination-without-order-by"
+lang: "es"
+type: "article"
+order: 43
+summary: "Por qué paginar sin un orden estable puede saltar o repetir registros, por qué las pruebas en tablas chicas casi nunca lo detectan y las tres correcciones que exijo en scripts que leen por páginas."
+date: "2026-10-14"
+project: "pagination-root-cause"
+tags: ["SQL", "paginación", "calidad de datos"]
+---
+
+Un script que lee una tabla por páginas parece inofensivo. Pide las primeras 500 filas, luego las siguientes 500, y así hasta que ya no regresa nada. Pasa todas las pruebas que he visto escritas para él. Y puede saltarse filas en silencio y leer otras dos veces.
+
+Esta nota explica por qué pasa, por qué las pruebas chicas no lo ven y los tres hábitos que exijo antes de dejar que un script que lee por páginas escriba algo. Todo el SQL de abajo es un ejemplo simplificado sobre tablas genéricas, no el filtro ni el esquema reales de ningún proyecto.
+
+## El síntoma
+
+El síntoma es un conteo equivocado sin ningún error. El script termina, reporta un total y el total es creíble. No hay excepción, ni advertencia, ni consulta fallida. La única señal es que el número no coincide con el de un conteo simple de la tabla, y eso solo se ve si uno va y compara.
+
+Eso es lo que vuelve peligroso al bug en una escritura masiva. Una escritura masiva es tan segura como el conteo en el que se basa. Si el ensayo lee menos filas de las que existen, la corrida real hará lo mismo y la mayoría de los registros se quedará como estaba.
+
+## Por qué pasa
+
+Sin `ORDER BY`, el orden de las filas que regresa una consulta no está garantizado. El estándar SQL no lo promete, y tampoco MySQL ni PostgreSQL. La base de datos es libre de regresar las filas en el orden que le salga más barato en ese momento: el orden en disco, el de un índice que eligió, o uno que cambia porque otro proceso tocó la tabla.
+
+Paginar con `LIMIT` y `OFFSET` supone lo contrario. La página dos significa "sáltate las primeras 500 filas y dame las siguientes 500", y eso solo tiene sentido si las primeras 500 son las mismas 500 filas cada vez. Cuando el orden cambia entre llamadas, una fila puede colarse a una página anterior después de que ya la leíste, o a una posterior antes de que llegues a ella. El primer caso repite la fila; el segundo la salta.
+
+Esta es la forma de la consulta mala (ejemplo simplificado):
+
+```sql
+-- Ejemplo simplificado: sin orden estable entre páginas
+SELECT id, name
+FROM packages
+WHERE active = 1
+LIMIT 500 OFFSET 1000;
+```
+
+Y la misma consulta con orden estable:
+
+```sql
+-- Ejemplo simplificado: ordenada por una llave única
+SELECT id, name
+FROM packages
+WHERE active = 1
+ORDER BY id
+LIMIT 500 OFFSET 1000;
+```
+
+El orden tiene que venir de una llave única. Si ordenas por una columna con valores repetidos, como un nombre o una fecha, las filas con valores iguales todavía pueden cambiar de lugar entre páginas. Una llave única no deja empates.
+
+## Por qué las pruebas chicas no lo ven
+
+En una tabla de unos cientos de filas, todo cabe en una sola página, o la base regresa las filas en orden de inserción cada vez. Técnicamente el orden no está garantizado, pero en la práctica nunca cambia, así que el bug nunca aparece.
+
+Tres cosas hacen que aparezca solo en producción:
+
+- **Tamaño.** Una tabla grande se lee con índices y trabajo en paralelo, y el orden empieza a depender del plan.
+- **Concurrencia.** Otros procesos escriben en la tabla mientras el script la lee.
+- **Tiempo.** Se reconstruye un índice, cambian las estadísticas y con ellas el plan. El mismo script da otra respuesta la semana siguiente.
+
+Una prueba con un fixture chico pasa por todas estas razones a la vez. La prueba no está mal, simplemente no puede fallar. Y una revisión que no puede fallar no es una revisión.
+
+## Corrección 1: ordenar por una llave única
+
+La primera corrección es la de arriba: agregar un `ORDER BY` sobre una llave única a toda lectura paginada. Casi no cuesta nada y la trato como regla de revisión. A todo script que lee por páginas se le hace una pregunta en la revisión: ¿cuál es el orden y es único?
+
+Si la tabla no tiene una columna única evidente, agrega la llave primaria como última columna de orden. Rompe todos los empates.
+
+## Corrección 2: paginación por llave
+
+`OFFSET` tiene un segundo problema: la base todavía tiene que recorrer todas las filas saltadas, así que las páginas tardías se vuelven más lentas, y cualquier inserción o borrado durante la corrida mueve todas las páginas que siguen.
+
+La paginación por llave evita las dos cosas. En vez de saltar un número de filas, recuerda la última llave que vio y pide lo que viene después:
+
+```sql
+-- Ejemplo simplificado: paginación por llave
+SELECT id, name
+FROM packages
+WHERE id > ?
+ORDER BY id
+LIMIT 500;
+```
+
+El script guarda el `id` más grande de cada página y lo usa como parámetro de la siguiente. Una fila insertada o borrada durante la corrida ya no mueve las páginas, porque cada página arranca desde una llave, no desde una posición. Las páginas cuestan lo mismo de la primera a la última.
+
+## Corrección 3: el dry-run comprueba su propio conteo
+
+Las dos primeras correcciones previenen el bug. La tercera lo atrapa cuando se olvidaron las dos primeras, o cuando la causa es algo en lo que no pensé.
+
+Antes de que un script pueda escribir, compara el número de filas que leyó por páginas contra un conteo independiente, sin paginación:
+
+```sql
+-- Ejemplo simplificado: el conteo independiente
+SELECT COUNT(*) FROM packages WHERE active = 1;
+```
+
+Si los dos números difieren, el script se detiene. No avisa y no continúa. Un ensayo que no puede explicar su propio total no ensayó nada.
+
+Este es el hábito que habría querido tener en el caso real de más abajo. Encontré la diferencia mirando los números. Debió fallar por sí solo.
+
+## Una segunda trampa: NULL en los filtros
+
+Mientras buscaba las filas faltantes, encontré una segunda causa, que no tiene nada que ver con la paginación. Un filtro que compara una columna con un valor descarta en silencio las filas donde la columna es `NULL`, porque una comparación con `NULL` no es verdadera ni falsa:
+
+```sql
+-- Ejemplo simplificado: un filtro genérico, no el real
+SELECT id FROM items WHERE adjustment <> 0;
+-- Las filas donde adjustment IS NULL no se regresan.
+```
+
+Si la aplicación trata un valor vacío como válido, como hacen muchos front ends, el filtro y la aplicación no coinciden en qué es una fila válida. La solución es decidir qué significa NULL y decirlo en la consulta, por ejemplo con `IS NULL OR adjustment <> 0`, y contar aparte las filas NULL para que el número se vea antes de escribir.
+
+En el caso real, una corrección masiva de costos de mano de obra en el trabajo, el ensayo contó unos 3,400 paquetes cuando existían 11,934, menos de un tercio. La causa fue la paginación sin orden sobre una llave única, y un segundo filtro descartaba unos 8,506 registros con valor nulo que el front end trata como válidos. No se escribió nada con el conteo equivocado, y la corrección final se validó en producción el 4 de junio de 2026. La revisión completa está en el [postmortem](/es/notes/pagination-postmortem/), y puedes reproducir el bug con datos sintéticos en la [demo del bug de paginación](https://carrerable.github.io/pagination-bug-demo/).
+
+## Para llevar
+
+- Sin `ORDER BY`, el orden de las filas no está garantizado, así que paginar sobre él puede repetir o saltar filas sin ningún error.
+- Las tablas chicas esconden el bug, porque el orden resulta estable. Una prueba que pasa con un fixture chico demuestra poco.
+- Ordena por una llave única en toda lectura paginada, y prefiere la paginación por llave sobre `OFFSET` en corridas largas.
+- Haz que el dry-run compare su propio conteo contra un conteo independiente, y que se detenga ante cualquier diferencia.
+- Decide qué significa NULL en cada filtro, y cuenta esas filas por separado antes de escribir.

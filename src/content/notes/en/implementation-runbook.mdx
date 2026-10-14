@@ -1,0 +1,153 @@
+---
+title: "Runbook: customer implementation, from kickoff to hypercare"
+slug: "implementation-runbook"
+lang: "en"
+type: "runbook"
+order: 10
+summary: "The phases, checklists and rollback for bringing a new customer's historical data into production: kickoff, migration rehearsals, go-live and hypercare."
+date: "2026-10-14"
+project: "data-migration-pipeline"
+tags: ["implementation", "data migration", "go-live", "rollback"]
+---
+
+This is the runbook I follow, and expect others to follow, when a new customer of a B2B SaaS for auto-repair shops (my current role) arrives with years of history in older systems. It turns one migration project into four phases with entry criteria, a checklist and exit criteria. The [case study](/en/projects/data-migration-pipeline/) shows it applied; this page is the reusable procedure. Every customer name and file name in the examples is fictitious and marked as such.
+
+## When to use this runbook
+
+Use it when a customer's orders, payments, receivables, parts or suppliers must be loaded into production from files or from a previous system. Do not use it for a single manual correction: that needs a dry run and a reconciliation, but not four phases.
+
+The rule behind every phase: a production write needs a number to compare against. If there is no source count, there is nothing to reconcile, and the load does not run.
+
+## Roles
+
+| Role | Owns |
+|---|---|
+| Implementation lead | The plan, the order of stages, every dry run and the go/no-go call. Receives the customer files and reports gaps. |
+| Customer data owner | The source files, the answers to questions about them and the acceptance of the result. |
+| Management | Approves the written rules before any code and signs off on exclusions and partial migrations. |
+| Development | Fixes bugs found in the application during rehearsals. Does not change migration rules. |
+| Support | Receives customer questions during go-live and hypercare and logs every issue with its record. |
+
+## Phase 1 — Kickoff
+
+**Entry criteria:** the customer has signed up and named a data owner.
+
+**Checklist:**
+
+- [ ] Request the source files and write down exactly which reports are expected for each branch.
+- [ ] Receive the files and list gaps: incomplete reports, wrongly named files, mixed locations in one file.
+- [ ] Report every gap to the customer in writing and keep the answer.
+- [ ] Write the analysis of migration rules per branch before any code: file structure, row and document counts, keys, exclusions.
+- [ ] Take the written analysis to management for approval.
+- [ ] Agree the go-live window and the people who will be told.
+
+**Exit criteria:** management approved the written analysis, and every known gap has either a customer answer or a documented decision to leave it out.
+
+Management reviews the analysis because a miss is cheap here and expensive later. In one branch, management noticed that my first analysis had missed 3 files. I corrected the analysis itself before writing any code, then checked it against the full file list. Copy that habit: compare the file list in the analysis with the folder before sending it.
+
+## Phase 2 — Migration
+
+**Entry criteria:** Phase 1 exit criteria met, and a test account in QA separate from production.
+
+The pipeline has two steps. First, the Excel files become a homogenized JSON that can be diffed, reviewed and reconciled. Second, the database is loaded from that JSON, never directly from the Excel. The source file is never the thing being loaded.
+
+```
+Excel files  ->  homogenized JSON (auditable)  ->  database
+   source           reviewed and reconciled         dry run, then QA, then production
+```
+
+**Checklist:**
+
+- [ ] Decide every column of every table you insert into. Never omit one. Manual inserts that skipped columns (description, payment method, customer approval, parts) caused four bugs in a past migration, and the rule that came out of it is "decide every column".
+- [ ] List every exclusion with its reason. In one data set, rows that were not real branches (4 of 8,262) and one document with an unresolvable tie were left out and documented.
+- [ ] When the customer data is incomplete, document a partial migration. In one branch only about 15% of the orders had a complete report, so the migration was documented as partial instead of filling in the rest.
+- [ ] Deduplicate suppliers in this order: tax ID (RFC), then normalized name, then manual alias. Merge duplicates into the record with the most dependencies. Do not delete them, because history points at them.
+- [ ] Use a soft delete for catalog items such as spare parts, so history stays readable.
+- [ ] Run the dry run. It touches nothing. Save its counts.
+- [ ] Run the full cycle in QA: delete, load, verify, delete. Reconcile against the source after the load.
+- [ ] Run in production only after QA passes. Reconcile against the source again.
+- [ ] Make every load write a manifest of what it created, and give it an `--undo` option that reads that manifest.
+- [ ] Keep transactional data apart from system configuration. A reset that wiped both once left an account inoperable, so a rollback must only be able to remove transactional rows.
+
+Example of a manifest entry. The file name and values are fictitious:
+
+```json
+{
+  "run": "example-run-001",
+  "created": { "orders": 120, "payments": 118 },
+  "undo": "node load.js --undo example-run-001"
+}
+```
+
+**Exit criteria:** the production reconciliation matches the source for every table in scope, the exclusions and partial migrations are documented and approved, and the manifest of each load exists.
+
+## Phase 3 — Go-live
+
+**Entry criteria:** Phase 2 exit criteria met.
+
+**Go/no-go.** The call is yes only if all of these are true:
+
+- [ ] The reconciliation matches the source.
+- [ ] QA passed the full cycle.
+- [ ] A backup was taken and its time is written down.
+- [ ] The rollback was rehearsed in QA, not just described.
+- [ ] The customer was told and the window is agreed.
+
+If any item is false, the answer is no-go, and the reason is written in the log.
+
+**After the load:**
+
+- [ ] Count rows and compare with the source.
+- [ ] Open migrated records in the application itself, not only in the database. Counting rows is not enough. A field that the schema marks optional but the application requires broke 188 orders when they were opened, and a row count would never have shown it. I generated the field in the application's own format, checked uniqueness and repaired the 188.
+- [ ] Open at least one record of every type: order, payment, receivable, part, supplier.
+- [ ] Tell the customer that the load is finished and how to report a problem.
+
+**Exit criteria:** every sampled record opens, the counts match and the customer was told.
+
+## Phase 4 — Hypercare
+
+**Entry criteria:** the load is finished and the customer has been told.
+
+Hypercare lasts 10 business days by default. Shorten it only with management's approval, and extend it when open issues remain.
+
+**Checklist:**
+
+- [ ] Support logs every customer report with the record it refers to.
+- [ ] Review the log every day and classify each item: data issue, application bug or question.
+- [ ] Send data issues back to the implementation lead and application bugs to development.
+- [ ] Backfill missing records, such as mirror financial movements from earlier runs, with a script that has a dry run and an `--undo`.
+- [ ] Send the customer a short daily status while issues are open.
+- [ ] At the end, send a closing note: what was migrated, what was excluded and why, and what is documented as partial.
+
+**Exit criteria:** no open data issues, every exclusion is documented and the customer accepted the result in writing.
+
+## Rollback
+
+**Triggers.** Roll back when any of these happens:
+
+- The reconciliation does not match the source.
+- The application fails when it opens migrated records.
+- A load wrote rows that are not in its manifest.
+
+**Procedure:**
+
+1. Stop. Do not start another load.
+2. Run the load's `--undo`. It reads the manifest and removes only what that load created.
+3. Re-run the reconciliation. The counts must return to their value before the load.
+4. If the undo is not enough, restore the backup taken for go-live.
+5. Tell the customer what happened and the new window, before they find it themselves.
+6. Write the cause in the log, fix it in QA with the full cycle and only then schedule a new window.
+
+A first purchase load once reached production with three errors: wrong branch assigned, suppliers mixed into one purchase and costs left at zero. It was rebuilt through the auditable pipeline and verified after loading instead of patched. The lesson is the rule of this runbook: the full dry run to QA cycle comes before every load, whoever runs it.
+
+## One-page checklist
+
+| Phase | Do not move on until |
+|---|---|
+| 1. Kickoff | Management approved the written analysis, and every gap has an answer or a documented decision. |
+| 2. Migration | Dry run, QA cycle and production reconciliation match the source. Each load has a manifest and an `--undo`. |
+| 3. Go-live | Go/no-go items are all true, and migrated records open in the application. |
+| 4. Hypercare | No open data issues after 10 business days, and the customer accepted the result. |
+| Rollback | Triggers are known, `--undo` was rehearsed and the backup time is written down. |
+
+See also the [live reconciliation demo](https://carrerable.github.io/migration-reconciliation-demo/), which runs the same idea on invented data.

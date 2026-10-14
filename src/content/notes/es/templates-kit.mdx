@@ -1,0 +1,157 @@
+---
+title: "Plantillas de equipo: 1:1, planeación de sprint, RFC y matriz de riesgo"
+slug: "templates-kit"
+lang: "es"
+type: "template"
+order: 2
+summary: "Cuatro plantillas listas para copiar para dirigir un equipo: agenda de 1:1, planeación de sprint, RFC para propuestas técnicas y matriz de riesgo con regla de puntaje."
+date: "2026-10-14"
+tags: ["plantillas", "liderazgo", "planeación", "riesgo"]
+---
+
+Estas son las cuatro plantillas que uso para dirigir un equipo. Cada una trae una nota corta sobre cuándo usarla y las reglas que la mantienen honesta, seguida de un bloque que puedes copiar tal cual. Todo lo que va entre paréntesis angulares, como el nombre de una persona o una fecha, es un marcador que debes reemplazar. Son las mismas plantillas a las que se refiere el [playbook de ingeniería](/es/notes/engineering-playbook/) en su sección de rituales.
+
+Ninguna plantilla es ingeniosa, y es a propósito. Una plantilla se gana su lugar cuando quita una decisión que el equipo tomaría de nuevo cada semana. Empieza con ellas sin cambios, úsalas un mes y solo entonces adáptalas. Si quitas un campo, escribe por qué, para que la siguiente persona no lo vuelva a agregar por accidente.
+
+## 1:1
+
+Úsala cada dos semanas, durante 30 minutos, con cada persona que diriges. La reunión es de la otra persona: ella trae los temas y tú traes las preguntas. Guarda las notas en un documento compartido para que las dos personas vean los acuerdos y los revisen en la siguiente reunión.
+
+Tres reglas la hacen funcionar. El feedback va en ambos sentidos, así que pregunta qué podrías hacer distinto además de dar el tuyo. Cada acuerdo tiene dueño y fecha, incluidos los que te tocan a ti. Y nunca la cancelas por una semana ocupada, porque es justo la semana en que los bloqueos se acumulan. Si hay que moverla, se mueve; no se elimina.
+
+Las notas de un 1:1 son privadas para las dos personas que participan. Si algo tiene que llegar más lejos, por ejemplo una preocupación por la carga de trabajo que dirección debería conocer, acuerden en voz alta qué se va a compartir y con quién antes de compartirlo. La confianza es lo único que produce esta reunión, y se pierde la primera vez que una nota viaja sin permiso.
+
+```markdown
+# 1:1 - <persona> - <fecha>
+
+Duración: 30 minutos. Siguiente 1:1: <fecha>
+
+## 1. ¿Cómo estás? (5 min)
+- Carga de trabajo, energía, cualquier cosa fuera del trabajo que yo deba saber
+
+## 2. Bloqueos (5 min)
+- ¿Qué te está frenando ahora mismo?
+- ¿A quién o qué necesitas de mi parte?
+
+## 3. Avances desde la última vez (5 min)
+- ¿Qué terminaste?
+- ¿Qué empezaste y no terminaste, y por qué?
+
+## 4. Feedback en ambos sentidos (5 min)
+- De mí hacia ti:
+- De ti hacia mí (¿qué debo empezar, dejar o continuar?):
+
+## 5. Crecimiento (5 min)
+- ¿Qué quieres aprender el próximo trimestre?
+- ¿Qué trabajo te retaría?
+
+## 6. Acuerdos (5 min)
+| Acuerdo | Dueño | Fecha límite |
+|---|---|---|
+| <qué se hará> | <yo o tú> | <fecha> |
+
+Revisión de los acuerdos de la vez pasada: <hecho o no hecho, y por qué>
+```
+
+## Planeación de sprint
+
+Úsala al inicio de cada sprint, como la hoja única a la que se compromete el equipo. El objetivo del sprint es una frase que alguien ajeno al equipo pueda leer y entender. Si necesita dos frases, el sprint tiene dos objetivos, y uno de ellos probablemente es una distracción.
+
+La capacidad va antes de la lista de tareas. Anota quién está disponible, cuántos días y qué ya ocupan el soporte, las revisiones y las reuniones, y planea solo lo que cabe. Cada tarea lleva un criterio de Done que una persona que no escribió el código pueda verificar, con la misma forma que la definición de terminado del playbook. Una tarea sin criterio no entra al sprint. El último bloque, fuera del sprint, es tan importante como el primero: ahí anotas a qué dijiste que no, para que la decisión sea visible.
+
+Al final del sprint, vuelve a leer la hoja. Compara lo comprometido con lo terminado y revisa los motivos de la diferencia, sin buscar a quién culpar. Tres sprints de esas notas te dicen más sobre tu capacidad real que cualquier estimación, y alimentan la conversación semanal sobre qué avanzó y por qué.
+
+```markdown
+# Sprint <número> - <fecha de inicio> al <fecha de fin>
+
+## Objetivo del sprint
+<una frase>
+
+## Capacidad
+| Persona | Días disponibles | Ya comprometidos (soporte, revisiones) | Días netos |
+|---|---|---|---|
+| <nombre> | <n> | <n> | <n> |
+
+## Tareas
+| Tarea | Dueño | Objetivo (criterio de Done, verificable) | Estimación |
+|---|---|---|---|
+| <título> | <nombre> | <lo que una persona revisora puede comprobar para confirmar que está hecha> | <días> |
+
+## Riesgos y dependencias
+- <riesgo o dependencia>, dueño: <nombre>, cómo lo sabremos: <señal>
+
+## Fuera del sprint
+- <trabajo que se pidió y se dejó fuera a propósito, con el motivo>
+
+## Acordado en la planeación
+- <decisión>, dueño: <nombre>, fecha: <fecha>
+```
+
+## RFC (especificación técnica)
+
+Úsala cuando una propuesta técnica afecta a más de una persona, o cuando la decisión sería cara de revertir. Un RFC es una solicitud de comentarios: la meta es encontrar los problemas en papel, donde salen baratos, antes de encontrarlos en producción. Escribe el problema antes que la solución, y escribe los no-objetivos con el mismo cuidado que los objetivos, porque la mayoría de los desacuerdos en realidad son sobre el alcance.
+
+Lista opciones reales, incluida la que no te gusta, con los pros y contras de cada una. La propuesta explica entonces por qué una opción gana. La sección de verificación es la que la gente se salta y la que más importa: di cómo sabrás que la propuesta funcionó, con un número o una prueba que pueda fallar. Nombra quién decide y para cuándo, para que el RFC no se quede abierto para siempre. Una vez decidido, el resultado se registra como un registro de decisión de arquitectura, y el RFC enlaza a él.
+
+Que sea corto. Dos páginas que la gente lee valen más que diez que solo hojea. Si una sección no aplica, escribe "no aplica" y una línea con el motivo en lugar de borrarla, para que quien lee distinga entre una omisión y una decisión.
+
+```markdown
+# RFC: <título>
+
+Autor: <nombre>. Estado: borrador, en revisión, aceptado o rechazado.
+Decide: <nombre>. Fecha de decisión: <fecha>
+
+## Contexto
+<qué existe hoy y por qué esto surge ahora>
+
+## Problema
+<qué está mal o falta, con evidencia>
+
+## Objetivos
+- <qué debe lograr esto>
+
+## No-objetivos
+- <qué no intenta hacer a propósito>
+
+## Opciones
+### Opción A: <nombre>
+- Pros: <lista>
+- Contras: <lista>
+### Opción B: <nombre>
+- Pros: <lista>
+- Contras: <lista>
+
+## Propuesta
+<la opción elegida y por qué gana sobre las demás>
+
+## Cómo se verificará
+<la medición o prueba que muestra que funcionó, y qué haremos con cada resultado>
+
+## Despliegue y reversión
+- Pasos de despliegue: <lista ordenada>
+- Cómo volver atrás: <pasos exactos y quién los corre>
+
+## Preguntas abiertas
+- <pregunta>, quién puede responder: <nombre>
+```
+
+## Matriz de riesgo
+
+Úsala antes de que empiece un proyecto y revísala en cada planeación de sprint. Califica cada riesgo en dos escalas del 1 al 3: probabilidad e impacto. El puntaje es el producto de las dos, así que va de 1 a 9. El puntaje es una herramienta de conversación, no una medición, así que acuerda con el equipo el significado de cada nivel antes de calificar.
+
+La regla es simple y es la razón de que exista la matriz. Un puntaje de 6 a 9 exige una mitigación con dueño antes de que empiece el trabajo. Un puntaje de 3 a 4 se vigila: tiene una señal de alerta y un lugar en la lista de revisión. Un puntaje de 1 a 2 se acepta, y la aceptación se escribe para que nadie tenga que redescubrirla. La fila de ejemplo de abajo es ficticia y solo muestra el formato.
+
+La matriz no es un ejercicio de una sola vez. Un riesgo que era 2 el mes pasado puede ser 6 hoy porque una dependencia se atrasó, así que la revisión en la planeación de sprint es donde la matriz se gana su lugar. Cuando un riesgo ocurre, no borres su fila: márcala como ocurrida y enlaza al incidente o al postmortem, para que la matriz conserve memoria de qué tan bien predijo el equipo.
+
+```markdown
+# Matriz de riesgo - <proyecto> - revisada <fecha>
+
+Escala: probabilidad 1 (poco probable) a 3 (probable); impacto 1 (menor) a 3 (severo).
+Puntaje = probabilidad x impacto.
+Regla: 6 a 9 exige mitigación con dueño antes de empezar; 3 a 4 se vigila; 1 a 2 se acepta.
+
+| Riesgo | Probabilidad (1-3) | Impacto (1-3) | Puntaje | Acción | Dueño | Fecha de revisión |
+|---|---|---|---|---|---|---|
+| Ejemplo (ficticio): la exportación de datos es más lenta de lo que permite la ventana de migración | 2 | 3 | 6 | Mitigar: ensayar la exportación completa en el ambiente de QA y acordar una ventana de respaldo | <nombre> | <fecha> |
+| <riesgo> | <1-3> | <1-3> | <puntaje> | <mitigar, vigilar o aceptar> | <nombre> | <fecha> |
+```

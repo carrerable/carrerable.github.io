@@ -1,0 +1,122 @@
+---
+title: "Pagination without ORDER BY: the bug that hides on small tables"
+slug: "pagination-without-order-by"
+lang: "en"
+type: "article"
+order: 43
+summary: "Why paging through rows without a stable order can skip or repeat records, why tests on small tables rarely catch it, and the three fixes I now require in any script that reads in pages."
+date: "2026-10-14"
+project: "pagination-root-cause"
+tags: ["SQL", "pagination", "data quality"]
+---
+
+A script that reads a table in pages looks harmless. It asks for the first 500 rows, then the next 500, and so on until nothing comes back. It passes every test I have ever seen written for it. And it can quietly skip some rows and read others twice.
+
+This note explains why, why small tests do not see it, and the three habits I now require before any script that reads in pages is allowed to write anything. All SQL below is a simplified example on generic tables, not the real filter or schema from any project.
+
+## The symptom
+
+The symptom is a count that is wrong without any error. The script finishes, it reports a total, and the total is plausible. There is no exception, no warning and no failed query. The only sign is that the number does not match what you get from a plain count of the table, and you only see that if you go and compare.
+
+That is what makes this bug dangerous in a bulk write. A bulk write is only as safe as the count it is based on. If the rehearsal reads fewer rows than exist, the real run will do the same, and most of the records stay as they were.
+
+## Why it happens
+
+Without an `ORDER BY`, the order of the rows a query returns is not guaranteed. The SQL standard does not promise one, and neither do MySQL or PostgreSQL. The database is free to return rows in whatever order is cheapest at that moment: the order on disk, the order of an index it chose, or an order that changes because another process touched the table.
+
+Paging with `LIMIT` and `OFFSET` assumes the opposite. Page two means "skip the first 500 rows and give me the next 500", and that only makes sense if the first 500 are the same 500 rows every time. When the order shifts between calls, a row can slip into an earlier page after you have read it, or into a later page before you reach it. The first case repeats the row, the second skips it.
+
+Here is the shape of the bad query (simplified example):
+
+```sql
+-- Simplified example: no stable order between pages
+SELECT id, name
+FROM packages
+WHERE active = 1
+LIMIT 500 OFFSET 1000;
+```
+
+And the same query with a stable order:
+
+```sql
+-- Simplified example: ordered by a unique key
+SELECT id, name
+FROM packages
+WHERE active = 1
+ORDER BY id
+LIMIT 500 OFFSET 1000;
+```
+
+The order has to come from a unique key. If you order by a column that has repeated values, such as a name or a date, rows with equal values can still swap places between pages. A unique key leaves no ties.
+
+## Why small tests miss it
+
+On a table with a few hundred rows, everything fits in one page, or the database returns rows in insertion order every time. The order is technically not guaranteed, but in practice it never changes, so the bug never shows.
+
+Three things make it appear only in production:
+
+- **Size.** A big table gets read through indexes and parallel work, and the order starts to depend on the plan.
+- **Concurrency.** Other writers touch the table while the script is reading it.
+- **Time.** An index is rebuilt, statistics change, and the plan changes with them. The same script gives a different answer next week.
+
+A test that uses a small fixture passes for every one of these reasons at once. The test is not wrong, it is just unable to fail. And a check that cannot fail is not a check.
+
+## Fix 1: order by a unique key
+
+The first fix is the one above: add an `ORDER BY` on a unique key to every paged read. It costs almost nothing and I treat it as a review rule. Any script that reads in pages gets one question in review: what is the order, and is it unique?
+
+If the table has no obvious unique column, add the primary key as the last sort column. It breaks every tie.
+
+## Fix 2: keyset pagination
+
+`OFFSET` has a second problem: the database still has to walk past all the skipped rows, so later pages get slower, and any insert or delete during the run shifts every page after it.
+
+Keyset pagination avoids both. Instead of skipping a number of rows, it remembers the last key it saw and asks for what comes after it:
+
+```sql
+-- Simplified example: keyset pagination
+SELECT id, name
+FROM packages
+WHERE id > ?
+ORDER BY id
+LIMIT 500;
+```
+
+The script keeps the largest `id` of each page and uses it as the parameter for the next one. A row that is inserted or deleted during the run no longer shifts the pages, because every page starts from a key, not from a position. Pages cost the same from the first to the last.
+
+## Fix 3: the dry run checks its own count
+
+The first two fixes prevent the bug. The third one catches it when the first two were forgotten, or when the cause is something I did not think of.
+
+Before a script is allowed to write, it compares the number of rows it read in pages against an independent count taken without pagination:
+
+```sql
+-- Simplified example: the independent count
+SELECT COUNT(*) FROM packages WHERE active = 1;
+```
+
+If the two numbers differ, the script stops. It does not warn and it does not continue. A rehearsal that cannot explain its own total has not rehearsed anything.
+
+This is the habit that I would have wanted in the real case below. I found the gap by looking at the numbers. It should have failed by itself.
+
+## A second trap: NULL in filters
+
+While chasing the missing rows, I found a second cause, and it has nothing to do with pagination. A filter that compares a column with a value silently drops rows where the column is `NULL`, because a comparison with `NULL` is neither true nor false:
+
+```sql
+-- Simplified example: a generic filter, not the real one
+SELECT id FROM items WHERE adjustment <> 0;
+-- Rows where adjustment IS NULL are not returned.
+```
+
+If the application treats an empty value as valid, which many front ends do, the filter and the application disagree about what a valid row is. The fix is to decide what NULL means and say it in the query, for example with `IS NULL OR adjustment <> 0`, and to count the NULL rows separately so the number is visible before the write.
+
+In the real case, a bulk correction of labor costs at work, the rehearsal counted about 3,400 packages when 11,934 existed, less than a third. The cause was pagination without an order on a unique key, and a second filter dropped about 8,506 records with a null value that the front end treats as valid. Nothing was written with the wrong count, and the final correction was validated in production on 4 June 2026. The full review is in the [postmortem](/en/notes/pagination-postmortem/), and you can reproduce the bug with synthetic data in the [pagination bug demo](https://carrerable.github.io/pagination-bug-demo/).
+
+## Takeaways
+
+- Without an `ORDER BY`, row order is not guaranteed, so paging over it can repeat or skip rows with no error.
+- Small tables hide the bug, because the order happens to be stable. A passing test on a small fixture proves little.
+- Order by a unique key in every paged read, and prefer keyset pagination over `OFFSET` for long runs.
+- Make the dry run compare its own count against an independent count, and stop on any difference.
+- Decide what NULL means in every filter, and count those rows on their own before a write.

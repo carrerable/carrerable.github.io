@@ -1,0 +1,105 @@
+---
+title: "Put the safety rule in code, not in the prompt"
+slug: "safety-rules-in-code"
+lang: "en"
+type: "article"
+order: 42
+summary: "A prompt is a request, not a guarantee. How a local assistant refuses dangerous actions in code, why some tools should not exist at all, and how to test it with the real model."
+date: "2026-10-14"
+project: "jarvis"
+tags: ["AI agents", "LLM", "safety", "Python"]
+---
+
+## A prompt is a request
+
+The easiest way to make an AI assistant safe is to tell it so. "Never delete files without asking the user first." It feels like a rule. It is not one. It is a sentence in a request, and the model that reads it is the same component you are worried about. It can misread it, forget it in a long conversation, or be talked out of it by a user who is persuasive, confused, or just typing something odd.
+
+I ran into this while building JARVIS, a local assistant I use by text and by voice on my own laptop. It queries the PC and my projects through tools, and it speaks the answers. Because it can act, the question is not whether the model is polite. The question is what happens on the one run in which it is not.
+
+My answer is a rule I apply to every agent I direct: a safety property that matters must hold even if the model ignores every instruction I gave it. If it only holds when the model cooperates, it is a preference. The rule has to live in code that the model cannot edit, skip, or negotiate with. The decision record is in [ADR-003](/en/notes/adr-003-safety-in-code/); the case study is [JARVIS](/en/projects/jarvis/).
+
+## The pattern
+
+Every tool carries a risk label, and the label is data, not prose. The function that runs tools checks it. The model can ask for anything; the executor decides. This is an illustrative sketch, not the project's code.
+
+```python
+# illustrative, not the project's code
+from dataclasses import dataclass
+from typing import Callable
+
+@dataclass(frozen=True)
+class Tool:
+    name: str
+    run: Callable[..., str]
+    risk: str  # "safe" or "dangerous"
+
+REGISTRY: dict[str, Tool] = {}
+
+def register(name, run, risk):
+    REGISTRY[name] = Tool(name, run, risk)
+
+def execute(name, args, confirmed=False):
+    tool = REGISTRY.get(name)
+    if tool is None:
+        return "refused: unknown tool"
+    if tool.risk == "dangerous" and not confirmed:
+        return "refused: needs explicit confirmation"
+    return tool.run(**args)
+```
+
+Look at where the check sits. It is not in the prompt, and it is not in the model's output. It is in `execute()`, the only door to the tools. The `confirmed` flag is set by the application when the human answers a confirmation prompt, never by the model. If the model emits a call to a dangerous tool, the call arrives at the door and is turned away. The worst case is a refusal message, not a deleted file.
+
+Two details make this stronger than it looks. An unknown tool name is refused, so inventing a tool gets the model nowhere. And the risk label is frozen on the tool at registration time, so no runtime text can change it.
+
+## Tools that should not exist
+
+A confirmation gate is good for actions that are sometimes legitimate. For some actions the better design is to have no tool at all.
+
+In JARVIS, destructive actions do not exist as tools: deleting or moving files, a general console, publishing, and reading secret files. There is nothing to confirm because there is nothing to call. A model that is fooled into asking for them gets an unknown-tool refusal, and a user who wants them does them by hand, outside the assistant.
+
+I find this the most underrated safety technique. Every tool you register is attack surface and a future bug. Before asking "how do I guard this action?", ask "does the assistant need this action at all?" For a personal assistant that answers questions about my machine and my projects, the answer for these four was no. The cheapest guard is a missing function.
+
+The same idea applies to the command catalog: it is a closed list of allowed actions, not free text that gets interpreted. If a request is not on the list, it is not an action.
+
+## A fast path before the model
+
+There is a second benefit of putting rules in code, and it is not about safety: speed and predictability. Many requests do not need a language model. The time, the date, the state of the system and a playlist are lookups.
+
+JARVIS tries four things in order: a shortcut, then a command catalog, then 13 intents recognized by plain code, and only then the model. Risk words and negations always go to the model, never to the fast path, because those are exactly the phrases where a simple matcher can be fooled.
+
+The numbers are honest in both directions. The fast path answers in 2.7 s. When the model has to answer, with streaming, it takes 8.6 s against a target of 6.0 s, which I missed and say so. Routine requests get answers that are quick, free and predictable; the slow, uncertain component is used only when the request needs it. A side effect is that a large share of everyday traffic never touches the part of the system that can misbehave.
+
+The router has its own tests, and they pass 47 of 47. Since the router decides where every request goes, safety rules included, I want those rules checked on every change.
+
+## Testing with the real model
+
+Testing a safety rule with a stub proves that your stub is well-behaved. The behavior I care about is what the real model does when it is pushed, so that is what I test.
+
+My brain test runs the real model, with the PC idle beforehand so that load does not distort the result. It passes 8 of 8, and three of the cases are safety cases: ask the assistant to delete a file, to run a generation script, and to read a secret file. They run in both languages, Spanish and English, and none fails in either.
+
+Two habits matter more than the pass count:
+
+- **Read behavior, not only outcomes.** In my model comparison, a smaller 1.7-billion-parameter model claimed to have performed an action it had not performed in 1 of 6 cases by an automatic check, and in 3 of 6 on my own reading. The automatic check missed what a human read caught. I kept the larger model, and I keep reading transcripts myself.
+- **Record what does not pass.** The fast path meets its target, the time-of-day answer meets its own only some of the time, and the model path misses. A table that is all green is usually a table that is hiding something.
+
+I also have not done a full human test with a real microphone and keyboard. That is stated in the case study, not left to be discovered.
+
+## Beyond a personal assistant
+
+Nothing here depends on JARVIS being small or local. The pattern applies wherever a model can act:
+
+- **Help desks and support tools:** answer common questions with rules and send only the hard ones to the model, which cuts cost and wait time. Anything that changes a customer record goes through an executor that checks permission in code.
+- **Agents that operate internal systems:** IT or operations automation where a dangerous action needs an approval gate the model cannot skip. The approval is a flag set by the application, not a sentence in a prompt.
+- **Coding agents:** the same split between a request and a guarantee. In the projects I direct, the agent's rules live in a `CLAUDE.md` it must follow, but the rules I cannot afford to lose are backed by hooks that log each session and block a task from being declared finished while a required step is missing. A reminder is a request; a hook is a guarantee. I describe how I run that kind of team in [Directing a team of AI agents](/en/projects/ai-agent-team/).
+
+If you can see the demo of the router running, the safety behavior is visible there too: [JARVIS safety router demo](https://carrerable.github.io/jarvis-safety-router-demo/).
+
+## Takeaways
+
+- A prompt is a request, not a guarantee. Any property that must hold needs to hold even if the model ignores every instruction.
+- Put the check in the only door: an executor that refuses dangerous tools without a confirmation that the application, not the model, sets.
+- Tag every tool with a risk label as data, and refuse unknown tools.
+- Prefer tools that do not exist. If the assistant does not need to delete files, do not give it a delete function to guard.
+- Answer routine requests with plain code before the model. It is faster, cheaper, more predictable and shrinks the surface that can misbehave.
+- Test safety with the real model, in every language you support, and read the transcripts yourself.
+- Publish the targets you missed. An honest red cell is worth more than a table that is all green.

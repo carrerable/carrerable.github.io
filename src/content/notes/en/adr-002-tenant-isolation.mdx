@@ -1,0 +1,66 @@
+---
+title: "ADR-002: Tenant isolation with PostgreSQL row-level security"
+slug: "adr-002-tenant-isolation"
+lang: "en"
+type: "adr"
+order: 22
+summary: "Why VetNova keeps each clinic's data apart in the database itself, with row-level security set per request and a non-owner app role, instead of filters in application code."
+date: "2026-08"
+project: "vetnova"
+tags: ["VetNova", "PostgreSQL", "RLS", "multi-tenant"]
+---
+
+## Status
+
+Accepted — August 2026; in production since 7 Sep 2026.
+
+## Context
+
+VetNova is a multi-tenant SaaS for veterinary clinics. One database holds the data of many clinics, and one clinic must never see another's records. The first commit is from 14 August 2026, and the question of how to keep tenants apart had to be answered before the data model grew.
+
+The team was one person directing an AI agent, so the design had to be hard to get wrong. A rule that depends on every developer remembering something, on every query, is not that.
+
+## Options considered
+
+| Option | Pros | Cons |
+|---|---|---|
+| Tenant filters in application code | Simple to start, visible in every query | One forgotten `where` leaks another clinic's data, and nothing stops it |
+| One database per tenant | Strong physical separation | Does not scale on serverless Postgres: too many databases to operate and migrate |
+| Row-level security (RLS), set per request | The database enforces the rule on every query; fails closed | The role setup must be right, and it needs its own tests |
+
+## Decision
+
+Use row-level security in PostgreSQL, set per request. The application connects with a role that does not own the tables. Each request sets its tenant, and the database returns only that tenant's rows. If the context is missing, the database returns nothing: the design fails closed.
+
+I delegated writing the policies and the code to Claude Code under my written specification, and I reviewed every change. The decision itself, and the rules it must follow, are mine.
+
+The role matters as much as the policy. If the application connected as the table owner, RLS would be skipped. For that reason the non-owner role is part of the decision, not a detail of the setup.
+
+Today 125 of the 137 data models carry a tenant identifier and are covered by RLS.
+
+## Consequences
+
+### Positive
+
+- One forgotten filter in the code cannot leak records, because the database applies the rule itself.
+- One schema and one migration path for every clinic.
+- A single place to test isolation instead of every query.
+
+### Negative
+
+- A connection as the table owner would silently bypass RLS, so the role setup needs protection.
+- Performance needs care. Working on REYBER I learned that PostgreSQL will not use an index on a condition whose operator is not marked leakproof when RLS is on. I now measure under the real application role, never as a superuser.
+- There is no continuous integration on this repository. The gates are local.
+
+## How it was verified
+
+- Behavior was checked against the real database, and the 107 smoke scripts run against the real API. I do not claim which of them exercise access between clinics.
+- A dedicated script tests RLS.
+- A static check crosses every table with a tenant identifier in the schema against a data classification file. It runs when closing any task that adds a table.
+- Every change was reviewed before it counted.
+
+## Links
+
+- Case study: [VetNova](/en/projects/vetnova/)
+- Note: [VetNova test strategy](/en/notes/vetnova-test-strategy/)
+- Demo: [VetNova demo](https://carrerable.github.io/vetnova-demo/)

@@ -1,0 +1,157 @@
+---
+title: "Team templates: 1:1, sprint planning, RFC and risk matrix"
+slug: "templates-kit"
+lang: "en"
+type: "template"
+order: 2
+summary: "Four copy-ready templates for running a team: a 1:1 agenda, a sprint planning sheet, an RFC for technical proposals and a risk matrix with a scoring rule."
+date: "2026-10-14"
+tags: ["templates", "leadership", "planning", "risk"]
+---
+
+These are the four templates I use to run a team. Each one has a short note on when to use it and the rules that keep it honest, followed by a block you can copy as is. Anything between angle brackets, such as the name of a person or a date, is a placeholder you replace. They are the same templates the [engineering playbook](/en/notes/engineering-playbook/) refers to in its rituals section.
+
+None of these templates is clever, and that is deliberate. A template earns its place when it removes a decision the team would otherwise make again every week. Start with them unchanged, use them for a month, and only then adapt them. If you remove a field, write down why, so the next person does not add it back by accident.
+
+## 1:1
+
+Use it every two weeks, for 30 minutes, with each person you lead. The meeting belongs to the other person: they bring the topics, and you bring the questions. Keep the notes in a shared document so that both of you can see the agreements and check them at the next meeting.
+
+Three rules make it work. Feedback goes in both directions, so ask what you could do differently as well as giving your own. Every agreement has an owner and a date, including the ones you take on yourself. And you never cancel it for a busy week, because that is exactly the week when blockers pile up. If you must move it, you move it, you do not drop it.
+
+The notes of a 1:1 are private to the two people in it. If something needs to travel further, for example a concern about workload that management should know, agree out loud what will be shared and with whom before you share it. Trust is the only thing this meeting produces, and it is lost the first time a note travels without permission.
+
+```markdown
+# 1:1 - <person> - <date>
+
+Duration: 30 minutes. Next 1:1: <date>
+
+## 1. How are you? (5 min)
+- Workload, energy, anything outside the work that I should know about
+
+## 2. Blockers (5 min)
+- What is stopping you right now?
+- Who or what do you need from me?
+
+## 3. Progress since last time (5 min)
+- What did you finish?
+- What did you start and not finish, and why?
+
+## 4. Feedback in both directions (5 min)
+- From me to you:
+- From you to me (what should I start, stop or continue?):
+
+## 5. Growth (5 min)
+- What do you want to learn in the next quarter?
+- What work would stretch you?
+
+## 6. Agreements (5 min)
+| Agreement | Owner | Due date |
+|---|---|---|
+| <what will be done> | <me or you> | <date> |
+
+Review of last time's agreements: <done or not done, and why>
+```
+
+## Sprint planning
+
+Use it at the start of every sprint, as the single sheet the team commits to. The sprint goal is one sentence that someone outside the team could read and understand. If it needs two sentences, the sprint has two goals, and one of them is probably a distraction.
+
+Capacity comes before the task list. Write down who is available, how many days, and what is already taken by support, reviews and meetings, then plan only what fits. Every task carries a Done criterion that a person who did not write the code can verify, in the same form as the playbook's definition of done. A task without a criterion does not enter the sprint. The last block, out of the sprint, is as important as the first: it is where you write down what you said no to, so the decision is visible.
+
+At the end of the sprint, read the sheet again. Compare what was committed with what was finished and look at the reasons for the difference, without looking for someone to blame. Three sprints of those notes tell you more about your real capacity than any estimate does, and they feed the weekly conversation about what moved and why.
+
+```markdown
+# Sprint <number> - <start date> to <end date>
+
+## Sprint goal
+<one sentence>
+
+## Capacity
+| Person | Days available | Already committed (support, reviews) | Net days |
+|---|---|---|---|
+| <name> | <n> | <n> | <n> |
+
+## Tasks
+| Task | Owner | Objective (Done criterion, verifiable) | Estimate |
+|---|---|---|---|
+| <title> | <name> | <what a reviewer can check to confirm it is done> | <days> |
+
+## Risks and dependencies
+- <risk or dependency>, owner: <name>, how we will know: <signal>
+
+## Out of the sprint
+- <work that was requested and deliberately not included, with the reason>
+
+## Agreed at planning
+- <decision>, owner: <name>, date: <date>
+```
+
+## RFC (tech spec)
+
+Use it when a technical proposal affects more than one person, or when the decision would be expensive to reverse. An RFC is a request for comments: the goal is to find the problems on paper, where they are cheap, before they are found in production. Write the problem before the solution, and write the non-goals as carefully as the goals, because most disagreements are really about scope.
+
+List real options, including the one you do not like, with the pros and cons of each one. The proposal then explains why one option wins. The verification section is the part people skip and the part that matters most: say how you will know the proposal worked, with a number or a test that can fail. Name who decides and by what date, so the RFC does not stay open forever. Once decided, the outcome is recorded as an architecture decision record, and the RFC links to it.
+
+Keep it short. Two pages that people read are better than ten that they skim. If a section does not apply, write "not applicable" and one line of reason instead of deleting it, so a reader can tell the difference between an omission and a decision.
+
+```markdown
+# RFC: <title>
+
+Author: <name>. Status: draft, in review, accepted or rejected.
+Decides: <name>. Decision date: <date>
+
+## Context
+<what exists today and why this comes up now>
+
+## Problem
+<what is wrong or missing, with evidence>
+
+## Goals
+- <what this must achieve>
+
+## Non-goals
+- <what this deliberately does not try to do>
+
+## Options
+### Option A: <name>
+- Pros: <list>
+- Cons: <list>
+### Option B: <name>
+- Pros: <list>
+- Cons: <list>
+
+## Proposal
+<the chosen option and why it wins over the others>
+
+## How it will be verified
+<the measurement or test that shows it worked, and what we do with each outcome>
+
+## Rollout and rollback
+- Rollout steps: <ordered list>
+- How to go back: <exact steps and who runs them>
+
+## Open questions
+- <question>, who can answer: <name>
+```
+
+## Risk matrix
+
+Use it before a project starts and review it at every sprint planning. Score each risk on two scales from 1 to 3: probability and impact. The score is the product of the two, so it goes from 1 to 9. The score is a conversation tool, not a measurement, so agree on the meaning of each level with the team before scoring.
+
+The rule is simple and it is the reason the matrix exists. A score from 6 to 9 requires a mitigation with an owner before the work begins. A score from 3 to 4 is watched: it gets a trigger signal and a place on the review list. A score from 1 to 2 is accepted, and the acceptance is written down so nobody has to rediscover it. The example row below is fictional and only shows the format.
+
+The matrix is not a one-time exercise. A risk that was a 2 last month may be a 6 today because a dependency slipped, so the review at sprint planning is where the matrix earns its keep. When a risk happens, do not delete its row: mark it as occurred and link to the incident or the postmortem, so the matrix keeps a memory of how well the team predicted it.
+
+```markdown
+# Risk matrix - <project> - reviewed <date>
+
+Scale: probability 1 (unlikely) to 3 (likely); impact 1 (minor) to 3 (severe).
+Score = probability x impact.
+Rule: 6 to 9 needs a mitigation with an owner before starting; 3 to 4 is watched; 1 to 2 is accepted.
+
+| Risk | Probability (1-3) | Impact (1-3) | Score | Action | Owner | Review date |
+|---|---|---|---|---|---|---|
+| Example (fictional): the data export is slower than the migration window allows | 2 | 3 | 6 | Mitigate: rehearse the full export in the QA environment and agree a fallback window | <name> | <date> |
+| <risk> | <1-3> | <1-3> | <score> | <mitigate, watch or accept> | <name> | <date> |
+```

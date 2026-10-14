@@ -1,0 +1,66 @@
+---
+title: "ADR-003: Reglas de seguridad impuestas en código, no en el prompt"
+slug: "adr-003-safety-in-code"
+lang: "es"
+type: "adr"
+order: 23
+summary: "Por qué JARVIS rechaza herramientas peligrosas sin una confirmación que verifica el código, no tiene herramientas destructivas y resuelve lo rutinario por una ruta rápida antes del modelo."
+date: "2026-10"
+project: "jarvis"
+tags: ["JARVIS", "seguridad en IA", "LLM", "Python"]
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+## Estado
+
+Aceptado — octubre de 2026; proyecto en pausa.
+
+## Contexto
+
+JARVIS es un asistente local, por texto y por voz, que corre en el CPU de una laptop sin API de pago. Puede actuar: consulta la PC y mis proyectos mediante herramientas. A un modelo local pequeño se le puede convencer de cosas, y también puede afirmar que hizo una acción que nunca ejecutó. La comparación lo hizo concreto: el modelo de 1.7 mil millones de parámetros afirmó una acción que no había hecho en 1 de 6 casos según una revisión automática, y en 3 de 6 según mi propia lectura.
+
+Entonces la pregunta es dónde vive la regla de seguridad. Si vive en el prompt, el modelo decide si la sigue.
+
+## Opciones consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Confirmación pedida por el prompt | Fácil de escribir, sin código extra | Un prompt es una petición, no una garantía. El modelo puede saltársela o dejarse convencer. |
+| Confirmación exigida por la función de ejecución | La regla se cumple diga lo que diga el modelo | Una herramienta peligrosa necesita una ruta de confirmación en el código |
+| Toda petición va al LLM | Una sola ruta, simple | Lento y caro para hora, fecha y estado del sistema; el riesgo queda en el modelo |
+| Ruta rápida antes del LLM | Las peticiones rutinarias se resuelven con código simple | Necesita un router y pruebas, y las palabras de riesgo aún deben llegar al LLM |
+
+## Decisión
+
+Dos reglas, ambas en código.
+
+Primera, la función de ejecución rechaza una herramienta peligrosa a menos que el código haya verificado una confirmación. Las acciones destructivas ni siquiera existen como herramientas: borrar o mover archivos, una consola, publicar y leer archivos secretos. Una herramienta que no existe no se puede pedir.
+
+Segunda, una ruta rápida corre antes del LLM: un atajo, luego un catálogo de comandos, luego 13 intenciones y después el modelo. La hora, la fecha, el estado del sistema y las listas de música no necesitan un modelo de lenguaje. Las palabras de riesgo y las negaciones siempre van al LLM, así que la ruta rápida no sirve para esquivar las reglas.
+
+<Chart id="jarvis-latency" lang="es" />
+
+## Consecuencias
+
+### Positivas
+
+- La seguridad no depende de cómo se comporte el modelo un día dado.
+- Las peticiones rutinarias son rápidas, gratuitas y predecibles: la ruta rápida responde en 2.7 s.
+- El router se puede probar como cualquier otro código.
+
+### Negativas
+
+- La ruta del LLM tarda 8.6 s contra una meta de 6.0 s. La meta no se cumplió.
+- El router es un componente más que mantener, y cada intención nueva necesita pruebas.
+
+## Cómo se verificó
+
+- La suite del router pasa 47/47.
+- La prueba del cerebro, con el modelo real y no un sustituto, pasa 8/8. Incluye tres casos de seguridad en ambos idiomas: borrar un archivo, correr un script de generación y leer un archivo secreto. Ninguno falló.
+- La meta incumplida se registra, no se esconde. La ruta rápida cumple su meta de 3.5 s, y la ruta del LLM no cumple su meta de 6.0 s.
+
+## Enlaces
+
+- Caso de estudio: [JARVIS](/es/projects/jarvis/)
+- Artículo: [Reglas de seguridad en código](/es/notes/safety-rules-in-code/)
+- Demo: [Demo del router de seguridad de JARVIS](https://carrerable.github.io/jarvis-safety-router-demo/)

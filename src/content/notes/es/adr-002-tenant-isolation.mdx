@@ -1,0 +1,66 @@
+---
+title: "ADR-002: Aislamiento de tenants con seguridad a nivel de fila en PostgreSQL"
+slug: "adr-002-tenant-isolation"
+lang: "es"
+type: "adr"
+order: 22
+summary: "Por qué VetNova separa los datos de cada clínica en la propia base de datos, con seguridad a nivel de fila por petición y un rol de aplicación sin privilegios de dueño, y no con filtros en el código."
+date: "2026-08"
+project: "vetnova"
+tags: ["VetNova", "PostgreSQL", "RLS", "multi-tenant"]
+---
+
+## Estado
+
+Aceptado — agosto de 2026; en producción desde el 7 sep 2026.
+
+## Contexto
+
+VetNova es un SaaS multi-tenant para clínicas veterinarias. Una sola base de datos guarda los datos de muchas clínicas, y una clínica nunca debe ver los registros de otra. El primer commit es del 14 de agosto de 2026, y la pregunta de cómo separar a los tenants tenía que resolverse antes de que creciera el modelo de datos.
+
+El equipo era una persona dirigiendo a un agente de IA, así que el diseño tenía que ser difícil de hacer mal. Una regla que depende de que cada desarrollador recuerde algo, en cada consulta, no lo es.
+
+## Opciones consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Filtros por tenant en el código de la aplicación | Simple para empezar, visible en cada consulta | Un `where` olvidado filtra los datos de otra clínica y nada lo detiene |
+| Una base de datos por tenant | Separación física fuerte | No escala en Postgres serverless: demasiadas bases que operar y migrar |
+| Seguridad a nivel de fila (RLS), definida por petición | La base de datos impone la regla en cada consulta; falla cerrado | El rol debe configurarse bien y necesita sus propias pruebas |
+
+## Decisión
+
+Usar seguridad a nivel de fila en PostgreSQL, definida por petición. La aplicación se conecta con un rol que no es dueño de las tablas. Cada petición define su tenant, y la base de datos devuelve solo las filas de ese tenant. Si falta el contexto, la base de datos no devuelve nada: el diseño falla cerrado.
+
+Delegué a Claude Code la escritura de las políticas y del código, bajo mi especificación escrita, y revisé cada cambio. La decisión y las reglas que debe cumplir son mías.
+
+El rol importa tanto como la política. Si la aplicación se conectara como dueño de la tabla, RLS se saltaría. Por eso el rol sin privilegios de dueño es parte de la decisión, no un detalle de la configuración.
+
+Hoy 125 de los 137 modelos de datos llevan un identificador de tenant y están cubiertos por RLS.
+
+## Consecuencias
+
+### Positivas
+
+- Un filtro olvidado en el código no puede filtrar registros, porque la base de datos aplica la regla por sí misma.
+- Un solo esquema y una sola ruta de migración para todas las clínicas.
+- Un solo lugar para probar el aislamiento, en vez de cada consulta.
+
+### Negativas
+
+- Una conexión como dueño de la tabla se saltaría RLS en silencio, así que la configuración del rol necesita protección.
+- El rendimiento exige cuidado. Trabajando en REYBER aprendí que PostgreSQL no usa un índice sobre una condición cuyo operador no está marcado como leakproof cuando RLS está activo. Ahora mido siempre con el rol real de la aplicación, nunca como superusuario.
+- Este repositorio no tiene integración continua. Las compuertas son locales.
+
+## Cómo se verificó
+
+- El comportamiento se comprobó contra la base de datos real, y los 107 smoke scripts corren contra la API real. No afirmo cuáles de ellos ejercitan el acceso entre clínicas.
+- Un script dedicado prueba RLS.
+- Un chequeo estático cruza cada tabla con identificador de tenant del esquema contra un archivo de clasificación de datos. Se corre al cerrar cualquier tarea que agregue una tabla.
+- Cada cambio se revisó antes de darse por bueno.
+
+## Enlaces
+
+- Caso de estudio: [VetNova](/es/projects/vetnova/)
+- Nota: [Estrategia de pruebas de VetNova](/es/notes/vetnova-test-strategy/)
+- Demo: [Demo de VetNova](https://carrerable.github.io/vetnova-demo/)

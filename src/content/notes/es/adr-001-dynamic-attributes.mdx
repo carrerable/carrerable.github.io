@@ -1,0 +1,70 @@
+---
+title: "ADR-001: Almacenamiento híbrido para atributos dinámicos de seguros"
+slug: "adr-001-dynamic-attributes"
+lang: "es"
+type: "adr"
+order: 21
+summary: "Cómo guarda REYBER los atributos de riesgo que cambian por ramo: JSONB con columnas mantenidas por trigger y una tabla de proyección para listas, elegido con un benchmark de 10 millones de pólizas."
+date: "2026-09-22"
+project: "reyber"
+tags: ["REYBER", "PostgreSQL", "modelo de datos", "benchmark"]
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+## Estado
+
+Aceptado — 22 sep 2026 (primera ronda del prototipo cerrada).
+
+## Contexto
+
+REYBER debe manejar muchos ramos de seguros en un solo motor: autos, vida, mascotas, embarcaciones y más. Cada ramo describe su riesgo de forma distinta. Un auto tiene placa, una mascota tiene raza. La promesa del producto es que una agencia configure los atributos de un ramo sin código y sin una migración de esquema por ramo.
+
+Lo difícil es la búsqueda. La pantalla de búsqueda filtra pólizas por varios atributos a la vez, y un tenant puede tener una cartera muy grande. El prototipo usó 10 millones de pólizas con 13,027,325 objetos asegurados, y cada consulta corrió con el rol propio de la aplicación y la seguridad a nivel de fila activa, porque así corre el producto.
+
+La hipótesis se escribió para que pudiera fallar, con la decisión de cada resultado fijada antes de medir: las partes estables en columnas relacionales, las variables en JSONB, búsqueda dentro de un presupuesto de tiempo y ningún cambio de esquema por ramo nuevo.
+
+## Opciones consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Índice GIN general sobre la columna JSONB | Un solo índice, sin trabajo por atributo | Con seguridad a nivel de fila el planificador lo ignoró, porque los operadores de JSONB no están marcados como leakproof. Corrió como escaneo de tabla. |
+| Índices de expresión, uno por atributo | Dirigidos, pequeños por atributo | El mismo problema de leakproof: en la práctica un escaneo de tabla, y un índice por crear por cada atributo |
+| Tabla de proyección (C), una fila por valor de atributo | Busca bien en listas, sin problema de leakproof | Índice de 3,030 MB, escrituras 1.7x más lentas y un filtro de dos atributos tardó 118 ms |
+| Columnas generadas (G) | Filtro rápido de 1.2 ms, índice de 492 MB | No puede buscar dentro de listas; hacer buscable un atributo nuevo tardó 113 s con la cartera bloqueada |
+| Columnas mantenidas por trigger (G′) | La misma búsqueda rápida de escalares que G; un atributo nuevo tardó 233 s con la cartera en línea | Un trigger puede desincronizarse del JSONB que copia |
+
+## Decisión
+
+Un híbrido de G′ y C. Los atributos se quedan en JSONB como fuente de verdad. Los atributos escalares buscables se copian a una columna normal mantenida por un trigger. Los atributos de lista, como coberturas o beneficiarios, van a una tabla de proyección.
+
+G′ gana sobre G para las columnas escalares porque la cartera sigue en línea. Mientras se hacía buscable el atributo nuevo, un lector concurrente vio un p95 de 3.6 ms contra 4.1 ms en reposo. C gana para las listas porque las columnas generadas no pueden mirar dentro de ellas, y en seguros las listas no son casos raros.
+
+<Chart id="reyber-benchmark" lang="es" />
+
+## Consecuencias
+
+### Positivas
+
+- La búsqueda sigue rápida con 10 millones de pólizas: 1.2 ms contra 118 ms en un filtro de dos atributos, con un índice seis veces menor (492 MB contra 3,030 MB).
+- Un atributo nuevo buscable no deja el sistema fuera de línea.
+- Un ramo nuevo necesita configuración, no una migración.
+
+### Negativas
+
+- El trigger puede desincronizarse del JSONB. Se acepta y queda documentado.
+- No se midieron varios tenants de este tamaño a la vez. El benchmark cubrió un tenant dominante.
+- Contar o agregar una lista enorme es una consulta que ningún índice arregla. Eso es una decisión de producto, no de base de datos.
+
+## Cómo se verificó
+
+- El protocolo falsable se escribió antes de medir, incluido lo que decidiría cada resultado.
+- Cada medición corrió con el rol de la aplicación y la seguridad a nivel de fila activa. Medir sin ella es medir otro producto.
+- Esa regla destapó un hallazgo de leakproof: dos de las cuatro estrategias eran escaneos de tabla con índices sin usar al lado. Las primeras cifras estaban mal, y el protocolo lo atrapó antes de construir una decisión sobre ellas.
+- Comparé los planes de consulta, no solo el reloj.
+- El reporte conserva sus propios errores: el hallazgo de leakproof, una búsqueda por prefijo rota en ambos candidatos y un resultado que parecía victoria y no lo era.
+
+## Enlaces
+
+- Caso de estudio: [REYBER](/es/projects/reyber/)
+- Artículo: [Atributos dinámicos a escala](/es/notes/dynamic-attributes-at-scale/)
+- Demo: [Demo de atributos dinámicos de REYBER](https://carrerable.github.io/reyber-dynamic-attributes-demo/)

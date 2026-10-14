@@ -1,0 +1,83 @@
+---
+title: "Estrategia de pruebas: VetNova"
+slug: "vetnova-test-strategy"
+lang: "es"
+type: "test-strategy"
+order: 5
+summary: "Qué se prueba en un SaaS multi-tenant para clínicas que opera una persona dirigiendo a un agente de IA: las capas de la pirámide, lo que sigue manual a propósito, una matriz de riesgo y los huecos conocidos."
+date: "2026-10-14"
+project: "vetnova"
+tags: ["VetNova", "QA", "pruebas", "riesgo"]
+---
+
+Esta es la estrategia de pruebas que uso en VetNova, un SaaS multi-tenant para clínicas veterinarias. Yo escribo las especificaciones y las reglas, un agente de IA escribe el código y yo verifico el resultado. Esa división define la estrategia: las revisiones tienen que ser baratas de correr, imposibles de falsear y honestas sobre lo que no cubren.
+
+## Alcance
+
+La estrategia cubre todo el producto: la API, la aplicación web, la base de datos y las integraciones (facturación electrónica, pagos, notificaciones por WhatsApp y correo, y texto a voz para los tutoriales). El producto tiene cinco idiomas de interfaz, y 125 tablas llevan identificador de tenant y están bajo seguridad a nivel de fila.
+
+Anonimizado: aquí no aparecen datos de clínicas, usuarios ni clientes. Todas las revisiones de abajo corren con datos de prueba.
+
+Dos reglas enmarcan todo lo demás:
+
+- Una revisión tiene que poder fallar. Antes de confiar en una puerta, rompo lo que cuida y veo cómo se pone en rojo.
+- Toda cifra que una revisión afirma es una cifra concreta. Una ruta que responde 200 prueba que respondió, no que respondió bien.
+
+## La pirámide de pruebas
+
+Las capas van de la más barata y rápida, abajo, a la más cara, arriba. La mayor parte del peso está en las capas bajas, donde una falla es barata de encontrar y barata de corregir.
+
+| Capa | Qué | Cuándo corre | Qué detecta |
+|---|---|---|---|
+| 1. Estáticos | Revisión de tipos y build; revisión de claves y cobertura de i18n en los 5 idiomas, que además valida que las variables ICU coincidan con el español; un chequeo que cruza cada clase CSS usada contra el CSS generado; un guardarraíl estático que clasifica las tablas con identificador de tenant; una puerta de integración que cruza registros transversales (idiomas, tutoriales, navegación, features, permisos y eventos anunciados sin emisor) | Antes de aceptar cada cambio | Errores de tipos, traducciones faltantes, variables que no coinciden, clases que no existen, una tabla sin decisión de aislamiento, una función registrada en un lugar y olvidada en otro |
+| 2. Librería | Un banco de preguntas del asistente, escritas como las diría alguien en el mostrador | Cuando cambia el asistente | Preguntas que caen en la intención equivocada, y un buscador que responde cuando debería callar ante lo que no es de la app |
+| 3. API de punta a punta | 107 smoke scripts que llaman flujos reales del producto; un corredor que los ejecuta uno por uno y devuelve un resumen y un código de salida; un script de prueba de RLS; un script de prueba de restauración de respaldos | Antes de un release candidate y después de cualquier cambio a la capa de datos | Flujos rotos, fugas entre tenants, respaldos que existen pero no se pueden restaurar |
+| 4. UI | QA visual con Playwright a varios anchos en tema claro y oscuro; Lighthouse con presupuesto sobre las páginas públicas, siempre contra el build de producción; un modo QA que sirve el build de producción en local para las rondas | Antes de un release candidate | Layouts rotos, problemas de contraste, páginas públicas lentas, diferencias entre desarrollo y producción |
+| 5. Rondas manuales | Rondas de QA por escrito, cada una con una tabla de hallazgos; tres rondas para el primer release candidate | Antes de un release candidate | Lo que ningún script se escribió para buscar |
+
+Dos detalles son deliberados. Lighthouse nunca apunta al servidor de desarrollo, porque una calificación de ahí no significa nada; el modo QA existe para que cada ronda corra contra el build que va a salir. Y la capa estática recibe la mayor inversión, porque corre sin base de datos ni servidor: cuando alguien agrega una tabla, el guardarraíl obliga a decidir su aislamiento.
+
+## Qué se automatiza y qué no
+
+Algunas cosas se quedan manuales a propósito. La razón no es flojera: un script que fingiera cubrirlas daría una confianza falsa.
+
+- **Corrección fiscal del CFDI.** El modo de prueba del proveedor acepta lo que el SAT rechazaría, así que una corrida en verde prueba que la integración responde, no que la factura sea válida.
+- **El circuito de pago, de punta a punta.** La cuenta de pagos en vivo nunca ha procesado un cargo real. Lo dejé documentado en vez de esconderlo.
+- **Prueba humana de usabilidad.** Un script no me puede decir que una pantalla confunde.
+- **Entrega real de WhatsApp.** Un envío es un solo intento con timeout corto, así que la revisión automática confirma el intento, no la entrega.
+
+Una regla cubre el riesgo contrario, la falsa sensación de cobertura: **una ruta que ningún smoke llama no está probada**, aunque la suite esté en verde. El endpoint de multi-factura respondía 409 a todo hasta que un smoke por fin lo llamó. Antes de un release candidate, compara la lista de rutas contra la lista de rutas que tocan los smokes.
+
+## Matriz de riesgo
+
+Califico cada área de 1 a 3 en probabilidad y en impacto, y el puntaje es probabilidad por impacto. Son calificaciones mías, hechas por una sola persona. Sirven para decidir dónde gastar la próxima hora de pruebas, no son una medición.
+
+| Área | Probabilidad | Impacto | Puntaje | Cobertura | Riesgo residual |
+|---|---|---|---|---|---|
+| Aislamiento de tenants | 1 | 3 | 3 | RLS en la base de datos, el guardarraíl estático de tablas, el script de prueba de RLS, la app conectada con un rol que no es dueño | Bajo. La base falla cerrada, pero un tipo nuevo de tabla necesita una decisión humana |
+| Facturación CFDI | 2 | 3 | 6 | Smokes contra el modo de prueba del proveedor | Alto. El modo de prueba no demuestra la corrección fiscal y sigue haciendo falta una revisión humana |
+| Pagos | 2 | 3 | 6 | Smokes de los flujos de pago, sin cargo real | Alto. El circuito completo nunca ha procesado un cargo real |
+| Esquema y migraciones | 3 | 2 | 6 | Migraciones SQL escritas a mano, aplicadas solo con deploy, más el script de restauración de respaldos | Medio. El archivo de esquema y la base real difieren en 97 diferencias en 33 tablas, así que nunca se corre migrate dev |
+| Notificaciones de WhatsApp | 2 | 1 | 2 | Smoke a nivel de intento | Bajo. Un envío es un solo intento y se acepta que uno falle |
+| i18n y una API desactualizada | 2 | 2 | 4 | Revisiones de claves y variables en 5 idiomas; la regla de confirmar que la API sirve el código de hoy | Medio. Un smoke contra una API vieja da un veredicto equivocado |
+
+## Tres advertencias que no caducan
+
+Están al inicio del archivo de estado del proyecto. Cada una salió de una falla real, y cada una es una regla que sigo antes de leer cualquier resultado.
+
+1. **Comprueba que la API sirve el código de hoy antes de llamar roto a un smoke.** Una API desactualizada hace que una suite sana parezca rota y una rota parezca sana.
+2. **Un smoke en verde no prueba la corrección fiscal.** El modo de prueba del proveedor es más permisivo que el SAT.
+3. **Una ruta que ningún smoke llama no está probada, aunque la suite esté en verde.** El endpoint de multi-factura es el ejemplo que tengo presente.
+
+También recuento. Un archivo de estado decía 118 pantallas; el disco decía 117, así que 117 es la cifra que publico. Una estrategia de pruebas que cita conteos que no verificó es un documento de marketing.
+
+## Huecos conocidos
+
+Prefiero listar los huecos que esperar a que me los pregunten.
+
+- **Sin integración continua.** Las puertas son locales, y por eso existen las tres advertencias de arriba. Agregaría CI como lo hice en REYBER, donde las pruebas de aislamiento, la revisión del diccionario de datos y los smoke tests de la API corren en cada push.
+- **El circuito de pago** nunca se ha ejercitado de punta a punta con un cargo real.
+- **La corrección del CFDI** no se verifica contra el SAT, solo contra el modo de prueba del proveedor.
+- **La prueba humana de usabilidad** no se ha hecho. Las rondas manuales las corre la misma persona que dirige la construcción, así que comparten sus puntos ciegos.
+
+Para el producto en sí, consulta el [caso de VetNova](/es/projects/vetnova/). Para ver por qué el aislamiento vive en la base de datos, consulta el [ADR-002: aislamiento de tenants](/es/notes/adr-002-tenant-isolation/).

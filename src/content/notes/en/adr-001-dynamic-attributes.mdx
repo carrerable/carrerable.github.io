@@ -1,0 +1,70 @@
+---
+title: "ADR-001: Hybrid storage for dynamic insurance attributes"
+slug: "adr-001-dynamic-attributes"
+lang: "en"
+type: "adr"
+order: 21
+summary: "How REYBER stores risk attributes that change by insurance line: JSONB plus trigger-kept columns and a projection table for lists, chosen by a benchmark on 10 million policies."
+date: "2026-09-22"
+project: "reyber"
+tags: ["REYBER", "PostgreSQL", "data model", "benchmark"]
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+## Status
+
+Accepted — 22 Sep 2026 (prototype round one closed).
+
+## Context
+
+REYBER must hold many insurance lines in one engine: autos, life, pets, boats and more. Each line describes its risk differently. A car has a plate, a pet has a breed. The product promise is that an agency configures a line's attributes without code and without a schema migration per line.
+
+The hard part is search. The search screen filters policies by several attributes at once, and one tenant can hold a very large portfolio. The prototype used 10 million policies with 13,027,325 insured objects, and every query ran under the application's own database role with row-level security on, because that is how the product runs.
+
+The hypothesis was written so it could fail, with the decision for each outcome fixed before measuring: stable parts in relational columns, variable parts in JSONB, search inside a time budget, and no schema change for a new line.
+
+## Options considered
+
+| Option | Pros | Cons |
+|---|---|---|
+| General GIN index on the JSONB column | One index, no per-attribute work | Under row-level security the planner skipped it, because JSONB operators are not marked leakproof. It ran as a table scan. |
+| Expression indexes, one per attribute | Targeted, small per attribute | Same leakproof problem: a table scan in practice, and one index to create per attribute |
+| Projection table (C), one row per attribute value | Searches lists well, no leakproof problem | Index of 3,030 MB, writes 1.7x slower, and a two-attribute filter took 118 ms |
+| Generated columns (G) | Fast filter of 1.2 ms, index of 492 MB | Cannot search inside lists; adding a searchable attribute took 113 s with the portfolio locked |
+| Trigger-kept columns (G′) | Same fast scalar search as G; adding an attribute took 233 s with the portfolio live | A trigger can drift from the JSONB it copies |
+
+## Decision
+
+A hybrid of G′ and C. Attributes stay in JSONB as the source of truth. Searchable scalar attributes are copied to a plain column kept by a trigger. List attributes, such as coverages or beneficiaries, go to a projection table.
+
+G′ wins over G for the scalar columns because the portfolio stays online. While the new attribute was being made searchable, a concurrent reader saw a p95 of 3.6 ms against 4.1 ms at rest. C wins for lists because generated columns cannot look inside them, and lists are not edge cases in insurance.
+
+<Chart id="reyber-benchmark" lang="en" />
+
+## Consequences
+
+### Positive
+
+- Search stays fast at 10 million policies: 1.2 ms against 118 ms for a two-attribute filter, with an index six times smaller (492 MB against 3,030 MB).
+- A new searchable attribute does not take the system offline.
+- A new line needs configuration, not a migration.
+
+### Negative
+
+- The trigger can drift from the JSONB. This is accepted and documented.
+- Several tenants of this size at once were not measured. The benchmark covered one dominant tenant.
+- Counting or aggregating a huge list is a query no index fixes. That is a product decision, not a database one.
+
+## How it was verified
+
+- The falsifiable protocol was written before measuring, including what each result would decide.
+- Every measurement ran under the application's role with row-level security on. Measuring without it measures a different product.
+- That rule exposed a leakproof finding: two of the four strategies were table scans with unused indexes beside them. The first numbers were wrong, and the protocol caught it before a decision was built on them.
+- I compared query plans, not just the clock.
+- The report keeps its own mistakes: the leakproof finding, a prefix search broken in both candidates, and a result that looked like a win and was not.
+
+## Links
+
+- Case study: [REYBER](/en/projects/reyber/)
+- Article: [Dynamic attributes at scale](/en/notes/dynamic-attributes-at-scale/)
+- Demo: [REYBER dynamic attributes demo](https://carrerable.github.io/reyber-dynamic-attributes-demo/)

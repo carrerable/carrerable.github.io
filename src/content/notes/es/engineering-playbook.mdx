@@ -1,0 +1,111 @@
+---
+title: "Playbook de ingeniería"
+slug: "engineering-playbook"
+lang: "es"
+type: "playbook"
+order: 1
+summary: "Los estándares que fijo para un equipo: definición de terminado comprobable, revisión de código, ramas y releases, onboarding de gente nueva y las reuniones que existen."
+date: "2026-10-14"
+tags: ["liderazgo", "proceso", "revisión de código", "calidad"]
+---
+
+Este playbook es el conjunto de estándares que pongo en marcha cuando dirijo un equipo. Existe para que nadie tenga que adivinar qué significa "terminado", cómo es una buena revisión o cuándo puede salir un release. Aplica igual a personas y a agentes de IA que programan, porque las reglas son sobre el trabajo, no sobre quién lo escribió.
+
+Una parte describe lo que ya hago en mi puesto actual en un SaaS B2B para talleres mecánicos. El resto es prescriptivo: así monto un equipo, escrito como reglas. He dirigido equipos de hasta 40 personas en el IPN, y mantengo las reglas lo bastante cortas para que un equipo de verdad las pueda seguir.
+
+## Definición de terminado
+
+Una tarea está terminada cuando todas las casillas están marcadas. La lista es la misma para un arreglo de una línea y para una función completa, porque el costo de un check faltante lo paga después otra persona.
+
+- [ ] El criterio de Done se escribió al iniciar la tarea y lo puede verificar una persona que no escribió el código.
+- [ ] Pasan los checks que prueban cifras concretas. Un check en verde no es una prueba por sí solo: una prueba que regresa 200 solo demuestra que una ruta respondió, así que el check afirma un conteo exacto, un total o un límite de tiempo.
+- [ ] La puerta se rompió a propósito al menos una vez, para saber que puede fallar.
+- [ ] La revisión de código está aprobada por alguien que puede explicar el cambio.
+- [ ] QA pasó en el ambiente de QA, y lo que no pasó quedó con la falla, la evidencia y los pasos.
+- [ ] El cambio se validó de nuevo en producción después del release.
+- [ ] En cambios de datos: dry-run, QA, producción y conciliación contra la fuente, en ese orden.
+- [ ] La documentación está actualizada: el README, el runbook o el registro de decisión que toque el cambio.
+- [ ] Nada queda pendiente sin dueño y fecha.
+
+Dos detalles hacen que la lista funcione. Primero, el criterio de Done se escribe al inicio, en la tarea misma, bajo una línea llamada "Objetivo (criterio de Done)". Si no se puede escribir el criterio, la tarea no está lista para empezar. Segundo, "terminado" es una afirmación sobre el resultado real: antes de escribir "listo", se abre el archivo, se corre la consulta o se lee el número.
+
+## Revisión de código
+
+La revisión es donde los estándares de un equipo se hacen visibles. Leo en un orden fijo, porque el orden decide qué recibe atención cuando hay poco tiempo.
+
+1. **Corrección contra el criterio.** ¿El cambio hace lo que dice el criterio de Done y nada más?
+2. **Seguridad de los datos.** Las migraciones y las escrituras reciben la mirada más cuidadosa: ¿hay dry-run?, ¿el script es idempotente o está marcado como de un solo uso?, ¿pisa columnas que la gente llena a mano?, ¿cada columna de un insert está decidida en lugar de omitida?
+3. **Seguridad.** Sin secretos en logs, en errores ni en datos de prueba. Un ejemplo real de mi trabajo de QA: el servidor de sockets imprimía el token de sesión en claro en su log. Lo reporté con evidencia y se corrigió. Desde entonces, "¿qué imprime esto?" es una pregunta fija de la revisión.
+4. **Pruebas que pueden fallar.** Una prueba que no puede fallar no es una prueba. Pregunto dónde se rompería la prueba si el código estuviera mal.
+5. **Legibilidad.** Nombres, estructura y comentarios que explican el porqué, no el qué.
+
+Cada comentario lleva una etiqueta, para que quien escribió el código sepa qué es obligatorio:
+
+- `blocking`: el cambio no se puede integrar hasta resolverlo.
+- `suggestion`: una mejora que la persona puede tomar o dejar, con una razón si la deja.
+- `question`: no entiendo algo; basta una respuesta, y puede volverse un comentario en el código.
+
+El tamaño y la velocidad importan tanto como la profundidad. Un pull request cambia menos de 400 líneas; el trabajo más grande se parte en pasos que dejan `main` funcionando cada uno. La primera revisión ocurre en menos de un día hábil, porque una revisión que espera días enseña a la gente a acumular trabajo sin revisar.
+
+El código generado por un agente de IA se revisa con la misma vara que el escrito por una persona. Quien lo aprueba debe poder explicarlo línea por línea. Si no puede, no se aprueba, sin importar qué limpio se vea ni cuántas pruebas pasen.
+
+La lista de revisión tiene una casilla obligatoria, copiada literalmente en cada plantilla de pull request:
+
+- [ ] **Toda consulta que lee por páginas tiene `ORDER BY` sobre una llave única**
+
+Existe por un bug real: una consulta que lee página tras página sin un orden estable deja que la base de datos devuelva las filas en cualquier orden de una página a otra. Las páginas repiten o se saltan registros, y los totales se encogen sin ningún error. La historia completa está en el [postmortem de paginación](/es/notes/pagination-postmortem/).
+
+## Ramas y releases
+
+El modelo de ramas es aburrido a propósito.
+
+- Las ramas son cortas y salen de `main`.
+- Todo cambio llega a `main` por un pull request. El CI corre el build, la revisión de tipos y las pruebas en cada pull request, y un check que falla bloquea la integración.
+- Las integraciones son squash merge, así cada cambio es un commit con un mensaje claro.
+- `main` siempre se puede desplegar. Si no, arreglarlo es la primera prioridad del equipo.
+
+Los releases son semanales y pasan una puerta de QA en dos tiempos. El primero es el ambiente de QA: cada ticket se prueba ahí y se aprueba o se regresa a reproceso. El segundo es producción: después del deploy, cada ticket se revisa de nuevo con datos y volúmenes reales. Los dos tiempos tienen criterios distintos, así que se registran por separado y nunca se mezclan en un solo veredicto. El caso detallado está en [la puerta de QA de releases](/es/projects/qa-release-gate/).
+
+Un hotfix sigue un camino más corto con las mismas reglas: una rama desde `main`, un pull request pequeño, una revisión el mismo día y una validación en producción justo después del deploy. Un hotfix nunca es razón para saltarse el segundo tiempo.
+
+Cada release lleva notas escritas para quienes usan el producto. Evitan la jerga técnica, porque quien las lee es un cliente, no un desarrollador.
+
+Una regla mantiene limpios los roles: QA reporta, nunca corrige. Un reporte de QA dice qué falló, muestra la evidencia y lista los pasos para reproducirlo. No incluye una corrección sugerida. La corrección es de producto y desarrollo, y una corrección sugerida mete a QA en el diseño y puede esconder el problema real.
+
+## Onboarding
+
+La gente nueva debe poder trabajar sin necesitar a un héroe que le explique el sistema. Este es el plan que monto para quien se une, en orden.
+
+- **Día 1.** Los accesos están listos antes de que llegue la persona. Clona el proyecto y lo corre localmente. La meta del día es un ambiente local funcionando, nada más.
+- **Días 2 y 3.** Lee las notas de arquitectura y los registros de decisión. Los tres registros de decisión de arquitectura están en la [página de notas](/es/notes/) y explican por qué el sistema tiene la forma que tiene. Hace preguntas, y las respuestas se escriben de vuelta en los documentos.
+- **Primer pull request antes de que acabe el día 3.** Es pequeño a propósito: una errata, una prueba o una línea de documentación que falta. Trabaja en pareja, y la meta es recorrer una vez el camino completo, de la rama a producción.
+- **30 días.** Ha entregado varios cambios pequeños y puede explicarle a otra persona la lista de revisión.
+- **60 días.** Es dueña de un área pequeña de punta a punta, con sus pruebas y su runbook.
+- **90 días.** Revisa el trabajo de otras personas y propone una mejora al proceso.
+
+Cada persona nueva corrige el documento de onboarding sobre la marcha. Son las únicas que pueden ver qué falta, y un documento que nadie corrige ya está desactualizado. No cuento onboardings pasados como prueba de que esto funciona; el plan es un estándar que fijo, y lo juzga la siguiente persona que lo siga.
+
+## Rituales
+
+Las reuniones son baratas de agregar y caras de quitar, así que cada una tiene que ganarse su lugar.
+
+- **Daily, escrito.** Se publica en el canal del equipo en listas, no en tablas, porque tiene que pegarse limpio en el chat. Tiene tres partes: hecho (reproceso, reportado, QA aprobado, QA en producción), pendiente y QA pendiente. Toma unos minutos escribirlo y reemplaza una reunión fija.
+- **Weekly los lunes.** Tres minutos por persona, con dirección y el equipo. Cada persona dice a qué se comprometió la semana pasada, por qué algo no se concluyó y a qué se compromete esta semana. Aquí se negocia la prioridad de la cola de QA: primero los bugs, luego la migración a React, luego todo lo demás.
+- **1:1 cada dos semanas.** Treinta minutos, con agenda fija: cómo estás, bloqueos, avances desde la última, feedback en ambos sentidos, crecimiento y acuerdos con dueño y fecha. La agenda está en el [kit de plantillas](/es/notes/templates-kit/).
+- **Planeación de sprint.** Una frase para el objetivo del sprint, un número de capacidad y una lista de tareas que tienen cada una un criterio de Done verificable. La hoja está en el mismo [kit de plantillas](/es/notes/templates-kit/).
+- **Postmortem, sin culpables.** Después de un incidente o de un casi-incidente, el equipo escribe qué pasó, la causa raíz, qué salió bien, qué salió mal y las acciones. La pregunta nunca es "quién", siempre es "qué permitió que pasara". Mira el [postmortem de paginación](/es/notes/pagination-postmortem/) como ejemplo del formato.
+- **Registros de decisión para lo difícil de revertir.** Si deshacer una decisión sería caro, la escribo con las alternativas que descarté y la medición que decidió. Mira el [ADR 001 sobre atributos dinámicos](/es/notes/adr-001-dynamic-attributes/).
+- **Revisión trimestral de métricas de entrega.** Una vez por trimestre el equipo mira las cuatro métricas DORA de entrega: frecuencia de despliegue, tiempo de entrega de los cambios, tasa de fallo de cambios y tiempo de recuperación. Son insumos para conversar sobre el proceso, nunca un ranking de personas. Para verlas en vivo, mira [un tablero DORA en vivo de mis repositorios públicos](https://carrerable.github.io/dora-metrics-demo/).
+
+Cada ritual tiene un dueño y un producto escrito. Una reunión que no produce nada es candidata a eliminarse en la siguiente revisión trimestral.
+
+## Cómo encajan los agentes de IA
+
+Los agentes de IA trabajan dentro de la misma definición de terminado que todos los demás. No reciben una lista más ligera por ser rápidos, ni una más pesada por ser nuevos. Lo que cambia es quién carga qué parte del trabajo.
+
+- **Las reglas se escriben por proyecto.** Cada proyecto tiene un `CLAUDE.md` con las reglas que el agente debe seguir: verificar el resultado real antes de decir "listo", mantener los scripts idempotentes, pedir visto bueno antes de cambios estructurales, nunca hacer commit ni push salvo que se pida en ese turno, y escribir en producción solo con un dry-run previo y una verificación posterior.
+- **El agente propone, una persona decide.** El agente redacta código, consultas y documentos. Una persona es dueña del alcance, revisa cada cambio, lo verifica contra datos reales y decide qué sale.
+- **Cero invención.** Si una cifra no sale de la base de datos o de un archivo, el agente la marca y pregunta. Un número sin fuente no entra a un documento.
+- **La vara de revisión no se mueve.** El código generado por IA se revisa como cualquier otro, y quien lo aprueba debe poder explicarlo.
+
+En mi propio trabajo, 71 de 243 commits del repositorio que uso para análisis y operación tienen coautoría de un modelo de IA. Ese porcentaje es un insumo para la revisión, no una medida de calidad: me dice cuánto del código necesita la lectura más cuidadosa. Cómo dirijo un equipo de agentes, con roles, planes y un panel en vivo, se describe en [el caso del equipo de agentes de IA](/es/projects/ai-agent-team/).

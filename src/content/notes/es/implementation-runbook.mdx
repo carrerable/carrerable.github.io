@@ -1,0 +1,153 @@
+---
+title: "Runbook: implementación con cliente, del kickoff al hypercare"
+slug: "implementation-runbook"
+lang: "es"
+type: "runbook"
+order: 10
+summary: "Las fases, listas de verificación y el rollback para llevar a producción los datos históricos de un cliente nuevo: kickoff, ensayos de migración, go-live y hypercare."
+date: "2026-10-14"
+project: "data-migration-pipeline"
+tags: ["implementación", "migración de datos", "go-live", "rollback"]
+---
+
+Este es el runbook que sigo, y que espero que otros sigan, cuando llega un cliente nuevo de un SaaS B2B para talleres mecánicos (mi puesto actual) con años de historia en sistemas anteriores. Convierte un proyecto de migración en cuatro fases con criterios de entrada, una lista de verificación y criterios de salida. El [caso](/es/projects/data-migration-pipeline/) muestra su aplicación; esta página es el procedimiento reutilizable. Todos los nombres de cliente y de archivo de los ejemplos son ficticios y están marcados como tales.
+
+## Cuándo usar este runbook
+
+Úsalo cuando las órdenes, pagos, cuentas por cobrar, refacciones o proveedores de un cliente deban cargarse a producción desde archivos o desde un sistema anterior. No lo uses para una corrección manual aislada: esa necesita dry-run y conciliación, pero no cuatro fases.
+
+La regla detrás de cada fase: una escritura en producción necesita un número con el cual compararse. Si no hay un conteo de la fuente, no hay nada que conciliar y la carga no corre.
+
+## Roles
+
+| Rol | Es responsable de |
+|---|---|
+| Líder de implementación | El plan, el orden de las etapas, cada dry-run y la decisión de go/no-go. Recibe los archivos del cliente y reporta los huecos. |
+| Responsable de datos del cliente | Los archivos fuente, las respuestas a las dudas sobre ellos y la aceptación del resultado. |
+| Dirección | Aprueba las reglas por escrito antes de programar y da el visto bueno a las exclusiones y a las migraciones parciales. |
+| Desarrollo | Corrige los bugs de la aplicación que salgan en los ensayos. No cambia las reglas de migración. |
+| Soporte | Recibe las dudas del cliente en el go-live y el hypercare y registra cada incidencia con su registro. |
+
+## Fase 1 — Kickoff
+
+**Criterios de entrada:** el cliente se dio de alta y nombró a un responsable de datos.
+
+**Lista de verificación:**
+
+- [ ] Pide los archivos fuente y anota exactamente qué reportes se esperan de cada sucursal.
+- [ ] Recibe los archivos y lista los huecos: reportes incompletos, archivos mal nombrados, sedes mezcladas en un archivo.
+- [ ] Reporta cada hueco al cliente por escrito y guarda la respuesta.
+- [ ] Escribe el análisis de reglas de migración por sucursal antes de programar: estructura de los archivos, conteos de filas y de folios, llaves, exclusiones.
+- [ ] Lleva el análisis escrito a dirección para su aprobación.
+- [ ] Acuerda la ventana de go-live y a quién se le avisará.
+
+**Criterios de salida:** dirección aprobó el análisis escrito, y cada hueco conocido tiene una respuesta del cliente o una decisión documentada de dejarlo fuera.
+
+Dirección revisa el análisis porque aquí un error sale barato y después sale caro. En una sucursal, dirección notó que mi primer análisis había omitido 3 archivos. Corregí el análisis mismo antes de escribir código y luego lo comprobé contra la lista completa de archivos. Copia ese hábito: compara la lista de archivos del análisis con la carpeta antes de enviarlo.
+
+## Fase 2 — Migración
+
+**Criterios de entrada:** se cumplieron los criterios de salida de la Fase 1, y existe una cuenta de prueba en QA separada de producción.
+
+El pipeline tiene dos pasos. Primero, los archivos Excel se convierten en un JSON homologado que se puede comparar, revisar y conciliar. Segundo, la base de datos se carga desde ese JSON, nunca directamente desde el Excel. El archivo fuente nunca es lo que se carga.
+
+```
+Archivos Excel  ->  JSON homologado (auditable)  ->  base de datos
+    fuente            revisado y conciliado          dry-run, luego QA, luego producción
+```
+
+**Lista de verificación:**
+
+- [ ] Decide cada columna de cada tabla en la que insertas. Nunca omitas una. Los INSERT manuales que se saltaron columnas (descripción, método de pago, aprobación del cliente, refacciones) causaron cuatro bugs en una migración anterior, y la regla que salió de ahí es "decidir cada columna".
+- [ ] Lista cada exclusión con su motivo. En un conjunto de datos, las filas que no eran sucursales reales (4 de 8,262) y un folio con un empate imposible de resolver se dejaron fuera y se documentaron.
+- [ ] Cuando los datos del cliente están incompletos, documenta una migración parcial. En una sucursal solo cerca del 15% de las órdenes tenía reporte completo, así que la migración se documentó como parcial en lugar de inventar el resto.
+- [ ] Deduplica proveedores en este orden: RFC, luego nombre normalizado, luego alias manual. Fusiona los duplicados en el registro con más dependencias. No los borres, porque el historial apunta a ellos.
+- [ ] Usa baja lógica para los elementos de catálogo como las refacciones, para que el historial siga siendo legible.
+- [ ] Corre el dry-run. No toca nada. Guarda sus conteos.
+- [ ] Corre el ciclo completo en QA: borrar, cargar, verificar, borrar. Concilia contra la fuente después de la carga.
+- [ ] Corre en producción solo después de que QA pase. Concilia contra la fuente otra vez.
+- [ ] Haz que cada carga escriba un manifiesto de lo que creó, y dale una opción `--undo` que lea ese manifiesto.
+- [ ] Mantén separados los datos transaccionales y la configuración del sistema. Un reset que borró ambos dejó una vez una cuenta inoperable, así que un rollback solo debe poder quitar filas transaccionales.
+
+Ejemplo de una entrada de manifiesto. El nombre del archivo y los valores son ficticios:
+
+```json
+{
+  "run": "example-run-001",
+  "created": { "orders": 120, "payments": 118 },
+  "undo": "node load.js --undo example-run-001"
+}
+```
+
+**Criterios de salida:** la conciliación en producción coincide con la fuente en cada tabla del alcance, las exclusiones y migraciones parciales están documentadas y aprobadas, y existe el manifiesto de cada carga.
+
+## Fase 3 — Go-live
+
+**Criterios de entrada:** se cumplieron los criterios de salida de la Fase 2.
+
+**Go/no-go.** La decisión es sí solo si todo esto es cierto:
+
+- [ ] La conciliación coincide con la fuente.
+- [ ] QA pasó el ciclo completo.
+- [ ] Se tomó un respaldo y su hora está anotada.
+- [ ] El rollback se ensayó en QA, no solo se describió.
+- [ ] Se avisó al cliente y la ventana está acordada.
+
+Si cualquier punto es falso, la respuesta es no-go y el motivo se anota en la bitácora.
+
+**Después de la carga:**
+
+- [ ] Cuenta las filas y compáralas con la fuente.
+- [ ] Abre registros migrados en la aplicación misma, no solo en la base de datos. Contar filas no basta. Un campo que el esquema marca opcional pero que la aplicación exige rompió 188 órdenes al abrirse, y un conteo de filas nunca lo habría mostrado. Generé el campo con el formato de la propia aplicación, comprobé la unicidad y reparé las 188.
+- [ ] Abre al menos un registro de cada tipo: orden, pago, cuenta por cobrar, refacción, proveedor.
+- [ ] Avisa al cliente que la carga terminó y cómo reportar un problema.
+
+**Criterios de salida:** cada registro de la muestra abre, los conteos coinciden y se avisó al cliente.
+
+## Fase 4 — Hypercare
+
+**Criterios de entrada:** la carga terminó y se avisó al cliente.
+
+El hypercare dura 10 días hábiles por defecto. Acórtalo solo con la aprobación de dirección, y extiéndelo si quedan incidencias abiertas.
+
+**Lista de verificación:**
+
+- [ ] Soporte registra cada reporte del cliente con el registro al que se refiere.
+- [ ] Revisa la bitácora cada día y clasifica cada punto: problema de datos, bug de la aplicación o duda.
+- [ ] Manda los problemas de datos al líder de implementación y los bugs de la aplicación a desarrollo.
+- [ ] Rellena los registros faltantes, como los movimientos financieros espejo de corridas anteriores, con un script que tenga dry-run y `--undo`.
+- [ ] Manda al cliente un estado diario breve mientras haya incidencias abiertas.
+- [ ] Al final, manda una nota de cierre: qué se migró, qué se excluyó y por qué, y qué quedó documentado como parcial.
+
+**Criterios de salida:** no hay problemas de datos abiertos, cada exclusión está documentada y el cliente aceptó el resultado por escrito.
+
+## Rollback
+
+**Disparadores.** Haz rollback cuando ocurra cualquiera de estos:
+
+- La conciliación no coincide con la fuente.
+- La aplicación falla al abrir registros migrados.
+- Una carga escribió filas que no están en su manifiesto.
+
+**Procedimiento:**
+
+1. Detente. No inicies otra carga.
+2. Corre el `--undo` de la carga. Lee el manifiesto y quita solo lo que esa carga creó.
+3. Vuelve a correr la conciliación. Los conteos deben regresar a su valor anterior a la carga.
+4. Si el undo no basta, restaura el respaldo tomado para el go-live.
+5. Cuéntale al cliente qué pasó y la nueva ventana, antes de que lo descubra por su cuenta.
+6. Anota la causa en la bitácora, corrígela en QA con el ciclo completo y solo entonces programa una ventana nueva.
+
+Una primera carga de compras llegó una vez a producción con tres errores: sucursal equivocada, proveedores mezclados en una sola compra y costos en cero. Se rehízo con el pipeline auditable y se verificó después de cargar en lugar de parcharse. La lección es la regla de este runbook: el ciclo completo de dry-run a QA va antes de cada carga, sin importar quién la corra.
+
+## Lista de verificación en una página
+
+| Fase | No avances hasta que |
+|---|---|
+| 1. Kickoff | Dirección aprobó el análisis escrito, y cada hueco tiene una respuesta o una decisión documentada. |
+| 2. Migración | El dry-run, el ciclo de QA y la conciliación en producción coinciden con la fuente. Cada carga tiene manifiesto y `--undo`. |
+| 3. Go-live | Todos los puntos del go/no-go son ciertos, y los registros migrados abren en la aplicación. |
+| 4. Hypercare | No hay problemas de datos abiertos tras 10 días hábiles, y el cliente aceptó el resultado. |
+| Rollback | Los disparadores son conocidos, el `--undo` se ensayó y la hora del respaldo está anotada. |
+
+Mira también la [demo de conciliación en vivo](https://carrerable.github.io/migration-reconciliation-demo/), que aplica la misma idea con datos inventados.

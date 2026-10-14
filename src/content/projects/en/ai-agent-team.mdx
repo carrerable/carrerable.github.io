@@ -1,0 +1,107 @@
+---
+title: Directing a team of AI agents
+slug: ai-agent-team
+lang: en
+kind: project
+order: 13
+summary: "How I split engineering work between AI agents by difficulty and cost: a planner that cannot edit, an executor that follows plans exactly, a read-only explorer, and a local panel that shows who is doing what."
+pitch: "More engineering output from AI agents without losing control: every task has a written plan, a verification step and a visible owner."
+role: Designer & operator (personal tooling)
+period: "2026"
+status: production
+stack: [Claude Code, Python, SQLite, HTML]
+aiTools: [Claude Code]
+metrics:
+  - label: "Agent roles, each pinned to a model by difficulty and cost (plan, execute, explore)"
+    value: "3"
+    source: "Agent definitions, 2026-10-14"
+    gain: "Expensive models only where judgment is needed; routine work runs on cheaper ones."
+  - label: "Sections every plan must have before an agent executes it"
+    value: "9"
+    source: "Planning rules, 2026-10-14"
+    gain: "A simpler model can execute the plan without guessing, and every step says how to verify it."
+  - label: "Session events the panel records through hooks"
+    value: "5"
+    source: "Hook configuration, 2026-10-14"
+    gain: "Anyone can see which agent is working, on what, and how far along it is."
+  - label: "Commits co-authored by AI in my work repository, out of 243"
+    value: "71"
+    source: "Work repository history, Oct 2026"
+    gain: "AI output goes through the same review and history as any other change."
+demoUrl: https://carrerable.github.io/agent-panel-demo/
+repoUrl: https://github.com/carrerable/agent-panel-demo
+---
+
+## Context
+
+AI coding agents are fast, and that is exactly the problem. Left alone with a vague request, an agent writes a lot of code quickly, and I find out later that it was the wrong code. Using the strongest model for everything is also wasteful: most engineering work is mechanical, like editing a file, running a test or searching a log.
+
+So I set up my own working system around Claude Code. Work is split by difficulty and cost between specialized agents, every task has a written plan before anyone executes it, and a small local panel shows which agent is working on what. This is personal tooling that I use every day, and the demo shows the panel with fictional data only.
+
+## My role
+
+- **Decided:** the three agent roles and which model each one uses, what each role is allowed to touch, the format every plan must follow, and what the panel records and what it deliberately does not.
+- **Verified:** that each plan can be executed by someone who has only the plan and the repository, that each step has a check I can read, and that the panel shows the real state of a session and not a guess.
+- **Delegated to AI:** the execution of approved plans, the searches through code and logs, and most of the panel code. The agents write; I own the plan, the rules and the decision to accept the result.
+
+## Research
+
+The starting question was where an expensive model earns its cost. I sorted my daily work into three kinds of task. The first needs judgment: planning a change, choosing an architecture, investigating a hard bug. The second executes a decision already made: edit these files, run this check, report what happened. The third finds things: locate a function, read a log, summarize a folder.
+
+Each kind maps to a different level of model and effort: judgment to the strongest model, execution to a mid-level one, searching to the cheapest. This is the same split I use at work, where the main session plans and decides and the heavy execution goes to specialized subagents: one that executes approved plans, one that validates in a browser, one for mechanical tasks and one for exploration.
+
+I also looked at what breaks when a simple model executes a plan written by a stronger one. The failures were nearly always ambiguity: a step with two readings, a missing file path, no instruction for a failed check. That shaped the plan format below.
+
+## Decisions
+
+| Decision | Alternatives rejected | Why |
+|---|---|---|
+| Three roles with a fixed model each: planner on the strongest model, executor on a mid-level model, explorer on the cheapest | One model for everything | Judgment is rare and expensive; execution and search are frequent and cheap. Pinning the model in the agent definition means nobody has to remember to choose it. |
+| The planner has no editing tools | A planner that also edits files | Its only product is a plan, so it cannot change the code. That keeps the plan and the execution reviewable as two separate things. |
+| Plans with nine mandatory sections, and an "If it fails" line on every step | Free-form plans | A free-form plan lets a step hide an assumption. With a fixed format, a simpler model can execute without interpreting, and a step that has no verification is visibly incomplete. |
+| The panel reads hook events into SQLite and serves only on 127.0.0.1 | A hosted dashboard in the cloud | Session data never leaves the machine. There is nothing to deploy, no account and no network exposure. |
+| The recorder never breaks the session: any error goes to a log and the process exits with code 0 | Failing loudly | The panel is a convenience. A monitoring tool that can crash the work it monitors is worse than no tool. |
+| Progress is completed steps divided by total steps | Time estimates | Steps are counted, not guessed. A percentage computed from real checkmarks cannot drift away from reality the way an estimate does. |
+
+## Validation & QA
+
+The plan format has nine sections, in this order: Objective, Expected result, Context, Constraints, Out of scope, Steps, Logging, Risks and rollback, and Open questions. Each step carries four fields: the action with the exact file and change, what it depends on, the verification with the expected output, and what to do if it fails. If there is an open question that only I can answer, the plan does not run until I answer it.
+
+Before the planner hands over a plan, it runs one final check on its own work: could someone who has only the plan and the repository execute every step? If any step fails that question, the planner fixes the plan before delivering it.
+
+The executor registers each step as a task, marks it in progress when it starts and completed only after the verification passes. If a check fails, it applies the "If it fails" instruction; if there is none, or the fix would leave the plan, it stops and reports. At the end it returns the steps done, the real output of each verification, any deviations and the files touched.
+
+Project rules always win over global rules; for example, a project can require checking that the computer is idle before something heavy. Short questions and one-line changes are not delegated: I do them directly.
+
+The panel is a small recorder script fed by hooks, a local server and one HTML page. The recorder reads the objective, dependency and next-step lines from each delegation prompt, takes the model from the agent definition, and stores sessions, agents and steps in SQLite. A step counts only when marked complete, so the percentage on screen is the one I would compute by hand.
+
+## Results
+
+- Three agent roles are in daily use, each pinned to a model by difficulty and cost.
+- Every plan follows the same nine sections, and every step says how to verify it.
+- Five hook events feed the panel: session start, before and after a tool call, and the start and end of a subagent.
+- The panel serves on 127.0.0.1 on port 8765 and refreshes every 2 seconds. It marks an agent as lost after 6 hours open and deletes finished ones after 24 hours, so the board stays readable.
+- 76 sessions are registered, and 71 of my 243 commits in the work repository are co-authored by an AI model.
+- One hook writes each session to a weekly log, and another rewrites an informal request as a structured prompt.
+
+I do not publish a figure for money or time saved, because I have not measured it in a way I would defend.
+
+## What it solves and where else it applies
+
+It solves the loss of control that comes with fast AI output. Because every task has a plan, a verification and a visible owner, I can always answer what is being done, by which agent, and how I know it worked.
+
+The same pattern applies in other places:
+
+- **Engineering teams adopting AI assistants:** separate planning from execution, so approving a plan is a different act from writing the code.
+- **Operations and support automation:** a planner defines the steps and an executor runs them, with a stop condition on every step.
+- **Any workflow mixing hard and routine work:** pay for the strong model only where judgment is needed.
+
+## What I'd do differently
+
+The store is per machine. A team would need a shared one, with identity and permissions, and that is a different design from a local file.
+
+Progress counts steps, not effort. Two plans with the same number of steps show the same percentage even if one is much larger.
+
+The panel does not alert. I have to look at it. A notice when an agent is lost or a step has been stuck for a long time would turn it from a display into a safety net.
+
+And I do not yet measure how many plans forced the executor to stop. That number would show which plans were ambiguous, so I would record it first.

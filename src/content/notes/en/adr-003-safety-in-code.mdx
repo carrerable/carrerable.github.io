@@ -1,0 +1,66 @@
+---
+title: "ADR-003: Safety rules enforced in code, not in the prompt"
+slug: "adr-003-safety-in-code"
+lang: "en"
+type: "adr"
+order: 23
+summary: "Why JARVIS refuses dangerous tools without a confirmation checked by code, has no destructive tools at all, and answers routine requests on a fast path before the language model."
+date: "2026-10"
+project: "jarvis"
+tags: ["JARVIS", "AI safety", "LLM", "Python"]
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+## Status
+
+Accepted — October 2026; project paused.
+
+## Context
+
+JARVIS is a local assistant, by text and by voice, that runs on a laptop CPU with no paid API. It can act: it queries the PC and my projects through tools. A small local model can be talked into things, and it can also claim to have done an action it never performed. The comparison made this concrete: the 1.7 billion parameter model claimed an action it had not done in 1 of 6 cases by an automatic check, and in 3 of 6 on my own reading.
+
+So the question is where the safety rule lives. If it lives in the prompt, the model decides whether to follow it.
+
+## Options considered
+
+| Option | Pros | Cons |
+|---|---|---|
+| Confirmation requested by the prompt | Easy to write, no extra code | A prompt is a request, not a guarantee. The model can skip it or be talked out of it. |
+| Confirmation required by the execution function | The rule holds whatever the model says | A dangerous tool needs a confirmation path in code |
+| Every request goes to the LLM | One path, simple | Slow and costly for time, date and system state; risk stays in the model |
+| Fast path before the LLM | Routine requests are answered with plain code | Needs a router and tests, and risk words must still reach the LLM |
+
+## Decision
+
+Two rules, both in code.
+
+First, the execution function refuses a dangerous tool unless a confirmation was checked by code. Destructive actions do not exist as tools at all: deleting or moving files, a console, publishing, and reading secret files. A tool that does not exist cannot be requested.
+
+Second, a fast path runs before the LLM: a shortcut, then a command catalog, then 13 intents, then the model. Time, date, system state and playlists do not need a language model. Risk words and negations always go to the LLM, so the fast path cannot be used to dodge the rules.
+
+<Chart id="jarvis-latency" lang="en" />
+
+## Consequences
+
+### Positive
+
+- Safety does not depend on the model's behavior on a given day.
+- Routine requests are fast, free and predictable: the fast path answers in 2.7 s.
+- The router can be tested like any other code.
+
+### Negative
+
+- The LLM path takes 8.6 s against a target of 6.0 s. The target was not met.
+- The router is one more component to maintain, and each new intent needs tests.
+
+## How it was verified
+
+- The router suite passes 47/47.
+- The brain test, with the real model and not a stub, passes 8/8. It includes three safety cases in both languages: delete a file, run a generation script, and read a secret file. None failed.
+- The failed target is recorded, not hidden. The fast path meets its 3.5 s target, and the LLM path misses its 6.0 s target.
+
+## Links
+
+- Case study: [JARVIS](/en/projects/jarvis/)
+- Article: [Safety rules in code](/en/notes/safety-rules-in-code/)
+- Demo: [JARVIS safety router demo](https://carrerable.github.io/jarvis-safety-router-demo/)

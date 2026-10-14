@@ -1,0 +1,113 @@
+---
+title: "Atributos dinámicos con 10 millones de pólizas: lo que me enseñó el benchmark"
+slug: "dynamic-attributes-at-scale"
+lang: "es"
+type: "article"
+order: 41
+summary: "Guardar campos que cambian por ramo es fácil; buscarlos rápido con seguridad a nivel de fila no lo es. Cuatro estrategias con 10 millones de pólizas sintéticas y el índice que nunca se usó."
+date: "2026-10-14"
+project: "reyber"
+tags: ["PostgreSQL", "JSONB", "índices", "RLS", "benchmark"]
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+## El problema
+
+Una agencia de seguros vende muchos ramos: autos, vida, mascotas, embarcaciones. Cada ramo describe su riesgo de forma distinta. Un auto tiene placa y año modelo; una mascota tiene raza y edad. Si cada ramo necesita sus propias columnas, cada producto nuevo se vuelve una migración del esquema, y una plataforma que promete "cualquier ramo sin escribir código" deja de cumplir su promesa.
+
+La respuesta habitual es dejar las partes estables de la póliza en columnas normales y poner las variables en una columna JSONB. Guardarlas es trivial. Lo difícil es la pantalla de búsqueda: un agente filtra pólizas por dos o tres atributos a la vez, y la respuesta tiene que llegar al instante aunque una sola agencia tenga una cartera del tamaño de la de una aseguradora grande.
+
+No quise adivinar. El modelo de datos de [REYBER](/es/projects/reyber/) era la decisión más cara de revertir, así que la medí antes de construir cualquier funcionalidad. La decisión misma está registrada en [ADR-001](/es/notes/adr-001-dynamic-attributes/). Este artículo trata de lo que me enseñó la medición, incluida la parte en que mis primeros resultados estaban mal.
+
+## Un benchmark que podía fallar
+
+Antes de correr nada escribí la hipótesis de modo que pudiera ser falsa: una tabla, columnas relacionales para lo estable, una columna JSONB para lo variable, un tenant con 10 millones de pólizas sintéticas, filtros de la pantalla de búsqueda resueltos dentro de un presupuesto de tiempo y ningún cambio de esquema por ramo nuevo. También dejé escrito, de antemano, qué haría con cada resultado posible. Si llega un resultado y no he decidido qué significa, me voy a sentir tentado a leerlo como yo quiero.
+
+Los datos eran sintéticos pero no de juguete: 10 millones de pólizas y 13,027,325 objetos asegurados, en una tabla de 2,979 MB en el escalón mayor. La escala importa porque la mayoría de los errores de indexado son invisibles en tablas pequeñas.
+
+El protocolo tenía una regla que ahora pongo desde el día uno de cualquier prototipo: medir con el rol propio de la aplicación en la base de datos, con la seguridad a nivel de fila (RLS) activa. Medir sin RLS es medir otro producto. Esa regla es la razón por la que el benchmark detectó su propio error más importante.
+
+## Cuatro formas de guardar una forma que cambia
+
+Las cuatro estrategias corrieron sobre los mismos datos y la misma tabla. Este es un ejemplo simplificado de la forma, con nombres de tabla genéricos. Es ilustrativo, no es código del proyecto.
+
+```sql
+-- ejemplo simplificado: tablas genéricas, no es código de producción
+CREATE TABLE policies (
+  id          bigint PRIMARY KEY,
+  tenant_id   uuid   NOT NULL,
+  line        text   NOT NULL,   -- autos, vida, mascotas...
+  status      text   NOT NULL,
+  attributes  jsonb  NOT NULL    -- la parte que cambia por ramo
+);
+
+CREATE TABLE insured_objects (
+  id          bigint PRIMARY KEY,
+  policy_id   bigint NOT NULL REFERENCES policies (id),
+  tenant_id   uuid   NOT NULL,
+  attributes  jsonb  NOT NULL
+);
+```
+
+Los cuatro candidatos:
+
+- **Un índice GIN general sobre la columna JSONB.** Un solo índice, cualquier atributo, sin trabajo por atributo.
+- **Índices de expresión, uno por atributo buscable.** Precisos y pequeños, pero cada atributo nuevo necesita un índice nuevo.
+- **Una tabla de proyección (C).** Una fila por valor de atributo, de modo que un filtro se vuelve un join sobre columnas simples y bien indexadas.
+- **Columnas generadas (G).** Los atributos escalares buscables se vuelven columnas reales calculadas a partir del JSONB.
+
+Después apareció una quinta forma como refinamiento de las columnas generadas: las **columnas mantenidas por trigger (G′)**, donde existe la misma columna simple pero un trigger copia el valor en lugar de que la base de datos lo calcule. Más adelante explico por qué importa.
+
+## El índice que nunca se usó
+
+Los primeros resultados estaban mal de una forma instructiva. Dos de las cuatro estrategias se veían terribles, y los números no encajaban con lo que sé de cómo se comportan esos índices. Así que no me limité a leer el reloj; leí los planes de consulta.
+
+Los planes decían lo mismo en ambos casos: un escaneo secuencial de la tabla, con el índice sin usar a un lado. Las estrategias no se estaban midiendo como estrategias de índice.
+
+La causa es una regla de PostgreSQL sobre la seguridad a nivel de fila. Con RLS activa, que es como corre el producto, el planificador no usa un índice sobre una condición cuyo operador no está marcado como leakproof. Un operador que no es leakproof podría, en principio, revelar información de filas que la política oculta, a través de un mensaje de error o un efecto secundario; por eso el planificador aplica primero el filtro de seguridad y solo después la condición. Ningún operador JSONB tiene esa marca. Así que cualquier índice que dependa de un operador JSONB se ignora bajo RLS, y la consulta degrada a un escaneo de tabla.
+
+De ahí salen dos consecuencias, y hoy las trato como reglas:
+
+1. Un benchmark que ignora RLS puede elegir al ganador equivocado para un producto que corre con RLS, porque mide un plan que el producto nunca va a tener.
+2. El reloj solo no es evidencia. Un plan donde el índice existe y no se usa parece "índice lento" en un cronómetro y "sin índice" en el plan. Solo el plan distingue una cosa de la otra.
+
+Como el protocolo exigía medir con el rol real, el error apareció antes de construir una decisión encima. El reporte conserva este error, junto con una búsqueda por prefijo que estaba rota en los dos candidatos y un resultado que parecía una victoria y no lo era. Dejo mis errores en el reporte a propósito: un reporte que los esconde no merece confianza en lo demás.
+
+## Qué ganó y cuánto cuesta
+
+<Chart id="reyber-benchmark" lang="es" />
+
+Una vez medidas las estrategias tal como correrían de verdad, el panorama fue claro:
+
+- La tabla de proyección (C) cuesta 6 veces más índice que la ganadora: 3,030 MB contra 492 MB.
+- En un filtro por dos atributos, C tardó 118 ms contra 1.2 ms. Es 98 veces peor.
+- C también escribe 1.7 veces más lento.
+- Las columnas generadas (G) no pueden buscar dentro de listas, y en seguros las listas no son casos raros: coberturas, beneficiarios, conductores adicionales.
+
+El diseño elegido es un híbrido. Los atributos se quedan en JSONB como fuente de verdad. Los atributos escalares buscables se copian a columnas simples mantenidas por un trigger (G′). Los atributos de lista van a una tabla de proyección. Las columnas simples pueden usar índices ordinarios bajo RLS, que es justo el punto.
+
+¿Por qué columnas mantenidas por trigger y no columnas generadas para los escalares? Por lo que pasa al agregar un atributo buscable a una cartera en vivo. Con columnas generadas tardó 113 s con la cartera detenida. Con el trigger tardó unos 233 s, pero la cartera siguió en línea: un lector concurrente vio un p95 de 3.6 ms contra 4.1 ms en reposo. Los agentes siguieron trabajando mientras el sistema aprendía un campo nuevo.
+
+Ese es el intercambio, y tiene un precio que acepto y dejé escrito: un trigger puede desincronizarse del JSONB del que copia, y ese riesgo requiere una verificación de consistencia. Quedan dos límites honestos. El benchmark midió un tenant dominante; no se midieron varios tenants de ese tamaño a la vez. Y las consultas que ningún índice arregla, como contar o agregar una lista enorme, resultaron ser una decisión de producto, no de base de datos.
+
+## Dónde más aplica
+
+El patrón no es de seguros. Cualquier producto donde la forma de un registro depende de una categoría tiene el mismo problema:
+
+- **Catálogos de comercio electrónico:** productos con atributos distintos por categoría, como talla en zapatos y capacidad en electrodomésticos, buscables sin una migración cada vez.
+- **CRM con campos personalizados:** cada cliente define sus propios campos y aun así filtra y reporta sobre ellos rápido.
+- **Expedientes médicos por especialidad:** cada especialidad registra datos distintos en un solo sistema, con búsqueda rápida entre pacientes.
+
+En todos, la versión peligrosa es la misma: JSONB más un índice general, probado sin las reglas de seguridad con las que va a correr el producto, sobre una tabla tan pequeña que esconde el problema.
+
+## Para llevar
+
+- Escribe la hipótesis de modo que pueda fallar y decide qué significa cada resultado antes de medir.
+- Mide con el rol real de la base de datos y con seguridad a nivel de fila activa. Si no, estás probando otro producto.
+- Lee el plan de consulta, no solo el reloj. Un índice sin usar y un índice lento se parecen en un cronómetro.
+- Con RLS activa, PostgreSQL ignora los índices sobre condiciones cuyo operador no es leakproof, y ningún operador JSONB lo es. Pasa los escalares buscables a columnas simples.
+- Deja JSONB como fuente de verdad, copia lo que buscas a columnas simples y manda los atributos de lista a una tabla de proyección.
+- Acepta un trigger que puede desincronizarse solo si dejas escrito el riesgo y planeas una verificación.
+- Conserva los errores de tu benchmark en el reporte. Son la parte más útil.
+
+Para el registro de la decisión, lee [ADR-001](/es/notes/adr-001-dynamic-attributes/). Para el proyecto completo, lee el [caso de estudio de REYBER](/es/projects/reyber/).

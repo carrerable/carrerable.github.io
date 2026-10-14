@@ -1,0 +1,86 @@
+---
+title: "Postmortem: a dry run that saw less than a third of the data"
+slug: "pagination-postmortem"
+lang: "en"
+type: "postmortem"
+order: 30
+summary: "A blameless review of a bulk correction whose rehearsal counted about 3,400 packages when 11,934 existed: root cause, contributing factors and the checks that came out of it."
+date: "2026-06-04"
+project: "pagination-root-cause"
+tags: ["postmortem", "SQL", "data quality", "root cause"]
+---
+
+This review is blameless. Its goal is to fix the system that let the problem exist, not to point at a person. Every sentence below describes what the process allowed, what caught the problem and what changes so the same gap cannot open again. The incident happened in a B2B SaaS for auto-repair shops (my current role), and nothing here names a customer.
+
+## Summary
+
+A change to the labor-cost formula in May 2026 left wrong costs in the shops that used the quantity field to adjust the cost. A bulk correction was needed across thousands of records. Before any write, the dry run counted about 3,400 service packages, while production held 11,934. The rehearsal had seen less than a third of the real data.
+
+The gap was traced to paginated reads without an `ORDER BY` on a unique key. A second problem surfaced right after the first fix: about 8,506 records with a null value were excluded by the first filter, even though the front end treats them as valid. Both were corrected, the counts matched, and the correction was validated in production on 4 June 2026.
+
+## Impact
+
+No data was written wrong because of this bug. It was detected in the dry run, before any write ran.
+
+Without that detection, the correction would have run on a partial view of the data and would have left most of the affected records uncorrected, while the output would have looked like a normal, successful run. The cost of the problem was the time spent investigating, not corrupted data.
+
+## Timeline
+
+Only the moments that are documented are listed. There are no hours and no intermediate dates.
+
+| When | What happened |
+|---|---|
+| May 2026 | The labor-cost formula changes. Shops that used the quantity field to adjust the cost are left with wrong costs, and a bulk correction is planned. |
+| First dry run | The script reports about 3,400 service packages. The real total is 11,934, about 3.5 times more. The correction is held back until the count can be explained. |
+| Investigation | The AI-written queries show that the script reads page after page without a stable order, so pages repeat or skip rows and the total silently shrinks. Ordering the reads by a unique key is the first fix. |
+| Right after the first fix | A second gap appears: about 8,506 records with a null value are excluded by the first filter. The filter is changed to treat nulls the way the front end does. |
+| 4 Jun 2026 | The final counts are validated in production: about 21,539 labor concepts, about 11,934 service packages and about 17,799 embedded concepts. |
+
+## Root cause
+
+The script read data in pages without an `ORDER BY` on a unique key. A relational database makes no promise about row order unless the query asks for one, so each page request may return rows in a different order from the previous one. Rows then appear on two pages or on none, and the total shrinks without any error message.
+
+```sql
+-- Illustrative example, not the production query.
+-- Unsafe: no ordering, so page boundaries are not stable.
+SELECT id, cost FROM service_packages WHERE active = 1 LIMIT 500 OFFSET 1000;
+
+-- Safe: a unique key gives every page a stable boundary.
+SELECT id, cost FROM service_packages WHERE active = 1 ORDER BY id LIMIT 500 OFFSET 1000;
+```
+
+On a small table the database often returns rows in a stable order by chance, so the bug stays invisible in small tests and shows up only at scale. That is why it was easy to write and hard to see.
+
+## Contributing factors
+
+- **The dry run trusted its own count.** It had nothing to compare against, so a wrong number looked like a result.
+- **Null semantics differed between layers.** The first filter excluded null values, while the front end treats them as valid. The correction rules and the application disagreed about what a valid record is.
+- **A bulk write has no natural undo.** The change was single-use by nature, so a second run would double the effect. That raised the cost of getting the count wrong.
+- **Pagination is easy to get wrong silently.** The failure is not an error. It is a smaller number.
+- **The review checklist had no item for ordering.** Nothing asked whether a paged read had a stable order.
+
+## What went well
+
+- The dry run was reviewed before any write, and the review compared the count with the real total.
+- When the numbers did not add up, the response was to ask for an investigation instead of adjusting the filter until the figure looked plausible.
+- The AI wrote the script and the investigation queries. I noticed that the numbers did not add up and asked for the root cause, so the human check and the machine speed worked together.
+- The correction rules were explicit: only records from before the formula change, active, and with a cost.
+- The script was marked as single-use, with an option to restrict it to one account.
+- Nothing was written with the wrong count.
+
+## What went poorly
+
+- The gap was found by looking at the output, not because a check failed by itself. A reviewer who did not compare the two numbers would have missed it.
+- A second filtering problem, the nulls, appeared only after the first fix, so the investigation took two rounds instead of one.
+- The process depended on someone remembering to compare the dry-run count with the real total.
+
+## Action items
+
+| Action | Type | Status |
+|---|---|---|
+| The dry run compares its count with an independent count taken without pagination, and stops if they differ. | detect | Proposed |
+| A checkbox about `ORDER BY` on every paged read, in code review. | prevent | Added to the [engineering playbook](/en/notes/engineering-playbook/) |
+| Filters replicate the null semantics of the front end. | prevent | Done in this correction |
+| A single-use marker and a restriction to one account. | prevent | Done in this correction |
+
+Related reading: the [case study](/en/projects/pagination-root-cause/), the article [Pagination without ORDER BY](/en/notes/pagination-without-order-by/) and the [live demo with synthetic data](https://carrerable.github.io/pagination-bug-demo/).

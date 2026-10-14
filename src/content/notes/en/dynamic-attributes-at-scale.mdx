@@ -1,0 +1,113 @@
+---
+title: "Dynamic attributes at 10 million policies: what the benchmark taught me"
+slug: "dynamic-attributes-at-scale"
+lang: "en"
+type: "article"
+order: 41
+summary: "Storing fields that change by product line is easy; searching them fast under row-level security is not. Four strategies on 10 million synthetic policies, and the index that was never used."
+date: "2026-10-14"
+project: "reyber"
+tags: ["PostgreSQL", "JSONB", "indexing", "RLS", "benchmark"]
+---
+import Chart from '../../../components/charts/Chart.astro';
+
+## The problem
+
+An insurance agency sells many lines: autos, life, pets, boats. Each line describes its risk differently. A car has a plate and a model year; a pet has a breed and an age. If every line needs its own columns, every new product becomes a schema migration, and a platform that promises "any line without writing code" stops keeping its promise.
+
+The usual answer is to keep the stable parts of a policy in normal columns and put the variable parts in a JSONB column. Storing them is trivial. The hard part is the search screen: an agent filters policies by two or three attributes at once, and the answer has to come back instantly even when one agency holds a portfolio the size of a large insurer's.
+
+I did not want to guess. The data model of [REYBER](/en/projects/reyber/) was the most expensive decision to reverse, so I measured it before building any feature. The decision itself is recorded in [ADR-001](/en/notes/adr-001-dynamic-attributes/). This article is about what the measurement taught me, including the part where my first results were wrong.
+
+## A benchmark that could fail
+
+Before running anything I wrote the hypothesis so that it could be false: one table, relational columns for the stable parts, a JSONB column for the variable ones, one tenant holding 10 million synthetic policies, search-screen filters answered inside a time budget, and no schema change per new line. I also wrote down, in advance, what I would do with each possible outcome. If a result arrived and I had not already decided what it meant, I would be tempted to read it the way I wanted.
+
+The data was synthetic but not toy-sized: 10 million policies and 13,027,325 insured objects, in a table of 2,979 MB at the largest step. Scale matters here because most indexing mistakes are invisible on small tables.
+
+The protocol had one rule I now put on day one of any prototype: measure under the application's own database role, with row-level security (RLS) on. Measuring without RLS is measuring a different product. That rule is the reason the benchmark caught its own most important mistake.
+
+## Four ways to store a changing shape
+
+All four strategies ran on the same data and the same table. Here is a simplified example of the shape, with generic table names. It is illustrative, not code from the project.
+
+```sql
+-- simplified example: generic tables, not production code
+CREATE TABLE policies (
+  id          bigint PRIMARY KEY,
+  tenant_id   uuid   NOT NULL,
+  line        text   NOT NULL,   -- autos, life, pets...
+  status      text   NOT NULL,
+  attributes  jsonb  NOT NULL    -- the part that changes by line
+);
+
+CREATE TABLE insured_objects (
+  id          bigint PRIMARY KEY,
+  policy_id   bigint NOT NULL REFERENCES policies (id),
+  tenant_id   uuid   NOT NULL,
+  attributes  jsonb  NOT NULL
+);
+```
+
+The four candidates:
+
+- **A general GIN index over the JSONB column.** One index, any attribute, no per-attribute work.
+- **Expression indexes, one per searchable attribute.** Precise and small, but every new attribute needs a new index.
+- **A projection table (C).** One row per attribute value, so a filter becomes a join over plain, well-indexed columns.
+- **Generated columns (G).** Searchable scalar attributes become real columns computed from the JSONB.
+
+Later a fifth shape appeared as a refinement of generated columns: **trigger-kept columns (G′)**, where the same plain column exists but a trigger copies the value instead of the database computing it. I will come back to why that matters.
+
+## The index that was never used
+
+The first results were wrong in an instructive way. Two of the four strategies looked terrible, and the numbers did not fit what I know about how those indexes behave. So I did not just read the clock; I read the query plans.
+
+The plans said the same thing for both: a sequential scan of the table, with the index sitting unused beside it. The strategies were not being measured as index strategies at all.
+
+The cause is a PostgreSQL rule about row-level security. With RLS on, which is how the product runs, the planner will not use an index on a condition whose operator is not marked leakproof. An operator that is not leakproof could, in principle, reveal information about rows the policy hides, through an error message or a side effect, so the planner applies the security filter first and only then the condition. Every JSONB operator lacks that mark. So any index that depends on a JSONB operator is skipped under RLS, and the query degrades to a table scan.
+
+Two consequences follow, and I now treat both as rules:
+
+1. A benchmark that ignores RLS can pick the wrong winner for a product that runs with RLS, because it measures a plan the product will never get.
+2. The wall clock alone is not evidence. A plan that shows an index existing and not being used looks like "slow index" on a stopwatch and like "no index at all" in the plan. Only the plan tells the two apart.
+
+Because the protocol demanded the measurement under the real role, the error showed up before any decision was built on it. The report keeps this mistake in it, along with a prefix search that was broken in both candidates and a result that looked like a win and was not. I keep my errors in the report on purpose: a report that hides them cannot be trusted about the rest.
+
+## What won, and what it costs
+
+<Chart id="reyber-benchmark" lang="en" />
+
+Once the strategies were measured as they would really run, the picture was clear:
+
+- The projection table (C) costs 6 times more index than the winner: 3,030 MB against 492 MB.
+- On a filter over two attributes, C took 118 ms against 1.2 ms. That is 98 times worse.
+- C also writes 1.7 times slower.
+- Generated columns (G) cannot search inside lists, and in insurance lists are not edge cases: coverages, beneficiaries, additional drivers.
+
+The chosen design is a hybrid. Attributes stay in JSONB as the source of truth. Searchable scalar attributes are copied to plain columns kept by a trigger (G′). List attributes go to a projection table. Plain columns can use ordinary indexes under RLS, which is the whole point.
+
+Why trigger-kept columns instead of generated columns for the scalars? Because of what happens when you add a searchable attribute to a live portfolio. With generated columns, it took 113 s with the portfolio locked. With the trigger approach it took about 233 s, but the portfolio stayed live: a concurrent reader saw a p95 of 3.6 ms against 4.1 ms at rest. Agents kept working while the system learned a new field.
+
+That is the trade, and it has a price I accept and wrote down: a trigger can drift out of sync with the JSONB it copies from, and that risk needs a consistency check. Two honest limits remain. The benchmark measured one dominant tenant; several tenants of that size at once were not measured. And the queries that no index can fix, such as counting or aggregating a huge list, turned out to be a product decision, not a database one.
+
+## Where else this applies
+
+The pattern is not about insurance. Any product where the shape of a record depends on a category has the same problem:
+
+- **E-commerce catalogs:** products with different attributes per category, such as size for shoes and capacity for appliances, searchable without a migration each time.
+- **CRMs with custom fields:** every customer defines their own fields and still filters and reports on them quickly.
+- **Medical records by specialty:** each specialty records different data in one system, with fast search across patients.
+
+In every one of them, the dangerous version is the same: JSONB plus a general index, tested without the security rules the product will run with, on a table small enough to hide the problem.
+
+## Takeaways
+
+- Write the hypothesis so it can fail, and decide what each outcome means before you measure.
+- Measure under the real database role with row-level security on. Otherwise you are benchmarking a different product.
+- Read the query plan, not only the clock. An unused index and a slow index look alike on a stopwatch.
+- With RLS on, PostgreSQL skips indexes on conditions whose operator is not leakproof, and no JSONB operator is. Move the searchable scalars to plain columns.
+- Keep JSONB as the source of truth, copy what you search into plain columns, and send list attributes to a projection table.
+- Accept a trigger that can drift only if you write the risk down and plan a check for it.
+- Keep your benchmark's mistakes in the report. They are the most useful part.
+
+For the decision record, read [ADR-001](/en/notes/adr-001-dynamic-attributes/). For the whole project, read the [REYBER case study](/en/projects/reyber/).
