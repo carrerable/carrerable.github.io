@@ -75,14 +75,14 @@ const jsonLd = {
   <Section tone="alt" id="pillars">
     <SectionHeader index="01" eyebrow={t['section.pillars']} title={t['section.pillars']} em={lang === 'en' ? 'do' : 'hago'} />
     <div class="grid">
-      {t.pillars.map((p, i) => <Card class="reveal" title={p.title} index={`0${i + 1}`}><p>{p.text}</p></Card>)}
+      {t.pillars.map((p, i) => <Card class="reveal" title={p.title} index={`0${i + 1}`}><p>{p.text}</p><p class="pillar-gain">{p.gain}</p></Card>)}
     </div>
   </Section>
 
   <Section tone="coral" bg="dots" id="numbers">
     <SectionHeader index="02" eyebrow={lang === 'es' ? 'Métricas' : 'Metrics'} title={t['section.numbers']} em={t['numbers.em']} lead={t['numbers.lead']} />
     <div class="metrics">
-      {band.map((m, i) => <MetricCard value={m.value} label={m.label} source={m.source} context={m.context} href={m.href} cta={m.cta} bars={'bars' in m ? [...m.bars] : undefined} delay={i} />)}
+      {band.map((m, i) => <MetricCard value={m.value} label={m.label} source={m.source} gain={m.gain} context={m.context} href={m.href} cta={m.cta} bars={'bars' in m ? [...m.bars] : undefined} delay={i} />)}
     </div>
   </Section>
 

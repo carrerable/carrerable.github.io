@@ -14,7 +14,9 @@ const projects = defineCollection({
     status: z.enum(['production', 'building', 'paused', 'documented', 'learning', 'delivered']),
     stack: z.array(z.string()).min(1),
     aiTools: z.array(z.string()),
-    metrics: z.array(z.object({ label: z.string(), value: z.string(), source: z.string() })).max(4),
+    // `gain`: qué gana quien contrata, en una frase. `pitch`: qué resuelve el caso, en una frase, para el panel lateral.
+    metrics: z.array(z.object({ label: z.string(), value: z.string(), source: z.string(), gain: z.string().optional() })).max(4),
+    pitch: z.string().max(200).optional(),
     demoUrl: z.string().url().optional(),
     repoUrl: z.string().url().optional(),
   }),

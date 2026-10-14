@@ -202,6 +202,9 @@ em.hl, .hl { font-style: normal; color: var(--acc); }
 .metric .go:hover { color: var(--c-coral); }
 .metric.accent .go { color: var(--c-ink); }
 .metric .src + .go { margin-top: var(--s-1); }
+.metric .gain { margin: 0; padding-left: 0.7rem; border-left: 2px solid var(--c-coral); font-size: var(--t-sm); line-height: 1.35; font-weight: 600; color: var(--card-fg); }
+.metric.accent .gain { border-left-color: var(--c-ink); color: var(--c-ink); }
+.pillar-gain { margin: var(--s-3) 0 0; padding-left: 0.7rem; border-left: 2px solid var(--c-coral); font-weight: 600; }
 .metric .viz { display: flex; align-items: flex-end; gap: var(--s-4); margin-top: var(--s-2); }
 .metric.accent { background: var(--c-coral); color: var(--c-ink); border-color: transparent; }
 .metric.accent .num, .metric.accent .label { color: var(--c-ink); }
